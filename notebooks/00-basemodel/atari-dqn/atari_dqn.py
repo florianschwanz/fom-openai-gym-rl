@@ -20,17 +20,16 @@ from input_extractor import InputExtractor
 from performance_plotter import PerformancePlotter
 from model_optimizer import ModelOptimizer
 
-ENVIRONMENT_NAME = 'Pong-v0'
-
-# Initialize environment
-env = gym.make(ENVIRONMENT_NAME).unwrapped
-
-# Set up matplotlib
-plt.ion()
-
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Enable interactive mode
+plt.ion()
+
+# Define environment name
+ENVIRONMENT_NAME = 'Pong-v0'
+# Initialize environment
+env = gym.make(ENVIRONMENT_NAME).unwrapped
 # Reset environment
 env.reset()
 # Plot initial screen
@@ -66,6 +65,8 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 10
 
+REPLAY_MEMORY_SIZE = 10000
+
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90
 # which is the result of a clamped and down-scaled render buffer in get_screen()
@@ -85,9 +86,8 @@ target_net.eval()
 
 # Initialize optimizer
 optimizer = optim.RMSprop(policy_net.parameters())
-memory = ReplayMemory(10000)
-
-episode_durations = []
+# Initialize replay memory
+memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
 ######################################################################
 #
@@ -102,7 +102,9 @@ episode_durations = []
 # duration improvements.
 #
 
-# Define number of epsiodes
+episode_durations = []
+
+# Define number of episodes
 NUM_EPISODES = 50
 
 # Iterate over episodes
@@ -113,6 +115,8 @@ for i_episode in range(NUM_EPISODES):
     last_screen = InputExtractor.get_screen(env=env, device=device)
     current_screen = InputExtractor.get_screen(env=env, device=device)
     state = current_screen - last_screen
+
+    # Run episode until status done is reached
     for t in count():
         # Select and perform an action
         action = ActionSelector.select_action(state=state,
