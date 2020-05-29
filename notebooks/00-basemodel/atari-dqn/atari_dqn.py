@@ -59,7 +59,7 @@ import torch.nn.functional as F
 import torchvision.transforms as T
 
 # Initialize environment
-env = gym.make('CartPole-v0').unwrapped
+env = gym.make('Pong-v0').unwrapped
 
 # Set up matplotlib
 is_ipython = 'inline' in matplotlib.get_backend()
@@ -96,7 +96,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
-
 class ReplayMemory(object):
     """
     Replay Memory
@@ -124,7 +123,6 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
-
 
 ######################################################################
 # Now, let's define our model. But first, let quickly recap what a DQN is.
@@ -243,13 +241,6 @@ resize = T.Compose([T.ToPILImage(),
                     T.Resize(40, interpolation=Image.CUBIC),
                     T.ToTensor()])
 
-
-def get_cart_location(screen_width):
-    world_width = env.x_threshold * 2
-    scale = screen_width / world_width
-    return int(env.state[0] * scale + screen_width / 2.0)  # MIDDLE OF CART
-
-
 def get_screen():
     # Returned screen requested by gym is 400x600x3, but is sometimes larger
     # such as 800x1200x3. Transpose it into torch order (CHW).
@@ -258,27 +249,12 @@ def get_screen():
     _, screen_height, screen_width = screen.shape
     screen = screen[:, int(screen_height * 0.4):int(screen_height * 0.8)]
 
-    # Center cart to make further processing easier
-
-    view_width = int(screen_width * 0.6)
-    cart_location = get_cart_location(screen_width)
-    if cart_location < view_width // 2:
-        slice_range = slice(view_width)
-    elif cart_location > (screen_width - view_width // 2):
-        slice_range = slice(-view_width, None)
-    else:
-        slice_range = slice(cart_location - view_width // 2,
-                            cart_location + view_width // 2)
-    # Strip off the edges, so that we have a square image centered on a cart
-    screen = screen[:, :, slice_range]
-
     # Convert to float, rescale, convert to torch tensor
     # (this doesn't require a copy)
     screen = np.ascontiguousarray(screen, dtype=np.float32) / 255
     screen = torch.from_numpy(screen)
     # Resize, and add a batch dimension (BCHW)
     return resize(screen).unsqueeze(0).to(device)
-
 
 def plot_screen(screen, title):
     """
@@ -290,7 +266,6 @@ def plot_screen(screen, title):
                interpolation='none')
     plt.title(title)
     plt.show()
-
 
 #
 # Main part
@@ -473,7 +448,6 @@ def optimize_model():
         param.grad.data.clamp_(-1, 1)
     optimizer.step()
 
-
 ######################################################################
 #
 # Below, you can find the main training loop. At the beginning we reset
@@ -489,6 +463,7 @@ def optimize_model():
 
 num_episodes = 50
 for i_episode in range(num_episodes):
+
     # Initialize the environment and state
     env.reset()
     last_screen = get_screen()
@@ -499,8 +474,6 @@ for i_episode in range(num_episodes):
         action = select_action(state)
         _, reward, done, _ = env.step(action.item())
         reward = torch.tensor([reward], device=device)
-
-
 
         # Observe new state
         last_screen = current_screen
