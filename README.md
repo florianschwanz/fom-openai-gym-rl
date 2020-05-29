@@ -8,7 +8,7 @@ Follow one of the links below to get to the readme file of a specific model
 
 Base models do not contain any optimization in regards to reward shaping
 
-[Atari DQN](./notebooks/00-basemodel/atari-dqn/atari_rainbow_dqn.md)
+[Atari DQN](./notebooks/00-basemodel/atari-dqn/atari_dqn.md)
 
 * model based on [Pytorch DQN tutorial](https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html)
 
