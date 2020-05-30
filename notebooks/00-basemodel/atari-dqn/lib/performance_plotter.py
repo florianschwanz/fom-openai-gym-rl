@@ -33,3 +33,28 @@ class PerformancePlotter:
         if is_ipython:
             display.clear_output(wait=True)
             display.display(plt.gcf())
+
+    def plot_loss(episode_losses):
+        """
+        Plots losses of a epoch
+        :param episode_losses: losses of each episode
+        :return:
+        """
+
+        plt.figure(2)
+        plt.clf()
+        losses_t = torch.tensor(episode_losses, dtype=torch.float)
+        plt.title('Training...')
+        plt.xlabel('Episode')
+        plt.ylabel('Loss')
+        plt.plot(losses_t.numpy())
+        # Take 100 episode averages and plot them too
+        if len(losses_t) >= 100:
+            means = losses_t.unfold(0, 100, 1).mean(1).view(-1)
+            means = torch.cat((torch.zeros(99), means))
+            plt.plot(means.numpy())
+
+        plt.pause(0.001)  # pause a bit so that plots are updated
+        if is_ipython:
+            display.clear_output(wait=True)
+            display.display(plt.gcf())

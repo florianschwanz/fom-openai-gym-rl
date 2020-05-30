@@ -19,6 +19,7 @@ from action_selector import ActionSelector
 from input_extractor import InputExtractor
 from performance_plotter import PerformancePlotter
 from model_optimizer import ModelOptimizer
+from environment_enum import Environment
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -27,7 +28,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 plt.ion()
 
 # Define environment name
-ENVIRONMENT_NAME = 'Pong-v0'
+ENVIRONMENT_NAME = Environment.PONG_v0.value
 # Initialize environment
 env = gym.make(ENVIRONMENT_NAME).unwrapped
 # Reset environment
@@ -103,6 +104,7 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 #
 
 episode_durations = []
+episode_losses = []
 
 # Define number of episodes
 NUM_EPISODES = 50
@@ -146,18 +148,28 @@ for i_episode in range(NUM_EPISODES):
         state = next_state
 
         # Perform one step of the optimization (on the target network)
-        ModelOptimizer.optimize_model(policy_net=policy_net,
-                                      target_net=target_net,
-                                      optimizer=optimizer,
-                                      memory=memory,
-                                      batch_size=BATCH_SIZE,
-                                      gamma=GAMMA,
-                                      device=device)
+        loss = ModelOptimizer.optimize_model(policy_net=policy_net,
+                                             target_net=target_net,
+                                             optimizer=optimizer,
+                                             memory=memory,
+                                             batch_size=BATCH_SIZE,
+                                             gamma=GAMMA,
+                                             device=device)
 
         # Plot performance once the episode is done
         if done:
+            print("-------------")
+            print("Episode  " + str(i_episode))
+
+            print("duration " + str(t))
             episode_durations.append(t + 1)
             PerformancePlotter.plot_durations(episode_durations)
+
+            if loss is not None:
+                print("loss     " + str(loss.item()))
+                episode_losses.append(loss.item())
+                PerformancePlotter.plot_loss(episode_losses)
+
             break
 
     # Update the target network, copying all weights and biases from policy net into target net
