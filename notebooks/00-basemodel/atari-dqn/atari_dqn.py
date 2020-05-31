@@ -42,7 +42,7 @@ env = gym.make(ENVIRONMENT_NAME.value).unwrapped
 # Reset environment
 env.reset()
 # Plot initial screen
-InputExtractor.plot_screen(InputExtractor.get_screen(env=env, device=device), 'Example extracted screen')
+InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
 
 ######################################################################
 # Training
@@ -115,7 +115,7 @@ for i_episode in range(NUM_EPISODES):
     state = current_screen - last_screen
 
     # Run episode until status done is reached
-    for t in count():
+    for i_frame in count():
         # Select and perform an action
         action = ActionSelector.select_action(state=state,
                                               n_actions=n_actions,
@@ -124,6 +124,8 @@ for i_episode in range(NUM_EPISODES):
                                               epsilon_start=EPS_START,
                                               epsilon_decay=EPS_DECAY,
                                               device=device)
+
+        # Do step
         _, reward, done, _ = env.step(action.item())
 
         # Transform reward into a tensor
@@ -155,12 +157,12 @@ for i_episode in range(NUM_EPISODES):
 
         # Plot performance once the episode is done
         if done:
-            episode_durations.append(t + 1)
+            episode_durations.append(i_frame + 1)
 
             if loss is None:
-                print("Episode  " + str(i_episode+1) + " (" + str(t) + " frames) reward " + str(reward.item()))
+                print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward " + str(reward.item()))
             else:
-                print("Episode  " + str(i_episode+1) + " (" + str(t) + " frames) reward "
+                print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward "
                       + str(reward.item()) + " loss " + str(loss.item()))
                 episode_losses.append(loss.item())
             break
