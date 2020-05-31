@@ -104,9 +104,13 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 episode_durations = []
 episode_losses = []
 episode_rewards = []
+episode_reward = 0
 
 # Iterate over episodes
 for i_episode in range(NUM_EPISODES):
+
+    #Reset episode reward
+    episode_reward = 0
 
     # Initialize the environment and state
     env.reset()
@@ -116,6 +120,7 @@ for i_episode in range(NUM_EPISODES):
 
     # Run episode until status done is reached
     for i_frame in count():
+
         # Select and perform an action
         action = ActionSelector.select_action(state=state,
                                               n_actions=n_actions,
@@ -127,6 +132,9 @@ for i_episode in range(NUM_EPISODES):
 
         # Do step
         _, reward, done, _ = env.step(action.item())
+
+        # Add reward to episode reward
+        episode_reward += reward
 
         # Transform reward into a tensor
         reward = torch.tensor([reward], device=device)
@@ -160,10 +168,10 @@ for i_episode in range(NUM_EPISODES):
             episode_durations.append(i_frame + 1)
 
             if loss is None:
-                print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward " + str(reward.item()))
+                print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward " + str(episode_reward))
             else:
                 print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward "
-                      + str(reward.item()) + " loss " + str(loss.item()))
+                      + str(episode_reward) + " loss " + str(loss.item()))
                 episode_losses.append(loss.item())
             break
 
