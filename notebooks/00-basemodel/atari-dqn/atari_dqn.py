@@ -107,13 +107,15 @@ episode_durations = []
 episode_losses = []
 episode_rewards = []
 episode_reward = 0
+episode_shaping_events = 0
 
 # Iterate over episodes
 progress_bar = tqdm(range(NUM_EPISODES), unit='episode')
 for i_episode in progress_bar:
 
-    #Reset episode reward
+    # Reset episode variables
     episode_reward = 0
+    episode_shaping_events = 0
 
     # Initialize the environment and state
     env.reset()
@@ -141,7 +143,8 @@ for i_episode in progress_bar:
 
         # Plot screen if there has been a shaped reward
         if shaped_reward != reward:
-            InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
+            episode_shaping_events += 1
+            # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
 
         # Use shaped reward for further processing
         reward = shaped_reward
@@ -181,10 +184,12 @@ for i_episode in progress_bar:
             episode_durations.append(i_frame + 1)
 
             if loss is None:
-                print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward " + str(episode_reward))
+                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward " + str(
+                    episode_reward)) + " shaping events " + str(episode_shaping_events)
             else:
-                print("Episode  " + str(i_episode+1) + " (" + str(i_frame) + " frames) reward "
-                      + str(episode_reward) + " loss " + str(loss.item()))
+                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward "
+                      + " shaping events " + str(episode_shaping_events) + str(episode_reward) + " loss " + str(
+                    loss.item()))
                 episode_losses.append(loss.item())
             break
 
