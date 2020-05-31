@@ -17,14 +17,13 @@ from replay_memory import ReplayMemory
 from deep_q_network import DeepQNetwork
 from action_selector import ActionSelector
 from input_extractor import InputExtractor
-from performance_plotter import PerformancePlotter
 from model_optimizer import ModelOptimizer
 from environment_enum import Environment
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Enable interactive mode
+# Enable interactive mode of matplotlib
 plt.ion()
 
 # Define environment name
@@ -105,6 +104,7 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
 episode_durations = []
 episode_losses = []
+episode_rewards = []
 
 # Define number of episodes
 NUM_EPISODES = 50
@@ -136,6 +136,7 @@ for i_episode in range(NUM_EPISODES):
         # Observe new state
         last_screen = current_screen
         current_screen = InputExtractor.get_screen(env=env, device=device)
+
         if not done:
             next_state = current_screen - last_screen
         else:
@@ -158,18 +159,14 @@ for i_episode in range(NUM_EPISODES):
 
         # Plot performance once the episode is done
         if done:
-            print("-------------")
-            print("Episode  " + str(i_episode))
-
-            print("duration " + str(t))
             episode_durations.append(t + 1)
-            PerformancePlotter.plot_durations(episode_durations)
 
-            if loss is not None:
-                print("loss     " + str(loss.item()))
+            if loss is None:
+                print("Episode  " + str(i_episode+1) + " (" + str(t) + " frames) reward " + str(reward.item()))
+            else:
+                print("Episode  " + str(i_episode+1) + " (" + str(t) + " frames) reward "
+                      + str(reward.item()) + " loss " + str(loss.item()))
                 episode_losses.append(loss.item())
-                PerformancePlotter.plot_loss(episode_losses)
-
             break
 
     # Update the target network, copying all weights and biases from policy net into target net
