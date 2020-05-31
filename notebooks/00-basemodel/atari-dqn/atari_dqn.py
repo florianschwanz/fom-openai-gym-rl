@@ -20,16 +20,25 @@ from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from environment_enum import Environment
 
+# Define setup
+ENVIRONMENT_NAME = Environment.PONG_v0
+BATCH_SIZE = 128
+GAMMA = 0.999
+EPS_START = 0.9
+EPS_END = 0.05
+EPS_DECAY = 200
+TARGET_UPDATE = 10
+REPLAY_MEMORY_SIZE = 10000
+NUM_EPISODES = 50
+
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Enable interactive mode of matplotlib
 plt.ion()
 
-# Define environment name
-ENVIRONMENT_NAME = Environment.PONG_v0.value
 # Initialize environment
-env = gym.make(ENVIRONMENT_NAME).unwrapped
+env = gym.make(ENVIRONMENT_NAME.value).unwrapped
 # Reset environment
 env.reset()
 # Plot initial screen
@@ -56,16 +65,6 @@ InputExtractor.plot_screen(InputExtractor.get_screen(env=env, device=device), 'E
 #    containing the main training loop, and will update after every
 #    episode.
 #
-
-# Set hyper-parameters
-BATCH_SIZE = 128
-GAMMA = 0.999
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 200
-TARGET_UPDATE = 10
-
-REPLAY_MEMORY_SIZE = 10000
 
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90
@@ -105,9 +104,6 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 episode_durations = []
 episode_losses = []
 episode_rewards = []
-
-# Define number of episodes
-NUM_EPISODES = 50
 
 # Iterate over episodes
 for i_episode in range(NUM_EPISODES):
