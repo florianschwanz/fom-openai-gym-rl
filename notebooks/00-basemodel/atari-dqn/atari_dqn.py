@@ -6,6 +6,7 @@ import gym
 import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
+from tqdm import tqdm_notebook as tqdm
 
 # Make library available in path
 lib_path = os.path.join(os.getcwd(), 'lib')
@@ -19,6 +20,7 @@ from action_selector import ActionSelector
 from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from environment_enum import Environment
+from pong_reward_shaper import PongRewardShaper
 
 # Define setup
 ENVIRONMENT_NAME = Environment.PONG_v0
@@ -107,7 +109,8 @@ episode_rewards = []
 episode_reward = 0
 
 # Iterate over episodes
-for i_episode in range(NUM_EPISODES):
+progress_bar = tqdm(range(NUM_EPISODES), unit='episode')
+for i_episode in progress_bar:
 
     #Reset episode reward
     episode_reward = 0
@@ -131,7 +134,17 @@ for i_episode in range(NUM_EPISODES):
                                               device=device)
 
         # Do step
-        _, reward, done, _ = env.step(action.item())
+        observation, reward, done, info = env.step(action.item())
+
+        # Shape reward
+        shaped_reward = PongRewardShaper(observation, reward, done, info).reward_center_ball(0.5)
+
+        # Plot screen if there has been a shaped reward
+        if shaped_reward != reward:
+            InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
+
+        # Use shaped reward for further processing
+        reward = shaped_reward
 
         # Add reward to episode reward
         episode_reward += reward
