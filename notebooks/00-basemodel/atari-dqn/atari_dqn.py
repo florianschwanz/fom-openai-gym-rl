@@ -36,7 +36,7 @@ TARGET_UPDATE = 10
 REPLAY_MEMORY_SIZE = 10000
 NUM_EPISODES = 50
 REWARD_SHAPINGS = [
-    RewardShape.PONG_PROXIMITY_TO_BALL
+    RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC
 ]
 
 # Set up device
@@ -162,8 +162,10 @@ for i_episode in progress_bar:
                 shaped_reward = reward_shaper.reward_center_ball()
             if RewardShape.PONG_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
                 shaped_reward = reward_shaper.reward_close_to_ball()
-            if RewardShape.PONG_PROXIMITY_TO_BALL in REWARD_SHAPINGS:
-                shaped_reward = reward_shaper.reward_vertical_proximity_to_ball()
+            if RewardShape.PONG_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
+                shaped_reward = reward_shaper.reward_vertical_proximity_to_ball_linear()
+            if RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
+                shaped_reward = reward_shaper.reward_vertical_proximity_to_ball_quadratic()
 
         # Use shaped reward for further processing
         reward = shaped_reward
