@@ -202,11 +202,11 @@ for i_episode in progress_bar:
             episode_durations.append(i_frame + 1)
 
             if loss is not None:
-                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) "
-                      + "original reward " + str(episode_original_reward)
-                      + "shaped reward " + str(episode_shaped_reward)
-                      + "shaping events " + str(episode_shaping_events)
-                      + "loss " + loss.item())
+                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames)"
+                      + " original reward " + str(episode_original_reward)
+                      + " shaped reward " + str(episode_shaped_reward)
+                      + " shaping events " + str(episode_shaping_events)
+                      + " loss " + str(loss.item()))
             break
 
     # Update the target network, copying all weights and biases from policy net into target net
