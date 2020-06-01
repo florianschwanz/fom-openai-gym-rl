@@ -27,7 +27,7 @@ class PongRewardShaper:
         self.ball_pixels = PongRewardShaper.get_ball_pixels(self.pixels)
         self.racket_pixels = PongRewardShaper.get_racket_pixels(self.pixels)
 
-    def reward_center_ball(self, additional_reward):
+    def reward_center_ball(self, additional_reward=0.5):
         """
         Gives an additional reward if the player's racket is placed on the same y-coordinate as the ball
         :return: shaped reward

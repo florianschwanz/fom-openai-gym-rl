@@ -21,6 +21,7 @@ from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from environment_enum import Environment
 from pong_reward_shaper import PongRewardShaper
+from reward_shape_enum import RewardShape
 
 # Define setup
 ENVIRONMENT_NAME = Environment.PONG_v0
@@ -32,6 +33,9 @@ EPS_DECAY = 200
 TARGET_UPDATE = 10
 REPLAY_MEMORY_SIZE = 10000
 NUM_EPISODES = 50
+REWARD_SHAPINGS = [
+    RewardShape.PONG_CENTER_RACKET_ON_BALL
+]
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -139,9 +143,11 @@ for i_episode in progress_bar:
         observation, reward, done, info = env.step(action.item())
 
         # Shape reward
-        shaped_reward = PongRewardShaper(observation, reward, done, info).reward_center_ball(0.5)
+        shaped_reward = reward
+        if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
+            shaped_reward = PongRewardShaper(observation, reward, done, info).reward_center_ball()
 
-        # Plot screen if there has been a shaped reward
+        # Track reward shaping event
         if shaped_reward != reward:
             episode_shaping_events += 1
             # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
