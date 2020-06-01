@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from itertools import count
 
 import gym
@@ -22,6 +23,7 @@ from model_optimizer import ModelOptimizer
 from environment_enum import Environment
 from pong_reward_shaper import PongRewardShaper
 from reward_shape_enum import RewardShape
+from performance_logger import PerformanceLogger
 
 # Define setup
 ENVIRONMENT_NAME = Environment.PONG_v0
@@ -107,21 +109,24 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 # duration improvements.
 #
 
-episode_durations = []
+total_frames = 0
+
 episode_losses = []
 episode_rewards = []
 episode_original_reward = 0
 episode_shaped_reward = 0
-episode_shaping_events = 0
+
+total_start_time = time.time()
 
 # Iterate over episodes
 progress_bar = tqdm(range(NUM_EPISODES), unit='episode')
 for i_episode in progress_bar:
 
+    episode_start_time = time.time()
+
     # Reset episode variables
     episode_original_reward = 0
     episode_shaped_reward = 0
-    episode_shaping_events = 0
 
     # Initialize the environment and state
     env.reset()
@@ -131,6 +136,8 @@ for i_episode in progress_bar:
 
     # Run episode until status done is reached
     for i_frame in count():
+
+        total_frames += 1
 
         # Select and perform an action
         action = ActionSelector.select_action(state=state,
@@ -157,13 +164,6 @@ for i_episode in progress_bar:
                 shaped_reward = reward_shaper.reward_close_to_ball()
             if RewardShape.PONG_PROXIMITY_TO_BALL in REWARD_SHAPINGS:
                 shaped_reward = reward_shaper.reward_vertical_proximity_to_ball()
-
-        # Track reward shaping event
-        if shaped_reward != original_reward:
-            episode_shaping_events += 1
-
-        # if (i_frame % 100 == 0):
-        #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
 
         # Use shaped reward for further processing
         reward = shaped_reward
@@ -201,14 +201,22 @@ for i_episode in progress_bar:
 
         # Plot performance once the episode is done
         if done:
-            episode_durations.append(i_frame + 1)
+            # if (i_frame % 100 == 0):
+            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
+
+            episode_end_time = time.time()
+            episode_duration = episode_end_time - episode_start_time
+            total_duration = episode_end_time - total_start_time
 
             if loss is not None:
-                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames)"
-                      + " original reward " + str(episode_original_reward)
-                      + " shaped reward " + str(episode_shaped_reward)
-                      + " shaping events " + str(episode_shaping_events)
-                      + " loss " + str(loss.item()))
+                PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
+                                                    total_frames=total_frames,
+                                                    total_duration=total_duration,
+                                                    episode_frames=i_frame + 1,
+                                                    episode_original_reward=episode_original_reward,
+                                                    episode_shaped_reward=episode_shaped_reward,
+                                                    episode_loss=loss.item(),
+                                                    episode_duration=episode_duration)
             break
 
     # Update the target network, copying all weights and biases from policy net into target net
