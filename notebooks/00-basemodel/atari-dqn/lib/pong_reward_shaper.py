@@ -46,7 +46,7 @@ class PongRewardShaper:
         :return: shaped reward
         """
 
-        if self.ball_center is not None \
+        if self.ball_center is not None and self.racket_center is not None \
                 and self.ball_center[1] == self.racket_center[1]:
             return self.reward + additional_reward
         else:
@@ -60,6 +60,20 @@ class PongRewardShaper:
 
         if self.ball_center is not None and self.racket_top is not None and self.racket_bottom is not None \
                 and self.racket_top[1] <= self.ball_center[1] <= self.racket_bottom[1]:
+            return self.reward + additional_reward
+        else:
+            return self.reward
+
+    def reward_vertical_proximity_to_ball(self, max_additional_reward=0.5):
+        reward_max = max_additional_reward
+        reward_min = 0
+
+        dist_max = 160
+        dist_min = 0
+
+        if self.ball_center is not None and self.racket_center is not None:
+            dist = abs(self.ball_center[1] - self.racket_center[1])
+            additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
             return self.reward + additional_reward
         else:
             return self.reward
