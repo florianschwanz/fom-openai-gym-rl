@@ -187,8 +187,8 @@ for i_episode in progress_bar:
                 print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward " + str(
                     episode_reward)) + " shaping events " + str(episode_shaping_events)
             else:
-                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward "
-                      + " shaping events " + str(episode_shaping_events) + str(episode_reward) + " loss " + str(
+                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward " + str(episode_reward)
+                      + " shaping events " + str(episode_shaping_events) + " loss " + str(
                     loss.item()))
                 episode_losses.append(loss.item())
             break
