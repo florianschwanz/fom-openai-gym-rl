@@ -34,7 +34,8 @@ TARGET_UPDATE = 10
 REPLAY_MEMORY_SIZE = 10000
 NUM_EPISODES = 50
 REWARD_SHAPINGS = [
-    RewardShape.PONG_CENTER_RACKET_ON_BALL
+    RewardShape.PONG_CENTER_RACKET_ON_BALL,
+    RewardShape.PONG_RACKET_CLOSE_TO_BALL
 ]
 
 # Set up device
@@ -147,13 +148,20 @@ for i_episode in progress_bar:
         # Shape reward
         original_reward = reward
         shaped_reward = reward
-        if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
-            shaped_reward = PongRewardShaper(observation, reward, done, info).reward_center_ball()
+
+        if ENVIRONMENT_NAME == Environment.PONG_v0:
+            reward_shaper = PongRewardShaper(observation, reward, done, info)
+
+            if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
+                shaped_reward = reward_shaper.reward_center_ball()
+            if RewardShape.PONG_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
+                shaped_reward = reward_shaper.reward_close_to_ball()
 
         # Track reward shaping event
         if shaped_reward != original_reward:
             episode_shaping_events += 1
-            # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
+            # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped
+            # screen')
 
         # Use shaped reward for further processing
         reward = shaped_reward

@@ -27,25 +27,42 @@ class PongRewardShaper:
         self.ball_pixels = PongRewardShaper.get_ball_pixels(self.pixels)
         self.racket_pixels = PongRewardShaper.get_racket_pixels(self.pixels)
 
+        self.ball_center = None
+        self.racket_top = None
+        self.racket_bottom = None
+        self.racket_center = None
+
+        if len(self.ball_pixels) > 0:
+            self.ball_center = PongRewardShaper.get_component_center(self.ball_pixels)
+
+        if len(self.racket_pixels) > 0:
+            self.racket_top = PongRewardShaper.get_component_top(self, self.racket_pixels)
+            self.racket_bottom = PongRewardShaper.get_component_bottom(self.racket_pixels)
+            self.racket_center = PongRewardShaper.get_component_center(self.racket_pixels)
+
     def reward_center_ball(self, additional_reward=0.5):
         """
         Gives an additional reward if the player's racket is placed on the same y-coordinate as the ball
         :return: shaped reward
         """
 
-        shaped_reward = self.reward
+        if self.ball_center is not None \
+                and self.ball_center[1] == self.racket_center[1]:
+            return self.reward + additional_reward
+        else:
+            return self.reward
 
-        if len(self.ball_pixels) > 0:
-            ball_center = PongRewardShaper.get_component_center(self.ball_pixels)
-            racket_center = PongRewardShaper.get_component_center(self.racket_pixels)
+    def reward_close_to_ball(self, additional_reward=0.25):
+        """
+        Gives an additional reward if the player's racket covers y-coordinate of the ball
+        :return: shaped reward
+        """
 
-            ball_center_y = ball_center[1]
-            racket_center_y = racket_center[1]
-
-            if ball_center_y == racket_center_y:
-                shaped_reward += additional_reward
-
-        return shaped_reward
+        if self.ball_center is not None and self.racket_top is not None and self.racket_bottom is not None \
+                and self.racket_top[1] <= self.ball_center[1] <= self.racket_bottom[1]:
+            return self.reward + additional_reward
+        else:
+            return self.reward
 
     def extract_pixels(observation):
         """
@@ -137,3 +154,31 @@ class PongRewardShaper:
         y_center = round(statistics.median(y_values))
 
         return (x_center, y_center)
+
+    def get_component_top(self, pixels):
+        """
+        Gets the top pixel of a given list
+        :return: top pixel
+        """
+        top = ()
+        min_y = self.observation.shape[0]
+
+        for p in pixels:
+            if p[1] < min_y:
+                top = p
+
+        return top
+
+    def get_component_bottom(pixels):
+        """
+        Gets the bottom pixel of a given list
+        :return: bottom pixel
+        """
+        bottom = ()
+        max_y = 0
+
+        for p in pixels:
+            if p[1] > max_y:
+                bottom = p
+
+        return bottom
