@@ -110,7 +110,8 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 episode_durations = []
 episode_losses = []
 episode_rewards = []
-episode_reward = 0
+episode_original_reward = 0
+episode_shaped_reward = 0
 episode_shaping_events = 0
 
 # Iterate over episodes
@@ -118,7 +119,8 @@ progress_bar = tqdm(range(NUM_EPISODES), unit='episode')
 for i_episode in progress_bar:
 
     # Reset episode variables
-    episode_reward = 0
+    episode_original_reward = 0
+    episode_shaped_reward = 0
     episode_shaping_events = 0
 
     # Initialize the environment and state
@@ -143,12 +145,13 @@ for i_episode in progress_bar:
         observation, reward, done, info = env.step(action.item())
 
         # Shape reward
+        original_reward = reward
         shaped_reward = reward
         if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
             shaped_reward = PongRewardShaper(observation, reward, done, info).reward_center_ball()
 
         # Track reward shaping event
-        if shaped_reward != reward:
+        if shaped_reward != original_reward:
             episode_shaping_events += 1
             # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
 
@@ -156,7 +159,8 @@ for i_episode in progress_bar:
         reward = shaped_reward
 
         # Add reward to episode reward
-        episode_reward += reward
+        episode_original_reward += original_reward
+        episode_shaped_reward += shaped_reward
 
         # Transform reward into a tensor
         reward = torch.tensor([reward], device=device)
@@ -189,14 +193,12 @@ for i_episode in progress_bar:
         if done:
             episode_durations.append(i_frame + 1)
 
-            if loss is None:
-                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward " + str(
-                    episode_reward)) + " shaping events " + str(episode_shaping_events)
-            else:
-                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) reward " + str(episode_reward)
-                      + " shaping events " + str(episode_shaping_events) + " loss " + str(
-                    loss.item()))
-                episode_losses.append(loss.item())
+            if loss is not None:
+                print("Episode  " + str(i_episode + 1) + " (" + str(i_frame) + " frames) "
+                      + "original reward " + str(episode_original_reward)
+                      + "shaped reward " + str(episode_shaped_reward)
+                      + "shaping events " + str(episode_shaping_events)
+                      + "loss " + loss.item())
             break
 
     # Update the target network, copying all weights and biases from policy net into target net
