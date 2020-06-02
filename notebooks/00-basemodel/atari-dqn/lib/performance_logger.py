@@ -28,11 +28,12 @@ class PerformanceLogger:
         avg_shaped_reward_per_episode = np.mean(total_shaped_rewards[-50:])
 
         print("{: 5d}".format(total_episodes)
-              + "  {: 5d}".format(episode_frames) + "f " + "{: 4d}".format(round(episode_duration)) + "s"
-              + "  {: 4d}".format(round(avg_frames_per_minute)) + "f/min"
+              + " {: 5d}".format(episode_frames) + "f"
+              + " {: 4d}".format(round(episode_duration)) + "s"
+              + " {: 4d}".format(round(avg_frames_per_minute)) + "f/min"
               + "     "
-              + " reward " + "{: 5d}".format(round(episode_original_reward))
-              + " reward(shaped) " + "{: 5d}".format(round(episode_shaped_reward))
-              + " avg reward per episode {: 5f}".format(round(avg_original_reward_per_episode))
-              + " avg reward(shaped) per episode {: 5f}".format(round(avg_shaped_reward_per_episode))
+              + " reward {: 5d}".format(round(episode_original_reward))
+              + " reward(shaped) {: 5d}".format(round(episode_shaped_reward))
+              + " avg reward per episode {: 3f}".format(round(avg_original_reward_per_episode, 2))
+              + " avg reward(shaped) per episode {: 3f}".format(round(avg_shaped_reward_per_episode, 2))
               + " loss " + str(round(episode_loss, 4)))

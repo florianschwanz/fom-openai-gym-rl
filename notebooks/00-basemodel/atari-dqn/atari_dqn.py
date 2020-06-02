@@ -34,8 +34,9 @@ EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 10
 REPLAY_MEMORY_SIZE = 10_000
-NUM_EPISODES = 5_000
+NUM_FRAMES = 1_000_000
 REWARD_SHAPINGS = [
+    RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC
 ]
 
 # Set up device
@@ -108,134 +109,143 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 # duration improvements.
 #
 
-episode_original_reward = 0
-episode_shaped_reward = 0
-episode_losses = []
-
+# Initialize total variables
+total_frames = 0
+total_episodes = 0
 total_original_rewards = []
 total_shaped_rewards = []
-
-total_frames = 0
 total_start_time = time.time()
 
-# Iterate over episodes
-progress_bar = tqdm(range(NUM_EPISODES), unit='episode')
-for i_episode in progress_bar:
+# Initialize episode variables
+episode_frames = 0
+episode_original_reward = 0
+episode_shaped_reward = 0
+episode_start_time = time.time()
 
-    episode_start_time = time.time()
+# Initialize the environment and state
+env.reset()
+last_screen = InputExtractor.get_screen(env=env, device=device)
+current_screen = InputExtractor.get_screen(env=env, device=device)
+state = current_screen - last_screen
 
-    # Reset episode variables
-    episode_original_reward = 0
-    episode_shaped_reward = 0
+# Iterate over frames
+progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
+for total_frames in progress_bar:
 
-    # Initialize the environment and state
-    env.reset()
-    last_screen = InputExtractor.get_screen(env=env, device=device)
+    # Select and perform an action
+    action = ActionSelector.select_action(state=state,
+                                          n_actions=n_actions,
+                                          policy_net=policy_net,
+                                          epsilon_end=EPS_END,
+                                          epsilon_start=EPS_START,
+                                          epsilon_decay=EPS_DECAY,
+                                          device=device)
+
+    # Do step
+    observation, reward, done, info = env.step(action.item())
+
+    # Shape reward
+    original_reward = reward
+    shaped_reward = reward
+
+    if ENVIRONMENT_NAME == Environment.PONG_v0 \
+            or ENVIRONMENT_NAME == Environment.PONG_v4 \
+            or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v0 \
+            or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
+            or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
+            or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
+        # # Plot screen after scoring
+        # if original_reward == 1:
+        #   InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
+
+        reward_shaper = PongRewardShaper(observation, reward, done, info)
+
+        if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_center_ball()
+        if RewardShape.PONG_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_close_to_ball()
+        if RewardShape.PONG_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_linear()
+        if RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_quadratic()
+
+    # Use shaped reward for further processing
+    reward = shaped_reward
+
+    # Add reward to episode reward
+    episode_original_reward += original_reward
+    episode_shaped_reward += shaped_reward
+
+    # Transform reward into a tensor
+    reward = torch.tensor([reward], device=device)
+
+    # Observe new state
+    last_screen = current_screen
     current_screen = InputExtractor.get_screen(env=env, device=device)
-    state = current_screen - last_screen
 
-    # Run episode until status done is reached
-    for i_frame in count():
+    if not done:
+        next_state = current_screen - last_screen
+    else:
+        next_state = None
 
-        total_frames += 1
+    # Store the transition in memory
+    memory.push(state, action, next_state, reward)
 
-        # Select and perform an action
-        action = ActionSelector.select_action(state=state,
-                                              n_actions=n_actions,
-                                              policy_net=policy_net,
-                                              epsilon_end=EPS_END,
-                                              epsilon_start=EPS_START,
-                                              epsilon_decay=EPS_DECAY,
-                                              device=device)
+    # Move to the next state
+    state = next_state
 
-        # Do step
-        observation, reward, done, info = env.step(action.item())
+    # Perform one step of the optimization (on the target network)
+    loss = ModelOptimizer.optimize_model(policy_net=policy_net,
+                                         target_net=target_net,
+                                         optimizer=optimizer,
+                                         memory=memory,
+                                         batch_size=BATCH_SIZE,
+                                         gamma=GAMMA,
+                                         device=device)
 
-        # Shape reward
-        original_reward = reward
-        shaped_reward = reward
+    if done:
+        # Track episode time
+        episode_end_time = time.time()
+        episode_duration = episode_end_time - episode_start_time
+        total_duration = episode_end_time - total_start_time
 
-        if ENVIRONMENT_NAME == Environment.PONG_v0 \
-                or ENVIRONMENT_NAME == Environment.PONG_v4 \
-                or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v0 \
-                or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
-                or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
-                or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
-            # Plot screen after scoring
-            if original_reward == 1:
-                InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
+        # Add rewards to total reward
+        total_original_rewards.append(episode_original_reward)
+        total_shaped_rewards.append(episode_shaped_reward)
 
-            reward_shaper = PongRewardShaper(observation, reward, done, info)
+        if loss is not None:
+            PerformanceLogger.log_episode_short(total_episodes=total_episodes + 1,
+                                                total_frames=total_frames,
+                                                total_duration=total_duration,
+                                                total_original_rewards=total_original_rewards,
+                                                total_shaped_rewards=total_shaped_rewards,
+                                                episode_frames=episode_frames + 1,
+                                                episode_original_reward=episode_original_reward,
+                                                episode_shaped_reward=episode_shaped_reward,
+                                                episode_loss=loss.item(),
+                                                episode_duration=episode_duration)
 
-            if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
-                shaped_reward += reward_shaper.reward_center_ball()
-            if RewardShape.PONG_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
-                shaped_reward += reward_shaper.reward_close_to_ball()
-            if RewardShape.PONG_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
-                shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_linear()
-            if RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-                shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_quadratic()
+        # Update the target network, copying all weights and biases from policy net into target net
+        if total_episodes % TARGET_UPDATE == 0:
+            target_net.load_state_dict(policy_net.state_dict())
 
-        # Use shaped reward for further processing
-        reward = shaped_reward
+        # Reset episode variables
+        episode_frames = 0
+        episode_original_reward = 0
+        episode_shaped_reward = 0
+        episode_start_time = time.time()
 
-        # Add reward to episode reward
-        episode_original_reward += original_reward
-        episode_shaped_reward += shaped_reward
-
-        # Transform reward into a tensor
-        reward = torch.tensor([reward], device=device)
-
-        # Observe new state
-        last_screen = current_screen
+        # Reset the environment and state
+        env.reset()
+        last_screen = InputExtractor.get_screen(env=env, device=device)
         current_screen = InputExtractor.get_screen(env=env, device=device)
+        state = current_screen - last_screen
 
-        if not done:
-            next_state = current_screen - last_screen
-        else:
-            next_state = None
+        # Increment counter
+        total_episodes += 1
 
-        # Store the transition in memory
-        memory.push(state, action, next_state, reward)
-
-        # Move to the next state
-        state = next_state
-
-        # Perform one step of the optimization (on the target network)
-        loss = ModelOptimizer.optimize_model(policy_net=policy_net,
-                                             target_net=target_net,
-                                             optimizer=optimizer,
-                                             memory=memory,
-                                             batch_size=BATCH_SIZE,
-                                             gamma=GAMMA,
-                                             device=device)
-
-        if done:
-            # Track episode time
-            episode_end_time = time.time()
-            episode_duration = episode_end_time - episode_start_time
-            total_duration = episode_end_time - total_start_time
-
-            # Add rewards to total reward
-            total_original_rewards.append(episode_original_reward)
-            total_shaped_rewards.append(episode_shaped_reward)
-
-            if loss is not None:
-                PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
-                                                    total_frames=total_frames,
-                                                    total_duration=total_duration,
-                                                    total_original_rewards=total_original_rewards,
-                                                    total_shaped_rewards=total_shaped_rewards,
-                                                    episode_frames=i_frame + 1,
-                                                    episode_original_reward=episode_original_reward,
-                                                    episode_shaped_reward=episode_shaped_reward,
-                                                    episode_loss=loss.item(),
-                                                    episode_duration=episode_duration)
-            break
-
-    # Update the target network, copying all weights and biases from policy net into target net
-    if i_episode % TARGET_UPDATE == 0:
-        target_net.load_state_dict(policy_net.state_dict())
+    # Increment counter
+    episode_frames += 1
 
 print('Complete')
 env.render()
