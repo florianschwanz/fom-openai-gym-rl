@@ -19,7 +19,7 @@ class PerformanceLogger:
         avg_episodes_per_minute = total_episodes / (total_duration / 60)
 
         print("{: 5d}".format(total_episodes)
-              + "  {: 5d}".format(total_frames) + "f " + "{: 4d}".format(round(episode_duration)) + "s"
+              + "  {: 5d}".format(episode_frames) + "f " + "{: 4d}".format(round(episode_duration)) + "s"
               + " " + str(round(avg_frames_per_minute)) + "f/min"
               + "     "
               + " reward " + str(round(episode_original_reward))
