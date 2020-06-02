@@ -36,7 +36,6 @@ TARGET_UPDATE = 10
 REPLAY_MEMORY_SIZE = 10_000
 NUM_EPISODES = 5_000
 REWARD_SHAPINGS = [
-    RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC
 ]
 
 # Set up device
@@ -109,13 +108,14 @@ memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 # duration improvements.
 #
 
-total_frames = 0
-
-episode_losses = []
-episode_rewards = []
 episode_original_reward = 0
 episode_shaped_reward = 0
+episode_losses = []
 
+total_original_rewards = []
+total_shaped_rewards = []
+
+total_frames = 0
 total_start_time = time.time()
 
 # Iterate over episodes
@@ -211,14 +211,21 @@ for i_episode in progress_bar:
                                              device=device)
 
         if done:
+            # Track episode time
             episode_end_time = time.time()
             episode_duration = episode_end_time - episode_start_time
             total_duration = episode_end_time - total_start_time
+
+            # Add rewards to total reward
+            total_original_rewards.append(episode_original_reward)
+            total_shaped_rewards.append(episode_shaped_reward)
 
             if loss is not None:
                 PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
                                                     total_frames=total_frames,
                                                     total_duration=total_duration,
+                                                    total_original_rewards=total_original_rewards,
+                                                    total_shaped_rewards=total_shaped_rewards,
                                                     episode_frames=i_frame + 1,
                                                     episode_original_reward=episode_original_reward,
                                                     episode_shaped_reward=episode_shaped_reward,
