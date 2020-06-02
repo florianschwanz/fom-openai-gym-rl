@@ -155,7 +155,12 @@ for i_episode in progress_bar:
         original_reward = reward
         shaped_reward = reward
 
-        if ENVIRONMENT_NAME == Environment.PONG_v0:
+        if ENVIRONMENT_NAME == Environment.PONG_v0 \
+                or ENVIRONMENT_NAME == Environment.PONG_v4 \
+                or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v0 \
+                or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
+                or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
+                or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
             # Plot screen after scoring
             if original_reward == 1:
                 InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
