@@ -33,8 +33,8 @@ EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
 TARGET_UPDATE = 10
-REPLAY_MEMORY_SIZE = 10000
-NUM_EPISODES = 50
+REPLAY_MEMORY_SIZE = 10_000
+NUM_EPISODES = 5_000
 REWARD_SHAPINGS = [
     RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC
 ]
@@ -156,6 +156,10 @@ for i_episode in progress_bar:
         shaped_reward = reward
 
         if ENVIRONMENT_NAME == Environment.PONG_v0:
+            # Plot screen after scoring
+            if original_reward == 1:
+              InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
+
             reward_shaper = PongRewardShaper(observation, reward, done, info)
 
             if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
@@ -201,11 +205,7 @@ for i_episode in progress_bar:
                                              gamma=GAMMA,
                                              device=device)
 
-        # Plot performance once the episode is done
         if done:
-            # if (i_frame % 100 == 0):
-            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Reward-shaped screen')
-
             episode_end_time = time.time()
             episode_duration = episode_end_time - episode_start_time
             total_duration = episode_end_time - total_start_time
