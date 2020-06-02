@@ -26,7 +26,7 @@ from reward_shape_enum import RewardShape
 from performance_logger import PerformanceLogger
 
 # Define setup
-ENVIRONMENT_NAME = Environment.PONG_v0
+ENVIRONMENT_NAME = Environment.PONG_DETERMINISTIC_v4
 BATCH_SIZE = 128
 GAMMA = 0.999
 EPS_START = 0.9
@@ -158,7 +158,7 @@ for i_episode in progress_bar:
         if ENVIRONMENT_NAME == Environment.PONG_v0:
             # Plot screen after scoring
             if original_reward == 1:
-              InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
+                InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
 
             reward_shaper = PongRewardShaper(observation, reward, done, info)
 
@@ -210,7 +210,8 @@ for i_episode in progress_bar:
             episode_duration = episode_end_time - episode_start_time
             total_duration = episode_end_time - total_start_time
 
-            if loss is not None:                PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
+            if loss is not None:
+                PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
                                                     total_frames=total_frames,
                                                     total_duration=total_duration,
                                                     episode_frames=i_frame + 1,
