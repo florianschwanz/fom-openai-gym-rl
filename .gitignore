@@ -1,3 +1,5 @@
 /venv
 /.idea/
 /notebooks/00-basemodel/atari-dqn/fom-openai-gym-rl/
+notebooks/00-basemodel/atari-dqn/lib/__pycache__/
+notebooks/00-basemodel/.DS_Store
