@@ -23,5 +23,5 @@ class PerformanceLogger:
               + " " + str(round(avg_frames_per_minute)) + "f/min"
               + "     "
               + " reward " + str(round(episode_original_reward))
-              + " reward(shaped) " + str(round(episode_shaped_reward))
+              + " reward(shaped) " + "{: 5d}".format(round(episode_shaped_reward))
               + " loss " + str(round(episode_loss, 4)))

@@ -210,8 +210,7 @@ for i_episode in progress_bar:
             episode_duration = episode_end_time - episode_start_time
             total_duration = episode_end_time - total_start_time
 
-            if loss is not None:
-                PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
+            if loss is not None:                PerformanceLogger.log_episode_short(total_episodes=i_episode + 1,
                                                     total_frames=total_frames,
                                                     total_duration=total_duration,
                                                     episode_frames=i_frame + 1,
