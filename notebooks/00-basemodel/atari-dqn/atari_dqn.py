@@ -159,13 +159,13 @@ for i_episode in progress_bar:
             reward_shaper = PongRewardShaper(observation, reward, done, info)
 
             if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
-                shaped_reward = reward_shaper.reward_center_ball()
+                shaped_reward += reward_shaper.reward_center_ball()
             if RewardShape.PONG_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
-                shaped_reward = reward_shaper.reward_close_to_ball()
+                shaped_reward += reward_shaper.reward_close_to_ball()
             if RewardShape.PONG_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
-                shaped_reward = reward_shaper.reward_vertical_proximity_to_ball_linear()
+                shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_linear()
             if RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-                shaped_reward = reward_shaper.reward_vertical_proximity_to_ball_quadratic()
+                shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_quadratic()
 
         # Use shaped reward for further processing
         reward = shaped_reward

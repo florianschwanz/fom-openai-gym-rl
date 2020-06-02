@@ -48,9 +48,9 @@ class PongRewardShaper:
 
         if self.ball_center is not None and self.racket_center is not None \
                 and self.ball_center[1] == self.racket_center[1]:
-            return self.reward + additional_reward
+            return additional_reward
         else:
-            return self.reward
+            return 0
 
     def reward_close_to_ball(self, additional_reward=0.25):
         """
@@ -60,9 +60,9 @@ class PongRewardShaper:
 
         if self.ball_center is not None and self.racket_top is not None and self.racket_bottom is not None \
                 and self.racket_top[1] <= self.ball_center[1] <= self.racket_bottom[1]:
-            return self.reward + additional_reward
+            return additional_reward
         else:
-            return self.reward
+            return 0
 
     def reward_vertical_proximity_to_ball_linear(self, max_additional_reward=0.5):
         reward_max = max_additional_reward
@@ -74,9 +74,9 @@ class PongRewardShaper:
         if self.ball_center is not None and self.racket_center is not None:
             dist = abs(self.ball_center[1] - self.racket_center[1])
             additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
-            return self.reward + additional_reward
+            return additional_reward
         else:
-            return self.reward
+            return 0
 
     def reward_vertical_proximity_to_ball_quadratic(self, max_additional_reward=0.5):
         reward_max = math.sqrt(max_additional_reward)
@@ -88,9 +88,9 @@ class PongRewardShaper:
         if self.ball_center is not None and self.racket_center is not None:
             dist = abs(self.ball_center[1] - self.racket_center[1])
             additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
-            return self.reward + math.pow(additional_reward, 2)
+            return math.pow(additional_reward, 2)
         else:
-            return self.reward
+            return 0
 
     def extract_pixels(observation):
         """
