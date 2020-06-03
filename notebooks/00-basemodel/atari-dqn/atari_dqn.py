@@ -1,9 +1,7 @@
 import os
 import sys
 import time
-from itertools import count
 
-import gym
 import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
@@ -24,9 +22,16 @@ from environment_enum import Environment
 from pong_reward_shaper import PongRewardShaper
 from reward_shape_enum import RewardShape
 from performance_logger import PerformanceLogger
+from environment_builder import EnvironmentBuilder
+from environment_builder import EnvironmentWrapper
 
 # Define setup
 ENVIRONMENT_NAME = Environment.PONG_DETERMINISTIC_v4
+ENVIRONMENT_WRAPPERS = [
+    EnvironmentWrapper.NOOP_RESET_ENV,
+    EnvironmentWrapper.MAX_AND_SKIP_ENV,
+    # EnvironmentWrapper.FRAME_STACK,
+]
 BATCH_SIZE = 128
 GAMMA = 0.999
 EPS_START = 0.9
@@ -46,7 +51,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 plt.ion()
 
 # Initialize environment
-env = gym.make(ENVIRONMENT_NAME.value).unwrapped
+env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT_NAME.value, ENVIRONMENT_WRAPPERS)
 # Reset environment
 env.reset()
 # Plot initial screen
@@ -144,6 +149,11 @@ for total_frames in progress_bar:
     # Do step
     observation, reward, done, info = env.step(action.item())
 
+    # Unwrap observations if frame stack is in use
+    if EnvironmentWrapper.FRAME_STACK in ENVIRONMENT_WRAPPERS:
+        print("Not yet supported")
+        exit
+
     # Shape reward
     original_reward = reward
     shaped_reward = reward
@@ -154,9 +164,9 @@ for total_frames in progress_bar:
             or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
             or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
             or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
-        # # Plot screen after scoring
-        # if original_reward == 1:
-        #   InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'GOOOOAAAAL!')
+        # # Plot intermediate screen after scoring
+        # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
+        #     total_frames) + " / reward " + str(round(reward, 4)) + " / GOOOAAAAL!!!")
 
         reward_shaper = PongRewardShaper(observation, reward, done, info)
 
@@ -168,6 +178,11 @@ for total_frames in progress_bar:
             shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_linear()
         if RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
             shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_quadratic()
+
+    # # Plot intermediate screen
+    # if total_frames % 50 == 0:
+    #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
+    #         total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
 
     # Use shaped reward for further processing
     reward = shaped_reward
