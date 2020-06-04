@@ -40,7 +40,7 @@ class PongRewardShaper:
             self.racket_bottom = PongRewardShaper.get_component_bottom(self.racket_pixels)
             self.racket_center = PongRewardShaper.get_component_center(self.racket_pixels)
 
-    def reward_center_ball(self, additional_reward=0.5):
+    def reward_center_ball(self, additional_reward=0.05):
         """
         Gives an additional reward if the player's racket is placed on the same y-coordinate as the ball
         :return: shaped reward
@@ -52,7 +52,7 @@ class PongRewardShaper:
         else:
             return 0
 
-    def reward_close_to_ball(self, additional_reward=0.25):
+    def reward_close_to_ball(self, additional_reward=0.025):
         """
         Gives an additional reward if the player's racket covers y-coordinate of the ball
         :return: shaped reward
@@ -64,7 +64,7 @@ class PongRewardShaper:
         else:
             return 0
 
-    def reward_vertical_proximity_to_ball_linear(self, max_additional_reward=0.5):
+    def reward_vertical_proximity_to_ball_linear(self, max_additional_reward=0.05):
         reward_max = max_additional_reward
         reward_min = 0
 
@@ -78,7 +78,7 @@ class PongRewardShaper:
         else:
             return 0
 
-    def reward_vertical_proximity_to_ball_quadratic(self, max_additional_reward=0.5):
+    def reward_vertical_proximity_to_ball_quadratic(self, max_additional_reward=0.05):
         reward_max = math.sqrt(max_additional_reward)
         reward_min = 0
 
