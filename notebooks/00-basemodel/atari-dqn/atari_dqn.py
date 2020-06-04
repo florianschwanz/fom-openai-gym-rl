@@ -42,7 +42,8 @@ TARGET_UPDATE = 5
 REPLAY_MEMORY_SIZE = 10_000
 NUM_FRAMES = 1_000_000
 REWARD_SHAPINGS = [
-    RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC
+    RewardShape.PONG_PLAYER_RACKET_PROXIMITY_TO_BALL_QUADRATIC,
+    RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC
 ]
 
 # Set up device
@@ -171,14 +172,16 @@ for total_frames in progress_bar:
 
         reward_shaper = PongRewardShaper(observation, reward, done, info)
 
-        if RewardShape.PONG_CENTER_RACKET_ON_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_center_ball()
-        if RewardShape.PONG_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_close_to_ball()
-        if RewardShape.PONG_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_linear()
-        if RewardShape.PONG_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_vertical_proximity_to_ball_quadratic()
+        if RewardShape.PONG_PLAYER_RACKET_CENTER_ON_BALL in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_center_ball()
+        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_close_to_ball()
+        if RewardShape.PONG_PLAYER_RACKET_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_vertical_proximity_to_ball_linear()
+        if RewardShape.PONG_PLAYER_RACKET_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_vertical_proximity_to_ball_quadratic()
+        if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball()
 
     # # Plot intermediate screen
     # if total_frames % 50 == 0:

@@ -1,5 +1,6 @@
-import statistics
 import math
+import statistics
+
 
 class PongRewardShaper:
     BLACK = (0, 0, 0)
@@ -25,70 +26,94 @@ class PongRewardShaper:
         self.pixels = PongRewardShaper.extract_pixels(observation)
         self.colors = PongRewardShaper.extract_colors(self.pixels)
         self.ball_pixels = PongRewardShaper.get_ball_pixels(self.pixels)
-        self.racket_pixels = PongRewardShaper.get_racket_pixels(self.pixels)
+        self.player_racket_pixels = PongRewardShaper.get_player_racket_pixels(self.pixels)
+        self.opponent_racket_pixels = PongRewardShaper.get_opponent_racket_pixels(self.pixels)
 
         self.ball_center = None
-        self.racket_top = None
-        self.racket_bottom = None
-        self.racket_center = None
+        self.player_racket_top = None
+        self.player_racket_bottom = None
+        self.player_racket_center = None
+        self.opponent_racket_top = None
+        self.opponent_racket_bottom = None
+        self.opponent_racket_center = None
 
         if len(self.ball_pixels) > 0:
             self.ball_center = PongRewardShaper.get_component_center(self.ball_pixels)
 
-        if len(self.racket_pixels) > 0:
-            self.racket_top = PongRewardShaper.get_component_top(self, self.racket_pixels)
-            self.racket_bottom = PongRewardShaper.get_component_bottom(self.racket_pixels)
-            self.racket_center = PongRewardShaper.get_component_center(self.racket_pixels)
+        if len(self.player_racket_pixels) > 0:
+            self.player_racket_top = PongRewardShaper.get_component_top(self, self.player_racket_pixels)
+            self.player_racket_bottom = PongRewardShaper.get_component_bottom(self.player_racket_pixels)
+            self.player_racket_center = PongRewardShaper.get_component_center(self.player_racket_pixels)
 
-    def reward_center_ball(self, additional_reward=0.05):
+        if len(self.opponent_racket_pixels) > 0:
+            self.opponent_racket_top = PongRewardShaper.get_component_top(self, self.opponent_racket_pixels)
+            self.opponent_racket_bottom = PongRewardShaper.get_component_bottom(self.opponent_racket_pixels)
+            self.opponent_racket_center = PongRewardShaper.get_component_center(self.opponent_racket_pixels)
+
+    def reward_player_racket_center_ball(self, additional_reward=0.05):
         """
         Gives an additional reward if the player's racket is placed on the same y-coordinate as the ball
         :return: shaped reward
         """
 
-        if self.ball_center is not None and self.racket_center is not None \
-                and self.ball_center[1] == self.racket_center[1]:
+        if self.ball_center is not None and self.player_racket_center is not None \
+                and self.ball_center[1] == self.player_racket_center[1]:
             return additional_reward
         else:
             return 0
 
-    def reward_close_to_ball(self, additional_reward=0.025):
+    def reward_player_racket_close_to_ball(self, additional_reward=0.025):
         """
         Gives an additional reward if the player's racket covers y-coordinate of the ball
         :return: shaped reward
         """
 
-        if self.ball_center is not None and self.racket_top is not None and self.racket_bottom is not None \
-                and self.racket_top[1] <= self.ball_center[1] <= self.racket_bottom[1]:
+        if self.ball_center is not None and self.player_racket_top is not None and self.player_racket_bottom is not None \
+                and self.player_racket_top[1] <= self.ball_center[1] <= self.player_racket_bottom[1]:
             return additional_reward
         else:
             return 0
 
-    def reward_vertical_proximity_to_ball_linear(self, max_additional_reward=0.05):
+    def reward_player_racket_vertical_proximity_to_ball_linear(self, max_additional_reward=0.05):
         reward_max = max_additional_reward
         reward_min = 0
 
         dist_max = 160
         dist_min = 0
 
-        if self.ball_center is not None and self.racket_center is not None:
-            dist = abs(self.ball_center[1] - self.racket_center[1])
+        if self.ball_center is not None and self.player_racket_center is not None:
+            dist = abs(self.ball_center[1] - self.player_racket_center[1])
             additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
             return additional_reward
         else:
             return 0
 
-    def reward_vertical_proximity_to_ball_quadratic(self, max_additional_reward=0.05):
+    def reward_player_racket_vertical_proximity_to_ball_quadratic(self, max_additional_reward=0.05):
         reward_max = math.sqrt(max_additional_reward)
         reward_min = 0
 
         dist_max = 160
         dist_min = 0
 
-        if self.ball_center is not None and self.racket_center is not None:
-            dist = abs(self.ball_center[1] - self.racket_center[1])
+        if self.ball_center is not None \
+                and self.player_racket_center is not None:
+            dist = abs(self.ball_center[1] - self.player_racket_center[1])
             additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
             return math.pow(additional_reward, 2)
+        else:
+            return 0
+
+    def reward_opponent_racket_close_to_ball(self, additional_reward=-0.025):
+        """
+        Gives an negative reward if the opponent's racket covers y-coordinate of the ball
+        :return: shaped reward
+        """
+
+        if self.ball_center is not None \
+                and self.opponent_racket_top is not None \
+                and self.opponent_racket_bottom is not None \
+                and self.opponent_racket_top[1] <= self.ball_center[1] <= self.opponent_racket_bottom[1]:
+            return additional_reward
         else:
             return 0
 
@@ -146,13 +171,33 @@ class PongRewardShaper:
 
         return ball_pixels
 
-    def get_racket_pixels(pixels):
+    def get_player_racket_pixels(pixels):
         """
         Gets all pixels that represent the player's racket by color
         :return: list of pixels representing the the player's racket
         """
 
         RACKET_COLOR = PongRewardShaper.GREEN
+
+        racket_pixels = []
+
+        for key, value in pixels.items():
+            x = key[0]
+            y = key[1]
+
+            if value == RACKET_COLOR \
+                    and (y >= 21):
+                racket_pixels.append(key)
+
+        return racket_pixels
+
+    def get_opponent_racket_pixels(pixels):
+        """
+        Gets all pixels that represent the opponent's racket by color
+        :return: list of pixels representing the the opponent's racket
+        """
+
+        RACKET_COLOR = PongRewardShaper.ORANGE
 
         racket_pixels = []
 
