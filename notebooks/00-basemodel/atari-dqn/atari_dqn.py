@@ -18,6 +18,7 @@ from deep_q_network import DeepQNetwork
 from action_selector import ActionSelector
 from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
+from model_storage import ModelStorage
 from environment_enum import Environment
 from pong_reward_shaper import PongRewardShaper
 from reward_shape_enum import RewardShape
@@ -37,7 +38,7 @@ GAMMA = 0.999
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 200
-TARGET_UPDATE = 10
+TARGET_UPDATE = 5
 REPLAY_MEMORY_SIZE = 10_000
 NUM_FRAMES = 1_000_000
 REWARD_SHAPINGS = [
@@ -243,6 +244,24 @@ for total_frames in progress_bar:
         # Update the target network, copying all weights and biases from policy net into target net
         if total_episodes % TARGET_UPDATE == 0:
             target_net.load_state_dict(policy_net.state_dict())
+
+            # Save model
+            ModelStorage.saveModel(total_frames=total_frames,
+                                   net=target_net,
+                                   optimizer=optimizer,
+                                   loss=loss,
+                                   environment_name=ENVIRONMENT_NAME,
+                                   environment_wrappers=ENVIRONMENT_WRAPPERS,
+                                   batch_size=BATCH_SIZE,
+                                   gamma=GAMMA,
+                                   eps_start=EPS_START,
+                                   eps_end=EPS_END,
+                                   eps_decay=EPS_DECAY,
+                                   target_update=TARGET_UPDATE,
+                                   replay_memory_size=REPLAY_MEMORY_SIZE,
+                                   num_frames=NUM_FRAMES,
+                                   reward_shapings=REWARD_SHAPINGS
+                                   )
 
         # Reset episode variables
         episode_frames = 0
