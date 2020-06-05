@@ -2,12 +2,32 @@ import math
 import statistics
 
 
+class Component:
+    """
+    Represents a distinct visual entity on the screen
+    """
+    def __init__(self, pixels, observation):
+        if len(pixels) > 0:
+            self.visible = True
+            self.center = PongRewardShaper.get_component_center(pixels)
+            self.top = PongRewardShaper.get_component_top(observation, pixels)
+            self.bottom = PongRewardShaper.get_component_bottom(pixels)
+        else:
+            self.visible = False
+            self.center = ()
+            self.top = ()
+            self.bottom = ()
+
+
 class PongRewardShaper:
     BLACK = (0, 0, 0)
     BROWN = (144, 72, 17)
     ORANGE = (213, 130, 74)
     GREEN = (92, 186, 92)
     LIGHTGREY = (236, 236, 236)
+
+    BALL_CENTER_X_WHEN_PLAYED_BY_PLAYER = 142
+    BALL_CENTER_X_WHEN_PLAYED_BY_OPPONENT = 20
 
     def __init__(self, observation, reward, done, info):
         """
@@ -24,96 +44,127 @@ class PongRewardShaper:
         self.info = info
 
         self.pixels = PongRewardShaper.extract_pixels(observation)
-        self.colors = PongRewardShaper.extract_colors(self.pixels)
-        self.ball_pixels = PongRewardShaper.get_ball_pixels(self.pixels)
-        self.player_racket_pixels = PongRewardShaper.get_player_racket_pixels(self.pixels)
-        self.opponent_racket_pixels = PongRewardShaper.get_opponent_racket_pixels(self.pixels)
+        # self.colors = PongRewardShaper.extract_colors(self.pixels)
 
-        self.ball_center = None
-        self.player_racket_top = None
-        self.player_racket_bottom = None
-        self.player_racket_center = None
-        self.opponent_racket_top = None
-        self.opponent_racket_bottom = None
-        self.opponent_racket_center = None
+        self.ball = Component(PongRewardShaper.get_ball_pixels(self.pixels), self.observation)
+        self.player_racket = Component(PongRewardShaper.get_player_racket_pixels(self.pixels), self.observation)
+        self.opponent_racket = Component(PongRewardShaper.get_opponent_racket_pixels(self.pixels), observation)
 
-        if len(self.ball_pixels) > 0:
-            self.ball_center = PongRewardShaper.get_component_center(self.ball_pixels)
+        # Debug positions
+        # if (self.ball.visible):
+        #     print("DEBUG"
+        #           + " player " + str(self.player_racket.center)
+        #           + " opponent " + str(self.opponent_racket.center)
+        #           + " ball " + str(self.ball.center))
+        # else:
+        #     print("DEBUG "
+        #           + " player " + str(self.player_racket.center)
+        #           + " opponent " + str(self.opponent_racket.center)
+        #           + " no ball")
 
-        if len(self.player_racket_pixels) > 0:
-            self.player_racket_top = PongRewardShaper.get_component_top(self, self.player_racket_pixels)
-            self.player_racket_bottom = PongRewardShaper.get_component_bottom(self.player_racket_pixels)
-            self.player_racket_center = PongRewardShaper.get_component_center(self.player_racket_pixels)
-
-        if len(self.opponent_racket_pixels) > 0:
-            self.opponent_racket_top = PongRewardShaper.get_component_top(self, self.opponent_racket_pixels)
-            self.opponent_racket_bottom = PongRewardShaper.get_component_bottom(self.opponent_racket_pixels)
-            self.opponent_racket_center = PongRewardShaper.get_component_center(self.opponent_racket_pixels)
-
-    def reward_player_racket_center_ball(self, additional_reward=0.05):
+    def reward_player_racket_hits_ball(self, additional_reward=0.025):
         """
-        Gives an additional reward if the player's racket is placed on the same y-coordinate as the ball
+        Gives an additional reward if the player's racket hits the ball
         :return: shaped reward
         """
 
-        if self.ball_center is not None and self.player_racket_center is not None \
-                and self.ball_center[1] == self.player_racket_center[1]:
+        if self.ball.visible and self.player_racket.visible \
+                and self.ball.center[0] == self.BALL_CENTER_X_WHEN_PLAYED_BY_PLAYER \
+                and self.player_racket.top[1] <= self.ball.center[1] <= self.player_racket.bottom[1]:
             return additional_reward
         else:
             return 0
-
-    def reward_player_racket_close_to_ball(self, additional_reward=0.025):
+        
+    def reward_player_racket_covers_ball(self, additional_reward=0.025):
         """
         Gives an additional reward if the player's racket covers y-coordinate of the ball
         :return: shaped reward
         """
 
-        if self.ball_center is not None and self.player_racket_top is not None and self.player_racket_bottom is not None \
-                and self.player_racket_top[1] <= self.ball_center[1] <= self.player_racket_bottom[1]:
+        if self.ball.visible and self.player_racket.visible \
+                and self.player_racket.top[1] <= self.ball.center[1] <= self.player_racket.bottom[1]:
             return additional_reward
         else:
             return 0
-
-    def reward_player_racket_vertical_proximity_to_ball_linear(self, max_additional_reward=0.05):
+        
+    def reward_player_racket_close_to_ball_linear(self, max_additional_reward=0.05):
         reward_max = max_additional_reward
         reward_min = 0
 
         dist_max = 160
         dist_min = 0
 
-        if self.ball_center is not None and self.player_racket_center is not None:
-            dist = abs(self.ball_center[1] - self.player_racket_center[1])
+        if self.ball.visible and self.player_racket.visible:
+            dist = abs(self.ball.center[1] - self.player_racket.center[1])
             additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
             return additional_reward
         else:
             return 0
-
-    def reward_player_racket_vertical_proximity_to_ball_quadratic(self, max_additional_reward=0.05):
+        
+    def reward_player_racket_close_to_ball_quadractic(self, max_additional_reward=0.05):
         reward_max = math.sqrt(max_additional_reward)
         reward_min = 0
 
         dist_max = 160
         dist_min = 0
 
-        if self.ball_center is not None \
-                and self.player_racket_center is not None:
-            dist = abs(self.ball_center[1] - self.player_racket_center[1])
+        if self.ball.visible and self.player_racket.visible:
+            dist = abs(self.ball.center[1] - self.player_racket.center[1])
             additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
             return math.pow(additional_reward, 2)
         else:
             return 0
 
-    def reward_opponent_racket_close_to_ball(self, additional_reward=-0.025):
+    def reward_opponent_racket_hits_ball(self, additional_reward=-0.025):
         """
-        Gives an negative reward if the opponent's racket covers y-coordinate of the ball
+        Gives an additional reward if the oppponent's racket hits the ball
         :return: shaped reward
         """
 
-        if self.ball_center is not None \
-                and self.opponent_racket_top is not None \
-                and self.opponent_racket_bottom is not None \
-                and self.opponent_racket_top[1] <= self.ball_center[1] <= self.opponent_racket_bottom[1]:
+        if self.ball.visible and self.opponent_racket.visible \
+                and self.ball.center[0] == self.BALL_CENTER_X_WHEN_PLAYED_BY_OPPONENT \
+                and self.opponent_racket.top[1] <= self.ball.center[1] <= self.opponent_racket.bottom[1]:
             return additional_reward
+        else:
+            return 0
+
+    def reward_opponent_racket_covers_ball(self, additional_reward=-0.025):
+        """
+        Gives an additional reward if the opponent's racket covers y-coordinate of the ball
+        :return: shaped reward
+        """
+
+        if self.ball.visible and self.opponent_racket.visible \
+                and self.opponent_racket.top[1] <= self.ball.center[1] <= self.opponent_racket.bottom[1]:
+            return additional_reward
+        else:
+            return 0
+
+    def reward_opponent_racket_close_to_ball_linear(self, max_additional_reward=-0.05):
+        reward_max = max_additional_reward
+        reward_min = 0
+
+        dist_max = 160
+        dist_min = 0
+
+        if self.ball.visible and self.opponent_racket.visible:
+            dist = abs(self.ball.center[1] - self.opponent_racket.center[1])
+            additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
+            return additional_reward
+        else:
+            return 0
+
+    def reward_opponent_racket_close_to_ball_quadractic(self, max_additional_reward=-0.05):
+        reward_max = math.sqrt(max_additional_reward)
+        reward_min = 0
+
+        dist_max = 160
+        dist_min = 0
+
+        if self.ball.visible and self.opponent_racket.visible:
+            dist = abs(self.ball.center[1] - self.opponent_racket.center[1])
+            additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 2)
+            return math.pow(additional_reward, 2)
         else:
             return 0
 
@@ -228,16 +279,15 @@ class PongRewardShaper:
 
         return (x_center, y_center)
 
-    def get_component_top(self, pixels):
+    def get_component_top(observation, pixels):
         """
         Gets the top pixel of a given list
         :return: top pixel
         """
-        top = ()
-        min_y = self.observation.shape[0]
+        top = (0, observation.shape[0])  # In this object element 0 means height, element 1 means width
 
         for p in pixels:
-            if p[1] < min_y:
+            if p[1] < top[1]:
                 top = p
 
         return top
@@ -247,11 +297,10 @@ class PongRewardShaper:
         Gets the bottom pixel of a given list
         :return: bottom pixel
         """
-        bottom = ()
-        max_y = 0
+        bottom = (0, 0)
 
         for p in pixels:
-            if p[1] > max_y:
+            if p[1] > bottom[1]:
                 bottom = p
 
         return bottom

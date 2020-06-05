@@ -27,10 +27,10 @@ from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 
 # Define setup
-ENVIRONMENT_NAME = Environment.PONG_DETERMINISTIC_v4
+ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
 ENVIRONMENT_WRAPPERS = [
-    EnvironmentWrapper.NOOP_RESET_ENV,
-    EnvironmentWrapper.MAX_AND_SKIP_ENV,
+    # EnvironmentWrapper.NOOP_RESET_ENV,
+    # EnvironmentWrapper.MAX_AND_SKIP_ENV,
     # EnvironmentWrapper.FRAME_STACK,
 ]
 BATCH_SIZE = 128
@@ -42,8 +42,10 @@ TARGET_UPDATE = 5
 REPLAY_MEMORY_SIZE = 10_000
 NUM_FRAMES = 1_000_000
 REWARD_SHAPINGS = [
-    RewardShape.PONG_PLAYER_RACKET_PROXIMITY_TO_BALL_QUADRATIC,
-    RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC
+    RewardShape.PONG_PLAYER_RACKET_HITS_BALL,
+    RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+    RewardShape.PONG_OPPONENT_RACKET_HITS_BALL,
+    RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
 ]
 
 # Set up device
@@ -166,22 +168,36 @@ for total_frames in progress_bar:
             or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
             or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
             or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
-        # # Plot intermediate screen after scoring
-        # InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
-        #     total_frames) + " / reward " + str(round(reward, 4)) + " / GOOOAAAAL!!!")
 
         reward_shaper = PongRewardShaper(observation, reward, done, info)
 
-        if RewardShape.PONG_PLAYER_RACKET_CENTER_ON_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_center_ball()
-        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_close_to_ball()
-        if RewardShape.PONG_PLAYER_RACKET_PROXIMITY_TO_BALL_LINEAR in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_vertical_proximity_to_ball_linear()
-        if RewardShape.PONG_PLAYER_RACKET_PROXIMITY_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_vertical_proximity_to_ball_quadratic()
+        if RewardShape.PONG_PLAYER_RACKET_HITS_BALL in REWARD_SHAPINGS:
+            additional_reward = reward_shaper.reward_player_racket_hits_ball()
+            # if additional_reward != 0:
+            #     # Plot screen after additional reward has been given
+            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device),
+            #                                str(total_frames) + " / Player hits ball")
+            shaped_reward += additional_reward
+        if RewardShape.PONG_PLAYER_RACKET_COVERS_BALL in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_covers_ball()
+        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_close_to_ball_linear()
+        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_player_racket_close_to_ball_quadractic()
+
+        if RewardShape.PONG_OPPONENT_RACKET_HITS_BALL in REWARD_SHAPINGS:
+            additional_reward = reward_shaper.reward_opponent_racket_hits_ball()
+            # if additional_reward != 0:
+            #     # Plot screen after additional reward has been given
+            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device),
+            #                                str(total_frames) + " / Opponent hits ball")
+            shaped_reward += additional_reward
+        if RewardShape.PONG_OPPONENT_RACKET_COVERS_BALL in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_opponent_racket_covers_ball()
+        if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR in REWARD_SHAPINGS:
+            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball_linear()
         if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball()
+            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball_quadractic()
 
     # # Plot intermediate screen
     # if total_frames % 50 == 0:
