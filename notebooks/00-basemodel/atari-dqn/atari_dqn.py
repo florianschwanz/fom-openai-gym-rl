@@ -13,40 +13,68 @@ if not (lib_path in sys.path):
     sys.path.insert(0, lib_path)
 
 # Import library classes
-from replay_memory import ReplayMemory
-from deep_q_network import DeepQNetwork
 from action_selector import ActionSelector
+from deep_q_network import DeepQNetwork
+from environment_builder import EnvironmentBuilder
+from environment_builder import EnvironmentWrapper
+from environment_enum import Environment
 from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
-from environment_enum import Environment
-from pong_reward_shaper import PongRewardShaper
-from reward_shape_enum import RewardShape
 from performance_logger import PerformanceLogger
-from environment_builder import EnvironmentBuilder
-from environment_builder import EnvironmentWrapper
+from pong_reward_shaper import PongRewardShaper
+from replay_memory import ReplayMemory
+from reward_shape_enum import RewardShape
 
-# Define setup
-ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
-ENVIRONMENT_WRAPPERS = [
-    # EnvironmentWrapper.NOOP_RESET_ENV,
-    # EnvironmentWrapper.MAX_AND_SKIP_ENV,
-    # EnvironmentWrapper.FRAME_STACK,
-]
-BATCH_SIZE = 128
-GAMMA = 0.999
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 200
-TARGET_UPDATE = 5
-REPLAY_MEMORY_SIZE = 10_000
-NUM_FRAMES = 1_000_000
-REWARD_SHAPINGS = [
-    RewardShape.PONG_PLAYER_RACKET_HITS_BALL,
-    RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-    RewardShape.PONG_OPPONENT_RACKET_HITS_BALL,
-    RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
-]
+# Path to model to be loaded
+MODEL_TO_LOAD = None
+
+if MODEL_TO_LOAD != None:
+    FINISHED_FRAMES, \
+    FINISHED_EPISODES, \
+    MODEL_STATE_DICT, \
+    OPTIMIZER_STATE_DICT, \
+    REPLAY_MEMORY, \
+    LOSS, \
+ \
+    ENVIRONMENT_NAME, \
+    ENVIRONMENT_WRAPPERS, \
+    BATCH_SIZE, \
+    GAMMA, \
+    EPS_START, \
+    EPS_END, \
+    EPS_DECAY, \
+    TARGET_UPDATE, \
+    REPLAY_MEMORY_SIZE, \
+    NUM_FRAMES, \
+    REWARD_SHAPINGS \
+        = ModelStorage.loadModel(MODEL_TO_LOAD)
+else:
+    # Only use defined parameters if there is no previous model being loaded
+    FINISHED_FRAMES = 0
+    FINISHED_EPISODES = 0
+
+    # Define setup
+    ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
+    ENVIRONMENT_WRAPPERS = [
+        EnvironmentWrapper.NOOP_RESET_ENV,
+        EnvironmentWrapper.MAX_AND_SKIP_ENV,
+        # EnvironmentWrapper.FRAME_STACK,
+    ]
+    BATCH_SIZE = 128
+    GAMMA = 0.999
+    EPS_START = 0.9
+    EPS_END = 0.05
+    EPS_DECAY = 200
+    TARGET_UPDATE = 5
+    REPLAY_MEMORY_SIZE = 10_000
+    NUM_FRAMES = 500_000
+    REWARD_SHAPINGS = [
+        RewardShape.PONG_PLAYER_RACKET_HITS_BALL,
+        RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+        RewardShape.PONG_OPPONENT_RACKET_HITS_BALL,
+        RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+    ]
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -61,28 +89,6 @@ env.reset()
 # Plot initial screen
 InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
 
-######################################################################
-# Training
-# --------
-#
-# Hyper-parameters and utilities
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# This cell instantiates our model and its optimizer, and defines some
-# utilities:
-#
-# -  ``select_action`` - will select an action accordingly to an epsilon
-#    greedy policy. Simply put, we'll sometimes use our model for choosing
-#    the action, and sometimes we'll just sample one uniformly. The
-#    probability of choosing a random action will start at ``EPS_START``
-#    and will decay exponentially towards ``EPS_END``. ``EPS_DECAY``
-#    controls the rate of the decay.
-# -  ``plot_durations`` - a helper for plotting the durations of episodes,
-#    along with an average over the last 100 episodes (the measure used in
-#    the official evaluations). The plot will be underneath the cell
-#    containing the main training loop, and will update after every
-#    episode.
-#
-
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90
 # which is the result of a clamped and down-scaled render buffer in get_screen()
@@ -92,35 +98,39 @@ _, _, screen_height, screen_width = init_screen.shape
 # Get number of actions from gym action space
 n_actions = env.action_space.n
 
-# Initialize policy net and target net
-policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+# Only use defined parameters if there is no previous model being loaded
+if MODEL_TO_LOAD != None:
+    # Initialize and loade policy net and target net
+    policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+    policy_net.load_state_dict(MODEL_STATE_DICT)
+    target_net.load_state_dict(MODEL_STATE_DICT)
+else:
+    # Initialize policy net and target net
+    policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
 
-# Since both nets are initialized randomly we need to copy the state of one into the other to make sure they are equal
-target_net.load_state_dict(policy_net.state_dict())
-target_net.eval()
+    # Since both nets are initialized randomly we need to copy the state of one into the other to make sure they are equal
+    target_net.load_state_dict(policy_net.state_dict())
+    target_net.eval()
 
-# Initialize optimizer
-optimizer = optim.RMSprop(policy_net.parameters())
-# Initialize replay memory
-memory = ReplayMemory(REPLAY_MEMORY_SIZE)
+# Only use defined parameters if there is no previous model being loaded
+if MODEL_TO_LOAD != None:
+    # Initialize and load optimizer
+    optimizer = optim.RMSprop(policy_net.parameters())
+    optimizer.load_state_dict(OPTIMIZER_STATE_DICT)
 
-######################################################################
-#
-# Below, you can find the main training loop. At the beginning we reset
-# the environment and initialize the ``state`` Tensor. Then, we sample
-# an action, execute it, observe the next screen and the reward (always
-# 1), and optimize our model once. When the episode ends (our model
-# fails), we restart the loop.
-#
-# Below, `num_episodes` is set small. You should download
-# the notebook and run lot more episodes, such as 300+ for meaningful
-# duration improvements.
-#
+    # Load memory
+    memory = REPLAY_MEMORY
+else:
+    # Initialize optimizer
+    optimizer = optim.RMSprop(policy_net.parameters())
+    # Initialize replay memory
+    memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
 # Initialize total variables
 total_frames = 0
-total_episodes = 0
+total_episodes = FINISHED_EPISODES
 total_original_rewards = []
 total_shaped_rewards = []
 total_start_time = time.time()
@@ -139,6 +149,7 @@ state = current_screen - last_screen
 
 # Iterate over frames
 progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
+progress_bar.update(FINISHED_FRAMES)
 for total_frames in progress_bar:
 
     # Select and perform an action
@@ -266,8 +277,10 @@ for total_frames in progress_bar:
 
             # Save model
             ModelStorage.saveModel(total_frames=total_frames,
+                                   total_episodes=total_episodes,
                                    net=target_net,
                                    optimizer=optimizer,
+                                   memory=memory,
                                    loss=loss,
                                    environment_name=ENVIRONMENT_NAME,
                                    environment_wrappers=ENVIRONMENT_WRAPPERS,
