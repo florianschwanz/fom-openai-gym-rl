@@ -1,6 +1,9 @@
 import os
+import glob
 import sys
 import time
+
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import torch
@@ -27,9 +30,15 @@ from replay_memory import ReplayMemory
 from reward_shape_enum import RewardShape
 
 # Path to model to be loaded
-MODEL_TO_LOAD = None
+RUN_TO_LOAD = None
 
-if MODEL_TO_LOAD != None:
+if RUN_TO_LOAD != None:
+    # Get latest file from run
+    list_of_files = glob.glob("./model/" + RUN_TO_LOAD + "/*")
+    MODEL_TO_LOAD = max(list_of_files, key=os.path.getctime)
+
+    RUN_DIRECTORY = RUN_TO_LOAD
+
     FINISHED_FRAMES, \
     FINISHED_EPISODES, \
     MODEL_STATE_DICT, \
@@ -50,6 +59,8 @@ if MODEL_TO_LOAD != None:
     REWARD_SHAPINGS \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
+    RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+
     # Only use defined parameters if there is no previous model being loaded
     FINISHED_FRAMES = 0
     FINISHED_EPISODES = 0
@@ -99,7 +110,7 @@ _, _, screen_height, screen_width = init_screen.shape
 n_actions = env.action_space.n
 
 # Only use defined parameters if there is no previous model being loaded
-if MODEL_TO_LOAD != None:
+if RUN_TO_LOAD != None:
     # Initialize and loade policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
@@ -115,7 +126,7 @@ else:
     target_net.eval()
 
 # Only use defined parameters if there is no previous model being loaded
-if MODEL_TO_LOAD != None:
+if RUN_TO_LOAD != None:
     # Initialize and load optimizer
     optimizer = optim.RMSprop(policy_net.parameters())
     optimizer.load_state_dict(OPTIMIZER_STATE_DICT)
@@ -276,7 +287,8 @@ for total_frames in progress_bar:
             target_net.load_state_dict(policy_net.state_dict())
 
             # Save model
-            ModelStorage.saveModel(total_frames=total_frames,
+            ModelStorage.saveModel(directory=RUN_DIRECTORY,
+                                   total_frames=total_frames,
                                    total_episodes=total_episodes,
                                    net=target_net,
                                    optimizer=optimizer,

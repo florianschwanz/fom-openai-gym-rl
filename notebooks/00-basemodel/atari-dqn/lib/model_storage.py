@@ -1,14 +1,23 @@
 import torch
+import os
 
 
 class ModelStorage:
 
-    def saveModel(total_frames, total_episodes, net, optimizer, memory, loss, environment_name, environment_wrappers,
+    def saveModel(directory, total_frames, total_episodes, net, optimizer, memory, loss, environment_name,
+                  environment_wrappers,
                   batch_size, gamma, eps_start, eps_end, eps_decay, target_update, replay_memory_size, num_frames,
                   reward_shapings):
         """
         Saves model into a file
         """
+
+        path = "./model/" + directory
+
+        # Make path if not yet exists
+        if not os.path.exists(path):
+            os.mkdir(path)
+
         torch.save({
             'total_frames': total_frames,
             'total_episodes': total_episodes,
@@ -22,7 +31,7 @@ class ModelStorage:
             'replay_memory_size': replay_memory_size,
             'num_frames': num_frames,
             'reward_shapings': reward_shapings
-        }, "./model/target_net-frame-{:07d}".format(total_frames) + ".model")
+        }, path + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
     def loadModel(path):
         """
