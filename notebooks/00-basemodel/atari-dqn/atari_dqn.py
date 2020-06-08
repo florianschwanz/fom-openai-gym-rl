@@ -1,8 +1,7 @@
-import os
 import glob
+import os
 import sys
 import time
-
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -27,7 +26,6 @@ from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
 from pong_reward_shaper import PongRewardShaper
 from replay_memory import ReplayMemory
-from reward_shape_enum import RewardShape
 
 # Path to model to be loaded
 RUN_TO_LOAD = None
@@ -81,10 +79,10 @@ else:
     REPLAY_MEMORY_SIZE = 10_000
     NUM_FRAMES = 500_000
     REWARD_SHAPINGS = [
-        RewardShape.PONG_PLAYER_RACKET_HITS_BALL,
-        RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-        RewardShape.PONG_OPPONENT_RACKET_HITS_BALL,
-        RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+        {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+        {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
+        {"method": PongRewardShaper().reward_opponent_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
     ]
 
 # Set up device
@@ -98,7 +96,7 @@ env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT_NAME.value, 
 # Reset environment
 env.reset()
 # Plot initial screen
-InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
+# InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
 
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90
@@ -177,49 +175,20 @@ for total_frames in progress_bar:
 
     # Unwrap observations if frame stack is in use
     if EnvironmentWrapper.FRAME_STACK in ENVIRONMENT_WRAPPERS:
-        print("Not yet supported")
-        exit
+        raise Exception("Not yet supported")
 
     # Shape reward
     original_reward = reward
     shaped_reward = reward
 
-    if ENVIRONMENT_NAME == Environment.PONG_v0 \
-            or ENVIRONMENT_NAME == Environment.PONG_v4 \
-            or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v0 \
-            or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
-            or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
-            or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
-
-        reward_shaper = PongRewardShaper(observation, reward, done, info)
-
-        if RewardShape.PONG_PLAYER_RACKET_HITS_BALL in REWARD_SHAPINGS:
-            additional_reward = reward_shaper.reward_player_racket_hits_ball()
-            # if additional_reward != 0:
-            #     # Plot screen after additional reward has been given
-            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device),
-            #                                str(total_frames) + " / Player hits ball")
-            shaped_reward += additional_reward
-        if RewardShape.PONG_PLAYER_RACKET_COVERS_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_covers_ball()
-        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_close_to_ball_linear()
-        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_close_to_ball_quadractic()
-
-        if RewardShape.PONG_OPPONENT_RACKET_HITS_BALL in REWARD_SHAPINGS:
-            additional_reward = reward_shaper.reward_opponent_racket_hits_ball()
-            # if additional_reward != 0:
-            #     # Plot screen after additional reward has been given
-            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device),
-            #                                str(total_frames) + " / Opponent hits ball")
-            shaped_reward += additional_reward
-        if RewardShape.PONG_OPPONENT_RACKET_COVERS_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_covers_ball()
-        if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball_linear()
-        if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball_quadractic()
+    # Iterate overall reward shaping mechanisms
+    for reward_shaping in REWARD_SHAPINGS:
+        shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
+                                                     observation=observation,
+                                                     reward=reward,
+                                                     done=done,
+                                                     info=info,
+                                                     **reward_shaping["arguments"])
 
     # # Plot intermediate screen
     # if total_frames % 50 == 0:

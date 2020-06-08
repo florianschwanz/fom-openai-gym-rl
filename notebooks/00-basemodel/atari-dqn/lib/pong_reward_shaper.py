@@ -1,11 +1,14 @@
 import math
 import statistics
 
+from environment_enum import Environment
+
 
 class Component:
     """
     Represents a distinct visual entity on the screen
     """
+
     def __init__(self, pixels, observation):
         if len(pixels) > 0:
             self.visible = True
@@ -19,49 +22,97 @@ class Component:
             self.bottom = ()
 
 
-class PongRewardShaper:
+class PongRewardShaper():
+    """
+    Pixel-based reward shaper for Atari game Pong
+    """
+
+    # Colors contained in the game
     BLACK = (0, 0, 0)
     BROWN = (144, 72, 17)
     ORANGE = (213, 130, 74)
     GREEN = (92, 186, 92)
     LIGHTGREY = (236, 236, 236)
 
+    # Important positions
     BALL_CENTER_X_WHEN_PLAYED_BY_PLAYER = 142
     BALL_CENTER_X_WHEN_PLAYED_BY_OPPONENT = 20
 
-    def __init__(self, observation, reward, done, info):
-        """
-        Constructor
-        :param observation: observation of the game
-        :param reward: original reward
-        :param done: information if game round is finished
-        :param info: additional information
-        """
+    # Environments this reward shaper makes sense to use with
+    ENVIRONMENTS = [
+        Environment.PONG_v0,
+        Environment.PONG_v4,
+        Environment.PONG_DETERMINISTIC_v0,
+        Environment.PONG_DETERMINISTIC_v4,
+        Environment.PONG_NO_FRAMESKIP_v0,
+        Environment.PONG_NO_FRAMESKIP_v4
+    ]
 
-        self.observation = observation
-        self.reward = reward
-        self.done = done
-        self.info = info
+    def check_environment(func):
+        def check_environment_and_call(self, *args, **kwargs):
+            """Checks if reward shaping is done on a matching environment"""
+            environment_name = kwargs["environment_name"]
 
-        self.pixels = PongRewardShaper.extract_pixels(observation)
-        # self.colors = PongRewardShaper.extract_colors(self.pixels)
+            if environment_name not in self.ENVIRONMENTS:
+                raise Exception("Reward shaping method does match environment "
+                                "(method:" + func.__name__ + ", environment:" + environment_name + ")")
 
-        self.ball = Component(PongRewardShaper.get_ball_pixels(self.pixels), self.observation)
-        self.player_racket = Component(PongRewardShaper.get_player_racket_pixels(self.pixels), self.observation)
-        self.opponent_racket = Component(PongRewardShaper.get_opponent_racket_pixels(self.pixels), observation)
+            # Remove arguments that were only used for this wrapper
+            kwargs.pop("environment_name", None)
 
-        # Debug positions
-        # if (self.ball.visible):
-        #     print("DEBUG"
-        #           + " player " + str(self.player_racket.center)
-        #           + " opponent " + str(self.opponent_racket.center)
-        #           + " ball " + str(self.ball.center))
-        # else:
-        #     print("DEBUG "
-        #           + " player " + str(self.player_racket.center)
-        #           + " opponent " + str(self.opponent_racket.center)
-        #           + " no ball")
+            return func(self, *args, **kwargs)
 
+        return check_environment_and_call
+
+    def initialize_reward_shaper(func):
+        def initialize_reward_shaper_and_call(self, *args, **kwargs):
+            self.observation = kwargs["observation"]
+            self.reward = kwargs["reward"]
+            self.done = kwargs["done"]
+            self.info = kwargs["info"]
+
+            self.pixels = PongRewardShaper.extract_pixels(self.observation)
+            # self.colors = PongRewardShaper.extract_colors(self.pixels)
+
+            self.ball = Component(PongRewardShaper.get_ball_pixels(self.pixels), self.observation)
+            self.player_racket = Component(PongRewardShaper.get_player_racket_pixels(self.pixels), self.observation)
+            self.opponent_racket = Component(PongRewardShaper.get_opponent_racket_pixels(self.pixels), self.observation)
+
+            # Remove arguments that were only used for this wrapper
+            kwargs.pop("observation", None)
+            kwargs.pop("reward", None)
+            kwargs.pop("done", None)
+            kwargs.pop("info", None)
+
+            return func(self, *args, **kwargs)
+
+        return initialize_reward_shaper_and_call
+
+    def debug_positions(func):
+        def debug_positions_and_call(self, *args, **kwargs):
+            """
+            Prints positions of all elements on the screen
+            :param self:
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            if (self.ball.visible):
+                print("DEBUG"
+                      + " player " + str(self.player_racket.center)
+                      + " opponent " + str(self.opponent_racket.center)
+                      + " ball " + str(self.ball.center))
+            else:
+                print("DEBUG "
+                      + " player " + str(self.player_racket.center)
+                      + " opponent " + str(self.opponent_racket.center)
+                      + " no ball")
+            return func(self, *args, **kwargs)
+
+        return debug_positions_and_call
+
+    @check_environment
+    @initialize_reward_shaper
     def reward_player_racket_hits_ball(self, additional_reward=0.025):
         """
         Gives an additional reward if the player's racket hits the ball
@@ -74,7 +125,9 @@ class PongRewardShaper:
             return additional_reward
         else:
             return 0
-        
+
+    @check_environment
+    @initialize_reward_shaper
     def reward_player_racket_covers_ball(self, additional_reward=0.025):
         """
         Gives an additional reward if the player's racket covers y-coordinate of the ball
@@ -86,9 +139,11 @@ class PongRewardShaper:
             return additional_reward
         else:
             return 0
-        
-    def reward_player_racket_close_to_ball_linear(self, max_additional_reward=0.05):
-        reward_max = max_additional_reward
+
+    @check_environment
+    @initialize_reward_shaper
+    def reward_player_racket_close_to_ball_linear(self, additional_reward=0.05):
+        reward_max = additional_reward
         reward_min = 0
 
         dist_max = 160
@@ -100,9 +155,11 @@ class PongRewardShaper:
             return additional_reward
         else:
             return 0
-        
-    def reward_player_racket_close_to_ball_quadractic(self, max_additional_reward=0.05):
-        reward_max = math.sqrt(max_additional_reward)
+
+    @check_environment
+    @initialize_reward_shaper
+    def reward_player_racket_close_to_ball_quadractic(self, additional_reward=0.05):
+        reward_max = math.sqrt(additional_reward)
         reward_min = 0
 
         dist_max = 160
@@ -115,6 +172,8 @@ class PongRewardShaper:
         else:
             return 0
 
+    @check_environment
+    @initialize_reward_shaper
     def reward_opponent_racket_hits_ball(self, additional_reward=-0.025):
         """
         Gives an additional reward if the oppponent's racket hits the ball
@@ -128,6 +187,8 @@ class PongRewardShaper:
         else:
             return 0
 
+    @check_environment
+    @initialize_reward_shaper
     def reward_opponent_racket_covers_ball(self, additional_reward=-0.025):
         """
         Gives an additional reward if the opponent's racket covers y-coordinate of the ball
@@ -140,8 +201,10 @@ class PongRewardShaper:
         else:
             return 0
 
-    def reward_opponent_racket_close_to_ball_linear(self, max_additional_reward=-0.05):
-        reward_max = max_additional_reward
+    @check_environment
+    @initialize_reward_shaper
+    def reward_opponent_racket_close_to_ball_linear(self, additional_reward=-0.05):
+        reward_max = additional_reward
         reward_min = 0
 
         dist_max = 160
@@ -154,8 +217,10 @@ class PongRewardShaper:
         else:
             return 0
 
-    def reward_opponent_racket_close_to_ball_quadractic(self, max_additional_reward=-0.05):
-        reward_max = math.sqrt(max_additional_reward)
+    @check_environment
+    @initialize_reward_shaper
+    def reward_opponent_racket_close_to_ball_quadractic(self, additional_reward=-0.05):
+        reward_max = math.sqrt(additional_reward)
         reward_min = 0
 
         dist_max = 160
