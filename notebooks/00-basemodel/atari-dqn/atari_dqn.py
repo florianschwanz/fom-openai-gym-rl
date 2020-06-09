@@ -7,7 +7,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import torch
 import torch.optim as optim
-from tqdm import tqdm_notebook as tqdm
+from tqdm import tqdm
 
 # Make library available in path
 lib_path = os.path.join(os.getcwd(), 'lib')
