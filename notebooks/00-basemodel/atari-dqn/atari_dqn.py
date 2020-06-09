@@ -240,16 +240,17 @@ for total_frames in progress_bar:
         total_shaped_rewards.append(episode_shaped_reward)
 
         if loss is not None:
-            PerformanceLogger.log_episode_short(total_episodes=total_episodes + 1,
-                                                total_frames=total_frames,
-                                                total_duration=total_duration,
-                                                total_original_rewards=total_original_rewards,
-                                                total_shaped_rewards=total_shaped_rewards,
-                                                episode_frames=episode_frames + 1,
-                                                episode_original_reward=episode_original_reward,
-                                                episode_shaped_reward=episode_shaped_reward,
-                                                episode_loss=loss.item(),
-                                                episode_duration=episode_duration)
+            PerformanceLogger.log_episode(directory=RUN_DIRECTORY,
+                                          total_episodes=total_episodes + 1,
+                                          total_frames=total_frames,
+                                          total_duration=total_duration,
+                                          total_original_rewards=total_original_rewards,
+                                          total_shaped_rewards=total_shaped_rewards,
+                                          episode_frames=episode_frames + 1,
+                                          episode_original_reward=episode_original_reward,
+                                          episode_shaped_reward=episode_shaped_reward,
+                                          episode_loss=loss.item(),
+                                          episode_duration=episode_duration)
 
         # Update the target network, copying all weights and biases from policy net into target net
         if total_episodes % TARGET_UPDATE == 0:
