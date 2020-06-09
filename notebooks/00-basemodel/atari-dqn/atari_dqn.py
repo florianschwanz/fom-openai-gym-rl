@@ -71,10 +71,10 @@ else:
         # EnvironmentWrapper.FRAME_STACK,
     ]
     BATCH_SIZE = 128
-    GAMMA = 0.999
-    EPS_START = 0.9
-    EPS_END = 0.05
-    EPS_DECAY = 200
+    GAMMA = 0.99
+    EPS_START = 1.0
+    EPS_END = 0.01
+    EPS_DECAY = 500
     TARGET_UPDATE = 5
     REPLAY_MEMORY_SIZE = 10_000
     NUM_FRAMES = 500_000
