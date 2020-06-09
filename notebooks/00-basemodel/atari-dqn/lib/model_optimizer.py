@@ -22,14 +22,15 @@ import torch.nn.functional as F
 #
 
 Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward'))
+                        ('state', 'action', 'next_state', 'reward', 'done'))
 
 
 class ModelOptimizer:
 
-    def optimize_model(policy_net, target_net, optimizer, memory, batch_size, gamma, device):
+    def optimize_model(rainbow_double_dqn, policy_net, target_net, optimizer, memory, batch_size, gamma, device):
         """
         Optimizes model
+        :param rainbow_double_dqn: whether or not to use double DQN
         :param policy_net: policy net
         :param target_net: target net
         :param optimizer: optimizer
@@ -52,33 +53,34 @@ class ModelOptimizer:
         # to Transition of batch-arrays.
         batch = Transition(*zip(*transitions))
 
-        # Compute a mask of non-final states and concatenate the batch elements
-        # (a final state would've been the one after which simulation ended)
-        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                                batch.next_state)), device=device, dtype=torch.bool)
-        non_final_next_states = torch.cat([s for s in batch.next_state
-                                           if s is not None])
-        state_batch = torch.cat(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
+        state = torch.cat(batch.state)
+        action = torch.cat(batch.action)
+        next_state = torch.cat(batch.next_state)
+        reward = torch.cat(batch.reward)
+        done = torch.cat(batch.done)
 
-        # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
-        # columns of actions taken. These are the actions which would've been taken
-        # for each batch state according to policy_net
-        state_action_values = policy_net(state_batch).gather(1, action_batch)
-
-        # Compute V(s_{t+1}) for all next states.
-        # Expected values of actions for non_final_next_states are computed based
-        # on the "older" target_net; selecting their best reward with max(1)[0].
-        # This is merged based on the mask, such that we'll have either the expected
-        # state value or 0 in case the state was final.
-        next_state_values = torch.zeros(batch_size, device=device)
-        next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
-        # Compute the expected Q values
-        expected_state_action_values = (next_state_values * gamma) + reward_batch
+        if not rainbow_double_dqn:
+            # Compute Q(s_t, a)
+            q_values = policy_net(state)
+            # Compute V(s_{t+1}) for all next states
+            next_q_values = policy_net(next_state)
+            # Compute the expected Q values
+            q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
+            next_q_value = next_q_values.max(1)[0]
+            expected_q_value = reward + gamma * next_q_value * (1 - done)
+        else:
+            # Compute Q(s_t, a)
+            q_values = policy_net(state)
+            # Compute V(s_{t+1}) for all next states.
+            next_q_values = policy_net(next_state)
+            next_q_state_values = target_net(next_state)
+            # Compute the expected Q values
+            q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
+            next_q_value = next_q_state_values.gather(1, torch.max(next_q_values, 1)[1].unsqueeze(1)).squeeze(1)
+            expected_q_value = reward + gamma * next_q_value * (1 - done)
 
         # Compute Huber loss
-        loss = F.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+        loss = F.smooth_l1_loss(q_value, expected_q_value.unsqueeze(1))
 
         # Optimize the model
         optimizer.zero_grad()
