@@ -295,7 +295,7 @@ for total_frames in progress_bar:
     episode_frames += 1
 
 print('Complete')
-env.render()
-env.close()
-plt.ioff()
-plt.show()
+# env.render()
+# env.close()
+# plt.ioff()
+# plt.show()
