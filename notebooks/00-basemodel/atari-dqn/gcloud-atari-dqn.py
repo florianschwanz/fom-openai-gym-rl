@@ -1,8 +1,7 @@
-import os
 import glob
+import os
 import sys
 import time
-
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -14,7 +13,6 @@ from tqdm import tqdm
 lib_path = os.path.join(os.getcwd(), 'lib')
 if not (lib_path in sys.path):
     sys.path.insert(0, lib_path)
-print(sys.path)
 
 # Import library classes
 from action_selector import ActionSelector
@@ -28,7 +26,6 @@ from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
 from pong_reward_shaper import PongRewardShaper
 from replay_memory import ReplayMemory
-from reward_shape_enum import RewardShape
 
 # Path to model to be loaded
 RUN_TO_LOAD = None
@@ -57,7 +54,9 @@ if RUN_TO_LOAD != None:
     TARGET_UPDATE, \
     REPLAY_MEMORY_SIZE, \
     NUM_FRAMES, \
-    REWARD_SHAPINGS \
+    REWARD_SHAPINGS, \
+    \
+    RAINBOW_DOUBLE_DQN \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
@@ -67,26 +66,27 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
+    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.PONG_NO_FRAMESKIP_v4)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.NOOP_RESET_ENV,
         EnvironmentWrapper.MAX_AND_SKIP_ENV,
         # EnvironmentWrapper.FRAME_STACK,
     ]
-    BATCH_SIZE = 128
-    GAMMA = 0.999
-    EPS_START = 0.9
-    EPS_END = 0.05
-    EPS_DECAY = 200
-    TARGET_UPDATE = 5
-    REPLAY_MEMORY_SIZE = 10_000
-    NUM_FRAMES = 500_000
+    BATCH_SIZE = os.getenv('BATCH_SIZE', 128)
+    GAMMA = os.getenv('GAMMA', 0.99)
+    EPS_START = os.getenv('EPS_START', 1.0)
+    EPS_END = os.getenv('EPS_END', 0.01)
+    EPS_DECAY = os.getenv('EPS_DECAY', 500)
+    TARGET_UPDATE = os.getenv('TARGET_UPDATE', 100)
+    REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 10_000)
+    NUM_FRAMES = os.getenv('NUM_FRAMES', 500_000)
     REWARD_SHAPINGS = [
-        RewardShape.PONG_PLAYER_RACKET_HITS_BALL,
-        RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-        RewardShape.PONG_OPPONENT_RACKET_HITS_BALL,
-        RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+        {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+        {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
+        {"method": PongRewardShaper().reward_opponent_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
     ]
+    RAINBOW_DOUBLE_DQN = True
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -99,7 +99,7 @@ env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT_NAME.value, 
 # Reset environment
 env.reset()
 # Plot initial screen
-InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
+# InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
 
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90
@@ -114,17 +114,19 @@ n_actions = env.action_space.n
 if RUN_TO_LOAD != None:
     # Initialize and loade policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
-    target_net.load_state_dict(MODEL_STATE_DICT)
+
+    if RAINBOW_DOUBLE_DQN:
+        target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+        target_net.load_state_dict(MODEL_STATE_DICT)
 else:
     # Initialize policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
 
-    # Since both nets are initialized randomly we need to copy the state of one into the other to make sure they are equal
-    target_net.load_state_dict(policy_net.state_dict())
-    target_net.eval()
+    if RAINBOW_DOUBLE_DQN:
+        target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+        target_net.load_state_dict(policy_net.state_dict())
+        target_net.eval()
 
 # Only use defined parameters if there is no previous model being loaded
 if RUN_TO_LOAD != None:
@@ -178,49 +180,20 @@ for total_frames in progress_bar:
 
     # Unwrap observations if frame stack is in use
     if EnvironmentWrapper.FRAME_STACK in ENVIRONMENT_WRAPPERS:
-        print("Not yet supported")
-        exit
+        raise Exception("Not yet supported")
 
     # Shape reward
     original_reward = reward
     shaped_reward = reward
 
-    if ENVIRONMENT_NAME == Environment.PONG_v0 \
-            or ENVIRONMENT_NAME == Environment.PONG_v4 \
-            or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v0 \
-            or ENVIRONMENT_NAME == Environment.PONG_DETERMINISTIC_v4 \
-            or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v0 \
-            or ENVIRONMENT_NAME == Environment.PONG_NO_FRAMESKIP_v4:
-
-        reward_shaper = PongRewardShaper(observation, reward, done, info)
-
-        if RewardShape.PONG_PLAYER_RACKET_HITS_BALL in REWARD_SHAPINGS:
-            additional_reward = reward_shaper.reward_player_racket_hits_ball()
-            # if additional_reward != 0:
-            #     # Plot screen after additional reward has been given
-            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device),
-            #                                str(total_frames) + " / Player hits ball")
-            shaped_reward += additional_reward
-        if RewardShape.PONG_PLAYER_RACKET_COVERS_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_covers_ball()
-        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_close_to_ball_linear()
-        if RewardShape.PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_player_racket_close_to_ball_quadractic()
-
-        if RewardShape.PONG_OPPONENT_RACKET_HITS_BALL in REWARD_SHAPINGS:
-            additional_reward = reward_shaper.reward_opponent_racket_hits_ball()
-            # if additional_reward != 0:
-            #     # Plot screen after additional reward has been given
-            #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device),
-            #                                str(total_frames) + " / Opponent hits ball")
-            shaped_reward += additional_reward
-        if RewardShape.PONG_OPPONENT_RACKET_COVERS_BALL in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_covers_ball()
-        if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball_linear()
-        if RewardShape.PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC in REWARD_SHAPINGS:
-            shaped_reward += reward_shaper.reward_opponent_racket_close_to_ball_quadractic()
+    # Iterate overall reward shaping mechanisms
+    for reward_shaping in REWARD_SHAPINGS:
+        shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
+                                                     observation=observation,
+                                                     reward=reward,
+                                                     done=done,
+                                                     info=info,
+                                                     **reward_shaping["arguments"])
 
     # # Plot intermediate screen
     # if total_frames % 50 == 0:
@@ -241,19 +214,18 @@ for total_frames in progress_bar:
     last_screen = current_screen
     current_screen = InputExtractor.get_screen(env=env, device=device)
 
-    if not done:
-        next_state = current_screen - last_screen
-    else:
-        next_state = None
+    # Update next state
+    next_state = current_screen - last_screen
 
     # Store the transition in memory
-    memory.push(state, action, next_state, reward)
+    memory.push(state, action, next_state, reward, done)
 
     # Move to the next state
     state = next_state
 
     # Perform one step of the optimization (on the target network)
-    loss = ModelOptimizer.optimize_model(policy_net=policy_net,
+    loss = ModelOptimizer.optimize_model(rainbow_double_dqn=RAINBOW_DOUBLE_DQN,
+                                         policy_net=policy_net,
                                          target_net=target_net,
                                          optimizer=optimizer,
                                          memory=memory,
@@ -272,7 +244,8 @@ for total_frames in progress_bar:
         total_shaped_rewards.append(episode_shaped_reward)
 
         if loss is not None:
-            PerformanceLogger.log_episode(total_episodes=total_episodes + 1,
+            PerformanceLogger.log_episode(directory=RUN_DIRECTORY,
+                                          total_episodes=total_episodes + 1,
                                           total_frames=total_frames,
                                           total_duration=total_duration,
                                           total_original_rewards=total_original_rewards,
@@ -284,7 +257,7 @@ for total_frames in progress_bar:
                                           episode_duration=episode_duration)
 
         # Update the target network, copying all weights and biases from policy net into target net
-        if total_episodes % TARGET_UPDATE == 0:
+        if RAINBOW_DOUBLE_DQN and total_episodes % TARGET_UPDATE == 0:
             target_net.load_state_dict(policy_net.state_dict())
 
             # Save model
@@ -305,7 +278,8 @@ for total_frames in progress_bar:
                                    target_update=TARGET_UPDATE,
                                    replay_memory_size=REPLAY_MEMORY_SIZE,
                                    num_frames=NUM_FRAMES,
-                                   reward_shapings=REWARD_SHAPINGS
+                                   reward_shapings=REWARD_SHAPINGS,
+                                   rainbow_double_dqn=RAINBOW_DOUBLE_DQN
                                    )
 
         # Reset episode variables
@@ -327,7 +301,7 @@ for total_frames in progress_bar:
     episode_frames += 1
 
 print('Complete')
-#env.render()
-#env.close()
-#plt.ioff()
-#plt.show()
+# env.render()
+# env.close()
+# plt.ioff()
+# plt.show()
