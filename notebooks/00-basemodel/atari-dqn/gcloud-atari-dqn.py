@@ -79,7 +79,7 @@ else:
     EPS_DECAY = os.getenv('EPS_DECAY', 500)
     TARGET_UPDATE = os.getenv('TARGET_UPDATE', 100)
     REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 10_000)
-    NUM_FRAMES = os.getenv('NUM_FRAMES', 500_000)
+    NUM_FRAMES = int(os.getenv('NUM_FRAMES', 500_000))
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
