@@ -90,6 +90,7 @@ else:
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("We're using device" ,device,)
 
 # Enable interactive mode of matplotlib
 plt.ion()
