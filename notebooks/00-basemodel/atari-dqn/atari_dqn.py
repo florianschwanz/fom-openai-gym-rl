@@ -112,7 +112,7 @@ n_actions = env.action_space.n
 
 # Only use defined parameters if there is no previous model being loaded
 if RUN_TO_LOAD != None:
-    # Initialize and loade policy net and target net
+    # Initialize and load policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
 
@@ -177,10 +177,6 @@ for total_frames in progress_bar:
 
     # Perform action
     observation, reward, done, info = env.step(action.item())
-
-    # Unwrap observations if frame stack is in use
-    if EnvironmentWrapper.FRAME_STACK in ENVIRONMENT_WRAPPERS:
-        raise Exception("Not yet supported")
 
     # Shape reward
     original_reward = reward
