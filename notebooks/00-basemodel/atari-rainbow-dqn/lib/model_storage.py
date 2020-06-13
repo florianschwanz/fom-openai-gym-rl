@@ -6,7 +6,7 @@ import torch
 class ModelStorage:
 
     def saveModel(directory, total_frames, total_episodes, net, optimizer, memory, loss, environment_name,
-                  # environment_wrappers,
+                  environment_wrappers,
                   batch_size, gamma, num_atoms, vmin, vmax, target_update, replay_memory_size, num_frames,
                   # reward_shapings
                   ):
@@ -28,7 +28,7 @@ class ModelStorage:
             'replay_memory': memory,
             'loss': loss,
             'environment_name': environment_name,
-            # 'environment_wrappers': environment_wrappers,
+            'environment_wrappers': environment_wrappers,
             'batch_size': batch_size,
             'gamma': gamma,
             'num_atoms': num_atoms,
@@ -55,6 +55,7 @@ class ModelStorage:
                checkpoint['replay_memory'], \
                checkpoint['loss'], \
                checkpoint['environment_name'], \
+               checkpoint['environment_wrappers'], \
                checkpoint['batch_size'], \
                checkpoint['gamma'], \
                checkpoint['num_atoms'], \

@@ -97,8 +97,6 @@ plt.ion()
 env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT_NAME.value, ENVIRONMENT_WRAPPERS)
 # Reset environment
 env.reset()
-# Plot initial screen
-# InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), 'Example extracted screen')
 
 # Get screen size so that we can initialize layers correctly based on shape
 # returned from AI gym. Typical dimensions at this point are close to 3x40x90

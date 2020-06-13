@@ -16,12 +16,13 @@ if not (lib_path in sys.path):
 
 # Import library classes
 from deep_q_network import RainbowCnnDQN
+from environment_builder import EnvironmentBuilder
+from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
 from replay_buffer import ReplayBuffer
-from wrappers import make_atari, wrap_deepmind, wrap_pytorch
 
 # Path to model to be loaded
 RUN_TO_LOAD = None
@@ -41,6 +42,7 @@ if RUN_TO_LOAD != None:
     LOSS, \
  \
     ENVIRONMENT_NAME, \
+    ENVIRONMENT_WRAPPERS, \
     BATCH_SIZE, \
     GAMMA, \
     NUM_ATOMS, \
@@ -59,6 +61,14 @@ else:
 
     # Define setup
     ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
+    ENVIRONMENT_WRAPPERS = [
+        EnvironmentWrapper.NOOP_RESET,
+        EnvironmentWrapper.MAX_AND_SKIP,
+        EnvironmentWrapper.EPISODIC_LIFE,
+        EnvironmentWrapper.FIRE_RESET,
+        EnvironmentWrapper.WARP_FRAME,
+        EnvironmentWrapper.IMAGE_TO_PYTORCH,
+    ]
     BATCH_SIZE = 32
     GAMMA = 0.99
     NUM_ATOMS = 51
@@ -75,15 +85,10 @@ USE_CUDA = torch.cuda.is_available()
 Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda(True) if USE_CUDA else autograd.Variable(
     *args, **kwargs)
 
-
-def update_target(current_model, target_model):
-    target_model.load_state_dict(current_model.state_dict())
-
-
 # Initialize environment
-env = make_atari(ENVIRONMENT_NAME.value)
-env = wrap_deepmind(env, frame_stack=True, scale=False)
-env = wrap_pytorch(env)
+env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT_NAME.value, ENVIRONMENT_WRAPPERS)
+# Reset environment
+env.reset()
 
 # Initialize policy net and target net
 policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
@@ -91,7 +96,6 @@ target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_
 
 # Initialize optimizer
 optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
-update_target(policy_net, target_net)
 # Initialize replay memory
 memory = ReplayBuffer(REPLAY_MEMORY_SIZE)
 
@@ -181,7 +185,7 @@ for total_frames in progress_bar:
                                    memory=memory,
                                    loss=loss,
                                    environment_name=ENVIRONMENT_NAME,
-                                   # environment_wrappers=ENVIRONMENT_WRAPPERS,
+                                   environment_wrappers=ENVIRONMENT_WRAPPERS,
                                    batch_size=BATCH_SIZE,
                                    gamma=GAMMA,
                                    num_atoms=NUM_ATOMS,
