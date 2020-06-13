@@ -63,7 +63,7 @@ class RainbowCnnDQN(nn.Module):
         return self.features(autograd.Variable(torch.zeros(1, *self.input_shape))).view(1, -1).size(1)
 
     def act(self, state):
-        Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda(True) if \
+        Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if \
             self.USE_CUDA else autograd.Variable(*args, **kwargs)
 
         with torch.no_grad():

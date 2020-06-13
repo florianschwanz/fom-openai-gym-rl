@@ -6,7 +6,7 @@ import torch.autograd as autograd
 class ModelOptimizer():
 
     def compute_td_loss(policy_net, target_net, optimizer, memory, batch_size, num_atoms, vmin, vmax, USE_CUDA):
-        Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda(True) if \
+        Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if \
             USE_CUDA else autograd.Variable(*args, **kwargs)
 
         state, action, reward, next_state, done = memory.sample(batch_size)
