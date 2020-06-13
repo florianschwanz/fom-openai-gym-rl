@@ -166,7 +166,7 @@ progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
 progress_bar.update(FINISHED_FRAMES)
 for total_frames in progress_bar:
 
-    # Select and perform an action
+    # Select action
     action = ActionSelector.select_action(state=state,
                                           n_actions=n_actions,
                                           policy_net=policy_net,
@@ -175,7 +175,7 @@ for total_frames in progress_bar:
                                           epsilon_decay=EPS_DECAY,
                                           device=device)
 
-    # Do step
+    # Perform action
     observation, reward, done, info = env.step(action.item())
 
     # Unwrap observations if frame stack is in use

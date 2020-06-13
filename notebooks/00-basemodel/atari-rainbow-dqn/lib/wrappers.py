@@ -158,7 +158,7 @@ class FrameStack(gym.Wrapper):
         Returns lazy array, which is much more memory efficient.
         See Also
         --------
-        baselines.common.atari_wrappers.LazyFrames
+        baselines.lib.atari_wrappers.LazyFrames
         """
         gym.Wrapper.__init__(self, env)
         self.k = k
@@ -194,7 +194,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
 
 class LazyFrames(object):
     def __init__(self, frames):
-        """This object ensures that common frames between the observations are only stored once.
+        """This object ensures that lib frames between the observations are only stored once.
         It exists purely to optimize memory usage which can be huge for DQN's 1M frames replay
         buffers.
         This object should only be converted to numpy array before being passed to the model.
