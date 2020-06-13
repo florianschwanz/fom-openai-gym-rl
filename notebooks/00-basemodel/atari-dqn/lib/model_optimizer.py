@@ -22,15 +22,14 @@ import torch.nn.functional as F
 #
 
 Transition = namedtuple('Transition',
-                        ('state', 'action', 'next_state', 'reward', 'done'))
+                        ('state', 'action', 'next_state', 'reward'))
 
 
 class ModelOptimizer:
 
-    def optimize_model(rainbow_double_dqn, policy_net, target_net, optimizer, memory, batch_size, gamma, device):
+    def optimize_model(policy_net, target_net, optimizer, memory, batch_size, gamma, device):
         """
         Optimizes model
-        :param rainbow_double_dqn: whether or not to use double DQN
         :param policy_net: policy net
         :param target_net: target net
         :param optimizer: optimizer
@@ -57,27 +56,16 @@ class ModelOptimizer:
         action = torch.cat(batch.action)
         next_state = torch.cat(batch.next_state)
         reward = torch.cat(batch.reward)
-        done = torch.cat(batch.done)
 
-        if not rainbow_double_dqn:
-            # Compute Q(s_t, a)
-            q_values = policy_net(state)
-            # Compute V(s_{t+1}) for all next states
-            next_q_values = policy_net(next_state)
-            # Compute the expected Q values
-            q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
-            next_q_value = next_q_values.max(1)[0]
-            expected_q_value = reward + gamma * next_q_value * (1 - done)
-        else:
-            # Compute Q(s_t, a)
-            q_values = policy_net(state)
-            # Compute V(s_{t+1}) for all next states.
-            next_q_values = policy_net(next_state)
-            next_q_state_values = target_net(next_state)
-            # Compute the expected Q values
-            q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
-            next_q_value = next_q_state_values.gather(1, torch.max(next_q_values, 1)[1].unsqueeze(1)).squeeze(1)
-            expected_q_value = reward + gamma * next_q_value * (1 - done)
+        # Compute Q(s_t, a)
+        q_values = policy_net(state)
+        # Compute V(s_{t+1}) for all next states.
+        next_q_values = policy_net(next_state)
+        next_q_state_values = target_net(next_state)
+        # Compute the expected Q values
+        q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
+        next_q_value = next_q_state_values.gather(1, torch.max(next_q_values, 1)[1].unsqueeze(1)).squeeze(1)
+        expected_q_value = reward + gamma * next_q_value * (1 - done)
 
         # Compute Huber loss
         loss = F.smooth_l1_loss(q_value, expected_q_value.unsqueeze(1))

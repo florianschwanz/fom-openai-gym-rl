@@ -54,9 +54,7 @@ if RUN_TO_LOAD != None:
     TARGET_UPDATE, \
     REPLAY_MEMORY_SIZE, \
     NUM_FRAMES, \
-    REWARD_SHAPINGS, \
-    \
-    RAINBOW_DOUBLE_DQN \
+    REWARD_SHAPINGS \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
@@ -86,7 +84,6 @@ else:
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
     ]
-    RAINBOW_DOUBLE_DQN = True
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -117,17 +114,15 @@ if RUN_TO_LOAD != None:
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
 
-    if RAINBOW_DOUBLE_DQN:
-        target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-        target_net.load_state_dict(MODEL_STATE_DICT)
+    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+    target_net.load_state_dict(MODEL_STATE_DICT)
 else:
     # Initialize policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
 
-    if RAINBOW_DOUBLE_DQN:
-        target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-        target_net.load_state_dict(policy_net.state_dict())
-        target_net.eval()
+    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+    target_net.load_state_dict(policy_net.state_dict())
+    target_net.eval()
 
 # Only use defined parameters if there is no previous model being loaded
 if RUN_TO_LOAD != None:
@@ -219,14 +214,13 @@ for total_frames in progress_bar:
     next_state = current_screen - last_screen
 
     # Store the transition in memory
-    memory.push(state, action, next_state, reward, done)
+    memory.push(state, action, next_state, reward)
 
     # Move to the next state
     state = next_state
 
     # Perform one step of the optimization (on the target network)
-    loss = ModelOptimizer.optimize_model(rainbow_double_dqn=RAINBOW_DOUBLE_DQN,
-                                         policy_net=policy_net,
+    loss = ModelOptimizer.optimize_model(policy_net=policy_net,
                                          target_net=target_net,
                                          optimizer=optimizer,
                                          memory=memory,
@@ -258,7 +252,7 @@ for total_frames in progress_bar:
                                           episode_duration=episode_duration)
 
         # Update the target network, copying all weights and biases from policy net into target net
-        if RAINBOW_DOUBLE_DQN and total_episodes % TARGET_UPDATE == 0:
+        if total_episodes % TARGET_UPDATE == 0:
             target_net.load_state_dict(policy_net.state_dict())
 
             # Save model
@@ -279,8 +273,7 @@ for total_frames in progress_bar:
                                    target_update=TARGET_UPDATE,
                                    replay_memory_size=REPLAY_MEMORY_SIZE,
                                    num_frames=NUM_FRAMES,
-                                   reward_shapings=REWARD_SHAPINGS,
-                                   rainbow_double_dqn=RAINBOW_DOUBLE_DQN
+                                   reward_shapings=REWARD_SHAPINGS
                                    )
 
         # Reset episode variables
