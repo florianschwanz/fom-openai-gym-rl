@@ -1,3 +1,4 @@
+import glob
 import os
 import sys
 import time
@@ -22,22 +23,50 @@ from performance_logger import PerformanceLogger
 from replay_buffer import ReplayBuffer
 from wrappers import make_atari, wrap_deepmind, wrap_pytorch
 
-RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+# Path to model to be loaded
+RUN_TO_LOAD = None
 
-# Only use defined parameters if there is no previous model being loaded
-FINISHED_FRAMES = 0
-FINISHED_EPISODES = 0
+if RUN_TO_LOAD != None:
+    # Get latest file from run
+    list_of_files = glob.glob("./model/" + RUN_TO_LOAD + "/*")
+    MODEL_TO_LOAD = max(list_of_files, key=os.path.getctime)
 
-# Define setup
-ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
-BATCH_SIZE = 32
-GAMMA = 0.99
-NUM_ATOMS = 51
-VMIN = -10
-VMAX = 10
-TARGET_UPDATE = 10
-REPLAY_MEMORY_SIZE = 100_000
-NUM_FRAMES = 1_000_000
+    RUN_DIRECTORY = RUN_TO_LOAD
+
+    FINISHED_FRAMES, \
+    FINISHED_EPISODES, \
+    MODEL_STATE_DICT, \
+    OPTIMIZER_STATE_DICT, \
+    REPLAY_MEMORY, \
+    LOSS, \
+ \
+    ENVIRONMENT_NAME, \
+    BATCH_SIZE, \
+    GAMMA, \
+    NUM_ATOMS, \
+    VMIN, \
+    VMAX, \
+    TARGET_UPDATE, \
+    REPLAY_MEMORY_SIZE, \
+    NUM_FRAMES \
+        = ModelStorage.loadModel(MODEL_TO_LOAD)
+else:
+    RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+
+    # Only use defined parameters if there is no previous model being loaded
+    FINISHED_FRAMES = 0
+    FINISHED_EPISODES = 0
+
+    # Define setup
+    ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
+    BATCH_SIZE = 32
+    GAMMA = 0.99
+    NUM_ATOMS = 51
+    VMIN = -10
+    VMAX = 10
+    TARGET_UPDATE = 10
+    REPLAY_MEMORY_SIZE = 100_000
+    NUM_FRAMES = 1_000_000
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
