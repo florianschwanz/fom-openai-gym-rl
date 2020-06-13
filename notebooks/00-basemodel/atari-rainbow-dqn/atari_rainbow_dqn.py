@@ -17,6 +17,7 @@ if not (lib_path in sys.path):
 from deep_q_network import RainbowCnnDQN
 from environment_enum import Environment
 from model_optimizer import ModelOptimizer
+from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
 from replay_buffer import ReplayBuffer
 from wrappers import make_atari, wrap_deepmind, wrap_pytorch
@@ -34,7 +35,7 @@ GAMMA = 0.99
 NUM_ATOMS = 51
 VMIN = -10
 VMAX = 10
-TARGET_UPDATE = 1_000
+TARGET_UPDATE = 10
 REPLAY_MEMORY_SIZE = 100_000
 NUM_FRAMES = 1_000_000
 
@@ -141,6 +142,27 @@ for total_frames in progress_bar:
         # Update the target network, copying all weights and biases from policy net into target net
         if total_episodes % TARGET_UPDATE == 0:
             target_net.load_state_dict(policy_net.state_dict())
+
+            # Save model
+            ModelStorage.saveModel(directory=RUN_DIRECTORY,
+                                   total_frames=total_frames,
+                                   total_episodes=total_episodes,
+                                   net=target_net,
+                                   optimizer=optimizer,
+                                   memory=memory,
+                                   loss=loss,
+                                   environment_name=ENVIRONMENT_NAME,
+                                   # environment_wrappers=ENVIRONMENT_WRAPPERS,
+                                   batch_size=BATCH_SIZE,
+                                   gamma=GAMMA,
+                                   num_atoms=NUM_ATOMS,
+                                   vmin=VMIN,
+                                   vmax=VMAX,
+                                   target_update=TARGET_UPDATE,
+                                   replay_memory_size=REPLAY_MEMORY_SIZE,
+                                   num_frames=NUM_FRAMES,
+                                   # reward_shapings=REWARD_SHAPINGS
+                                   )
 
         # Reset episode variables
         episode_frames = 0
