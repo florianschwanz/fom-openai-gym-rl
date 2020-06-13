@@ -55,7 +55,7 @@ if RUN_TO_LOAD != None:
     REPLAY_MEMORY_SIZE, \
     NUM_FRAMES, \
     REWARD_SHAPINGS, \
-    \
+ \
     RAINBOW_DOUBLE_DQN \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
@@ -82,9 +82,11 @@ else:
     NUM_FRAMES = 500_000
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
-        {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
+        {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
+         "arguments": {"additional_reward": 0.05}},
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
-        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear, "arguments": {"additional_reward": 0.05}},
+        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
+         "arguments": {"additional_reward": 0.05}},
     ]
     RAINBOW_DOUBLE_DQN = True
 
@@ -156,10 +158,7 @@ episode_shaped_reward = 0
 episode_start_time = time.time()
 
 # Initialize the environment and state
-env.reset()
-last_screen = InputExtractor.get_screen(env=env, device=device)
-current_screen = InputExtractor.get_screen(env=env, device=device)
-state = current_screen - last_screen
+state = env.reset()
 
 # Iterate over frames
 progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
@@ -185,11 +184,11 @@ for total_frames in progress_bar:
     # Iterate overall reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
         shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
-                                                     observation=observation,
-                                                     reward=reward,
-                                                     done=done,
-                                                     info=info,
-                                                     **reward_shaping["arguments"])
+                                                  observation=observation,
+                                                  reward=reward,
+                                                  done=done,
+                                                  info=info,
+                                                  **reward_shaping["arguments"])
 
     # # Plot intermediate screen
     # if total_frames % 50 == 0:
@@ -285,10 +284,7 @@ for total_frames in progress_bar:
         episode_start_time = time.time()
 
         # Reset the environment and state
-        env.reset()
-        last_screen = InputExtractor.get_screen(env=env, device=device)
-        current_screen = InputExtractor.get_screen(env=env, device=device)
-        state = current_screen - last_screen
+        state = env.reset()
 
         # Increment counter
         total_episodes += 1
