@@ -28,15 +28,15 @@ FINISHED_FRAMES = 0
 FINISHED_EPISODES = 0
 
 # Define setup
-ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
-BATCH_SIZE = 32
-GAMMA = 0.99
-NUM_ATOMS = 51
-VMIN = -10
-VMAX = 10
-TARGET_UPDATE = 1_000
-REPLAY_MEMORY_SIZE = 100_000
-NUM_FRAMES = 1_000_000
+ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.PONG_NO_FRAMESKIP_v4)
+BATCH_SIZE = os.getenv('BATCH_SIZE', 32)
+GAMMA = os.getenv('GAMMA', 0.99)
+NUM_ATOMS = os.getenv('NUM_ATOMS', 51)
+VMIN = os.getenv('VMIN', -10)
+VMAX = os.getenv('VMAX', 10)
+TARGET_UPDATE = os.getenv('TARGET_UPDATE', 1_000)
+REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 100_000)
+NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
