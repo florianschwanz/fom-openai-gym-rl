@@ -153,7 +153,10 @@ episode_shaped_reward = 0
 episode_start_time = time.time()
 
 # Initialize the environment and state
-state = env.reset()
+env.reset()
+last_screen = InputExtractor.get_screen(env=env, device=device)
+current_screen = InputExtractor.get_screen(env=env, device=device)
+state = current_screen - last_screen
 
 # Iterate over frames
 progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
@@ -200,11 +203,12 @@ for total_frames in progress_bar:
     # Transform reward into a tensor
     reward = torch.tensor([reward], device=device)
 
-    # Store the transition in memory
-    memory.push(state, action, observation, reward)
+    # Observe new state
+    last_screen = current_screen
+    current_screen = InputExtractor.get_screen(env=env, device=device)
 
-    # Move to the next state
-    state = observation
+    # Update next state
+    next_state = current_screen - last_screen
 
     # Perform one step of the optimization (on the target network)
     loss = ModelOptimizer.optimize_model(policy_net=policy_net,
@@ -270,7 +274,10 @@ for total_frames in progress_bar:
         episode_start_time = time.time()
 
         # Reset the environment and state
-        state = env.reset()
+        env.reset()
+        last_screen = InputExtractor.get_screen(env=env, device=device)
+        current_screen = InputExtractor.get_screen(env=env, device=device)
+        state = current_screen - last_screen
 
         # Increment counter
         total_episodes += 1
