@@ -8,7 +8,8 @@ class PerformanceLogger:
     def log_episode(directory, total_episodes, total_frames, total_duration, total_original_rewards,
                     total_shaped_rewards, episode_frames, episode_original_reward,
                     episode_shaped_reward, episode_loss, episode_duration):
-        path = "./model/" + directory
+        #path = "./model/" + directory
+        path = "/root/" #only temporary
 
         # Make path if not yet exists
         if not os.path.exists(path):
