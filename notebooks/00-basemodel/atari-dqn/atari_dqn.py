@@ -13,6 +13,9 @@ from tqdm import tqdm
 lib_path = os.path.join(os.getcwd(), 'lib')
 if not (lib_path in sys.path):
     sys.path.insert(0, lib_path)
+common_lib_path = os.path.join(os.getcwd(), '..', 'common', 'lib')
+if not (common_lib_path in sys.path):
+    sys.path.insert(0, common_lib_path)
 
 # Import library classes
 from action_selector import ActionSelector
@@ -85,19 +88,19 @@ else:
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL',0.025)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.025)}},
         {"method": PongRewardShaper().reward_player_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR',0.05)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.05)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL',-0.025)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', -0.025)}},
         {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR',-0.05)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', -0.05)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
     ]

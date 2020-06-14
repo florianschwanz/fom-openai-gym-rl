@@ -12,11 +12,9 @@ class ModelStorage:
         Saves model into a file
         """
 
-        path = "./model/" + directory
-
         # Make path if not yet exists
-        if not os.path.exists(path):
-            os.mkdir(path)
+        if not os.path.exists(directory):
+            os.mkdir(directory)
 
         torch.save({
             'total_frames': total_frames,
@@ -31,7 +29,7 @@ class ModelStorage:
             'replay_memory_size': replay_memory_size,
             'num_frames': num_frames,
             'reward_shapings': reward_shapings
-        }, path + "/target_net-frame-{:07d}".format(total_frames) + ".model")
+        }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
     def loadModel(path):
         """

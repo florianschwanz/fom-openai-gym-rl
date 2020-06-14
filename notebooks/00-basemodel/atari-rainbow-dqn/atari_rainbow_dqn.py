@@ -13,6 +13,9 @@ from tqdm import tqdm
 lib_path = os.path.join(os.getcwd(), 'lib')
 if not (lib_path in sys.path):
     sys.path.insert(0, lib_path)
+common_lib_path = os.path.join(os.getcwd(), '..', 'common', 'lib')
+if not (common_lib_path in sys.path):
+    sys.path.insert(0, common_lib_path)
 
 # Import library classes
 from deep_q_network import RainbowCnnDQN
