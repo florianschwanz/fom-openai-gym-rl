@@ -62,7 +62,7 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
+    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.PONG_NO_FRAMESKIP_v4)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
         EnvironmentWrapper.NOOP_RESET,
@@ -72,14 +72,14 @@ else:
         EnvironmentWrapper.WARP_FRAME,
         EnvironmentWrapper.IMAGE_TO_PYTORCH,
     ]
-    BATCH_SIZE = 32
-    GAMMA = 0.99
-    NUM_ATOMS = 51
-    VMIN = -10
-    VMAX = 10
-    TARGET_UPDATE = 10
-    REPLAY_MEMORY_SIZE = 100_000
-    NUM_FRAMES = 1_000_000
+    BATCH_SIZE = os.getenv('BATCH_SIZE', 32)
+    GAMMA = os.getenv('GAMMA', 0.99)
+    NUM_ATOMS = os.getenv('NUM_ATOMS', 51)
+    VMIN = os.getenv('VMIN', -10)
+    VMAX = os.getenv('VMAX', 10)
+    TARGET_UPDATE = os.getenv('TARGET_UPDATE', 1_000)
+    REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 100_000)
+    NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
