@@ -7,6 +7,8 @@ import numpy as np
 from gym import spaces
 
 class EnvironmentWrapper(Enum):
+    KEEP_ORIGINAL_OBSERVATION = "keep-original-observation"
+
     ATARI = "atari", # Contains NOOP_RESET and MAX_AND_SKIP
     NOOP_RESET = "noop-reset-env",
     MAX_AND_SKIP = "max-and-skip-env",
@@ -35,6 +37,9 @@ class EnvironmentBuilder:
         env = gym.make(environment_id)
 
         for w in wrappers:
+            if w == EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION:
+                env = KeepOriginalObservationEnv(env)
+
             if w == EnvironmentWrapper.ATARI:
                 env = NoopResetEnv(env, noop_max=30)
                 env = MaxAndSkipEnv(env, skip=4)
@@ -68,6 +73,17 @@ class EnvironmentBuilder:
                 env = ImageToPyTorchEnv(env)
 
         return env
+
+class KeepOriginalObservationEnv(gym.ObservationWrapper):
+    """
+    Keeps original observation which may be distorted in other environment wrappers
+    """
+    def __init__(self, env):
+        gym.ObservationWrapper.__init__(self, env)
+
+    def observation(self, observation):
+        self.original_observation = observation
+        return observation
 
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env, noop_max=30):

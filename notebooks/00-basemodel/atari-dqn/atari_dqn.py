@@ -177,10 +177,13 @@ for total_frames in progress_bar:
     original_reward = reward
     shaped_reward = reward
 
+    # Retrieve current screen
+    screen = observation
+
     # Iterate overall reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
         shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
-                                                  observation=observation,
+                                                  screen=screen,
                                                   reward=reward,
                                                   done=done,
                                                   info=info,
@@ -207,6 +210,12 @@ for total_frames in progress_bar:
 
     # Update next state
     next_state = current_screen - last_screen
+
+    # Store the transition in memory
+    memory.push(state, action, next_state, reward)
+
+    # Move to the next state
+    state = next_state
 
     # Perform one step of the optimization (on the target network)
     loss = ModelOptimizer.optimize_model(policy_net=policy_net,

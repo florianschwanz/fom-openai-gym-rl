@@ -22,6 +22,7 @@ from environment_enum import Environment
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
+from pong_reward_shaper import PongRewardShaper
 from replay_buffer import ReplayBuffer
 
 # Path to model to be loaded
@@ -50,7 +51,8 @@ if RUN_TO_LOAD != None:
     VMAX, \
     TARGET_UPDATE, \
     REPLAY_MEMORY_SIZE, \
-    NUM_FRAMES \
+    NUM_FRAMES, \
+    REWARD_SHAPINGS, \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
@@ -62,6 +64,7 @@ else:
     # Define setup
     ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
     ENVIRONMENT_WRAPPERS = [
+        EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
         EnvironmentWrapper.NOOP_RESET,
         EnvironmentWrapper.MAX_AND_SKIP,
         EnvironmentWrapper.EPISODIC_LIFE,
@@ -77,6 +80,14 @@ else:
     TARGET_UPDATE = 10
     REPLAY_MEMORY_SIZE = 100_000
     NUM_FRAMES = 1_000_000
+    REWARD_SHAPINGS = [
+        {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+        {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
+         "arguments": {"additional_reward": 0.05}},
+        {"method": PongRewardShaper().reward_opponent_racket_hits_ball, "arguments": {"additional_reward": -0.025}},
+        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
+         "arguments": {"additional_reward": -0.05}},
+    ]
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -122,15 +133,38 @@ for total_frames in progress_bar:
     action = policy_net.act(state)
 
     # Perform action
-    next_state, reward, done, _ = env.step(action)
+    observation, reward, done, info = env.step(action)
 
     # Shape reward
     original_reward = reward
     shaped_reward = reward
 
+    # Retrieve current screen
+    screen = env.original_observation
+
+    # Iterate overall reward shaping mechanisms
+    for reward_shaping in REWARD_SHAPINGS:
+        shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
+                                                  screen=screen,
+                                                  reward=reward,
+                                                  done=done,
+                                                  info=info,
+                                                  **reward_shaping["arguments"])
+
+    # # Plot intermediate screen
+    # if total_frames % 50 == 0:
+    #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
+    #         total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
+
+    # Use shaped reward for further processing
+    reward = shaped_reward
+
     # Add reward to episode reward
     episode_original_reward += original_reward
     episode_shaped_reward += shaped_reward
+
+    # Update next state
+    next_state = observation
 
     # Store the transition in memory
     memory.push(state, action, reward, next_state, done)
@@ -194,7 +228,7 @@ for total_frames in progress_bar:
                                    target_update=TARGET_UPDATE,
                                    replay_memory_size=REPLAY_MEMORY_SIZE,
                                    num_frames=NUM_FRAMES,
-                                   # reward_shapings=REWARD_SHAPINGS
+                                   reward_shapings=REWARD_SHAPINGS
                                    )
 
         # Reset episode variables

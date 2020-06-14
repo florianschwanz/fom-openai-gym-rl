@@ -8,7 +8,7 @@ class ModelStorage:
     def saveModel(directory, total_frames, total_episodes, net, optimizer, memory, loss, environment_name,
                   environment_wrappers,
                   batch_size, gamma, num_atoms, vmin, vmax, target_update, replay_memory_size, num_frames,
-                  # reward_shapings
+                  reward_shapings
                   ):
         """
         Saves model into a file
@@ -37,7 +37,7 @@ class ModelStorage:
             'target_update': target_update,
             'replay_memory_size': replay_memory_size,
             'num_frames': num_frames,
-            # 'reward_shapings': reward_shapings
+            'reward_shapings': reward_shapings
         }, path + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
     def loadModel(path):
@@ -63,4 +63,5 @@ class ModelStorage:
                checkpoint['vmax'], \
                checkpoint['target_update'], \
                checkpoint['replay_memory_size'], \
-               checkpoint['num_frames']
+               checkpoint['num_frames'], \
+               checkpoint['reward_shapings']
