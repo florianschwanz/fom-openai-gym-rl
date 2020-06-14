@@ -18,6 +18,7 @@ if not (common_lib_path in sys.path):
     sys.path.insert(0, common_lib_path)
 
 # Import library classes
+from breakout_reward_shaper import BreakoutRewardShaper
 from action_selector import ActionSelector
 from deep_q_network import DeepQNetwork
 from environment_builder import EnvironmentBuilder
@@ -68,7 +69,7 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.PONG_NO_FRAMESKIP_v4)
+    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.BREAKOUT_V0)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
         EnvironmentWrapper.NOOP_RESET,
@@ -80,29 +81,38 @@ else:
     ]
     BATCH_SIZE = os.getenv('BATCH_SIZE', 32)
     GAMMA = os.getenv('GAMMA', 0.99)
-    EPS_START = os.getenv('EPS_START', 1.0)
-    EPS_END = os.getenv('EPS_END', 0.01)
-    EPS_DECAY = os.getenv('EPS_DECAY', 500)
+    NUM_ATOMS = os.getenv('NUM_ATOMS', 51)
+    VMIN = os.getenv('VMIN', -10)
+    VMAX = os.getenv('VMAX', 10)
     TARGET_UPDATE = os.getenv('TARGET_UPDATE', 1_000)
     REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 100_000)
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.025)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.05)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', -0.025)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', -0.05)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+
+        {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.5)}},
+        {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0)}},
+        {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.5)}},
+        {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
     ]
 
 # Set up device

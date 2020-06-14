@@ -9,4 +9,6 @@ class Environment(Enum):
     PONG_NO_FRAMESKIP_v0 = 'PongNoFrameskip-v0'
     PONG_NO_FRAMESKIP_v4 = 'PongNoFrameskip-v4'
 
+    BREAKOUT_V0 = 'Breakout-v0'
+
     CART_POLE_v0 = 'CartPole-v0'

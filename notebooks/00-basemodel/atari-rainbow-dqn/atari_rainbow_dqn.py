@@ -18,10 +18,12 @@ if not (common_lib_path in sys.path):
     sys.path.insert(0, common_lib_path)
 
 # Import library classes
+from breakout_reward_shaper import BreakoutRewardShaper
 from deep_q_network import RainbowCnnDQN
 from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
+from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
@@ -66,7 +68,7 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.PONG_NO_FRAMESKIP_v4)
+    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.BREAKOUT_V0)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
         EnvironmentWrapper.NOOP_RESET,
@@ -86,21 +88,30 @@ else:
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.025)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.05)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', -0.025)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', -0.05)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+
+        {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.5)}},
+        {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0)}},
+        {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.5)}},
+        {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
     ]
 
 # Set up device
@@ -166,7 +177,7 @@ for total_frames in progress_bar:
                                                       info=info,
                                                       **reward_shaping["arguments"])
 
-    # # Plot intermediate screen
+    # Plot intermediate screen
     # if total_frames % 50 == 0:
     #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
     #         total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
