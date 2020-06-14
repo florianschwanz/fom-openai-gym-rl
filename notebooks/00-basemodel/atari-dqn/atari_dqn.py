@@ -28,11 +28,12 @@ from pong_reward_shaper import PongRewardShaper
 from replay_memory import ReplayMemory
 
 # Path to model to be loaded
-RUN_TO_LOAD = None
+RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
+OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./model/")
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
-    list_of_files = glob.glob("./model/" + RUN_TO_LOAD + "/*")
+    list_of_files = glob.glob(OUTPUT_DIRECTORY + RUN_TO_LOAD + "/*")
     MODEL_TO_LOAD = max(list_of_files, key=os.path.getctime)
 
     RUN_DIRECTORY = RUN_TO_LOAD
@@ -64,27 +65,41 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = Environment.PONG_NO_FRAMESKIP_v4
+    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.PONG_NO_FRAMESKIP_v4)
     ENVIRONMENT_WRAPPERS = [
-        EnvironmentWrapper.NOOP_RESET_ENV,
-        EnvironmentWrapper.MAX_AND_SKIP_ENV,
-        # EnvironmentWrapper.FRAME_STACK,
+        EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
+        EnvironmentWrapper.NOOP_RESET,
+        EnvironmentWrapper.MAX_AND_SKIP,
+        EnvironmentWrapper.EPISODIC_LIFE,
+        EnvironmentWrapper.FIRE_RESET,
+        EnvironmentWrapper.WARP_FRAME,
+        EnvironmentWrapper.IMAGE_TO_PYTORCH,
     ]
-    BATCH_SIZE = 128
-    GAMMA = 0.99
-    EPS_START = 1.0
-    EPS_END = 0.01
-    EPS_DECAY = 500
-    TARGET_UPDATE = 10
-    REPLAY_MEMORY_SIZE = 10_000
-    NUM_FRAMES = 500_000
+    BATCH_SIZE = os.getenv('BATCH_SIZE', 32)
+    GAMMA = os.getenv('GAMMA', 0.99)
+    EPS_START = os.getenv('EPS_START', 1.0)
+    EPS_END = os.getenv('EPS_END', 0.01)
+    EPS_DECAY = os.getenv('EPS_DECAY', 500)
+    TARGET_UPDATE = os.getenv('TARGET_UPDATE', 1_000)
+    REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 100_000)
+    NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
     REWARD_SHAPINGS = [
-        {"method": PongRewardShaper().reward_player_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+        {"method": PongRewardShaper().reward_player_racket_hits_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL',0.025)}},
+        {"method": PongRewardShaper().reward_player_racket_covers_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": 0.05}},
-        {"method": PongRewardShaper().reward_opponent_racket_hits_ball, "arguments": {"additional_reward": 0.025}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR',0.05)}},
+        {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+        {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL',-0.025)}},
+        {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0)}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": 0.05}},
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR',-0.05)}},
+        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
+         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
     ]
 
 # Set up device
@@ -182,12 +197,13 @@ for total_frames in progress_bar:
 
     # Iterate overall reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
-        shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
-                                                  screen=screen,
-                                                  reward=reward,
-                                                  done=done,
-                                                  info=info,
-                                                  **reward_shaping["arguments"])
+        if reward_shaping["arguments"]["additional_reward"] != 0:
+            shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
+                                                      screen=screen,
+                                                      reward=reward,
+                                                      done=done,
+                                                      info=info,
+                                                      **reward_shaping["arguments"])
 
     # # Plot intermediate screen
     # if total_frames % 50 == 0:
@@ -237,7 +253,7 @@ for total_frames in progress_bar:
         total_shaped_rewards.append(episode_shaped_reward)
 
         if loss is not None:
-            PerformanceLogger.log_episode(directory=RUN_DIRECTORY,
+            PerformanceLogger.log_episode(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                           total_episodes=total_episodes + 1,
                                           total_frames=total_frames,
                                           total_duration=total_duration,
@@ -254,7 +270,7 @@ for total_frames in progress_bar:
             target_net.load_state_dict(policy_net.state_dict())
 
             # Save model
-            ModelStorage.saveModel(directory=RUN_DIRECTORY,
+            ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    total_episodes=total_episodes,
                                    net=target_net,

@@ -8,11 +8,10 @@ class PerformanceLogger:
     def log_episode(directory, total_episodes, total_frames, total_duration, total_original_rewards,
                     total_shaped_rewards, episode_frames, episode_original_reward,
                     episode_shaped_reward, episode_loss, episode_duration):
-        path = "./model/" + directory
 
         # Make path if not yet exists
-        if not os.path.exists(path):
-            os.mkdir(path)
+        if not os.path.exists(directory):
+            os.mkdir(directory)
 
         avg_frames_per_minute = total_frames / (total_duration / 60)
         # avg_episodes_per_minute = total_episodes / (total_duration / 60)
@@ -34,6 +33,6 @@ class PerformanceLogger:
         print(line)
 
         # Write log into file
-        log_file = open(path + "/log.txt", "a")
+        log_file = open(directory + "/log.txt", "a")
         log_file.write(line)
         log_file.close()

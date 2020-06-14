@@ -158,7 +158,7 @@ class PongRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_player_racket_close_to_ball_quadractic(self, additional_reward=0.05):
+    def reward_player_racket_close_to_ball_quadratic(self, additional_reward=0.05):
         reward_max = math.sqrt(additional_reward)
         reward_min = 0
 
@@ -219,7 +219,7 @@ class PongRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_opponent_racket_close_to_ball_quadractic(self, additional_reward=-0.05):
+    def reward_opponent_racket_close_to_ball_quadratic(self, additional_reward=-0.05):
         reward_max = math.sqrt(additional_reward)
         reward_min = 0
 
