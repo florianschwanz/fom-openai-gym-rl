@@ -1,25 +1,8 @@
 import math
-import statistics
 
 from environment_enum import Environment
-
-
-class Component:
-    """
-    Represents a distinct visual entity on the screen
-    """
-
-    def __init__(self, pixels, screen):
-        if len(pixels) > 0:
-            self.visible = True
-            self.center = PongRewardShaper.get_component_center(pixels)
-            self.top = PongRewardShaper.get_component_top(screen, pixels)
-            self.bottom = PongRewardShaper.get_component_bottom(pixels)
-        else:
-            self.visible = False
-            self.center = ()
-            self.top = ()
-            self.bottom = ()
+from visual_analyzer import VisualAnalyzer
+from visual_component import VisualComponent
 
 
 class PongRewardShaper():
@@ -37,6 +20,11 @@ class PongRewardShaper():
     # Important positions
     BALL_CENTER_X_WHEN_PLAYED_BY_PLAYER = 142
     BALL_CENTER_X_WHEN_PLAYED_BY_OPPONENT = 20
+    GREY_BAR_TOP_Y_MIN = 24
+    GREY_BAR_TOP_Y_MAX = 33
+    GREY_BAR_BOTTOM_Y_MIN = 194
+    GREY_BAR_BOTTOM_Y_MAX = 209
+    SCORE_Y_MAX = 21
 
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
@@ -71,12 +59,13 @@ class PongRewardShaper():
             self.done = kwargs["done"]
             self.info = kwargs["info"]
 
-            self.pixels = PongRewardShaper.extract_pixels(self.screen)
-            # self.colors = PongRewardShaper.extract_colors(self.pixels)
+            self.pixels = VisualAnalyzer.extract_pixels(self.screen)
+            # self.colors = VisualAnalyzer.extract_colors(self.pixels)
 
-            self.ball = Component(PongRewardShaper.get_ball_pixels(self.pixels), self.screen)
-            self.player_racket = Component(PongRewardShaper.get_player_racket_pixels(self.pixels), self.screen)
-            self.opponent_racket = Component(PongRewardShaper.get_opponent_racket_pixels(self.pixels), self.screen)
+            self.ball = VisualComponent(PongRewardShaper.get_ball_pixels(self.pixels), self.screen)
+            self.player_racket = VisualComponent(PongRewardShaper.get_player_racket_pixels(self.pixels), self.screen)
+            self.opponent_racket = VisualComponent(PongRewardShaper.get_opponent_racket_pixels(self.pixels),
+                                                   self.screen)
 
             # Remove arguments that were only used for this wrapper
             kwargs.pop("screen", None)
@@ -233,40 +222,7 @@ class PongRewardShaper():
         else:
             return 0
 
-    def extract_pixels(screen):
-        """
-        Extracts pixels from an screen
-        :return: a dictionary having coordinates as key, and rgb values as value
-        """
-        pixels = {}
-
-        screen_height = screen.shape[0]  # y-axis starting from top-left corner
-        screen_width = screen.shape[1]  # x-axis starting from top-left corner
-        # screen_dim = screen.shape[2]
-
-        for h in range(screen_height):
-            for w in range(screen_width):
-                coordinates = (w, h)  # Flip with and height here to match regular x-y syntax
-                value = (screen[h][w][0], screen[h][w][1], screen[h][w][2])
-
-                pixels[coordinates] = value
-        return pixels
-
-    def extract_colors(pixels):
-        """
-        Extracts distinct colors from map of pixels
-        :param pixels pixels to extract colors from
-        :return: list of distinct colors
-        """
-        colors = []
-
-        for color in pixels.values():
-            c = str(color[0]) + "," + str(color[1]) + "," + str(color[2])
-            if c not in colors:
-                colors.append(c)
-        return colors
-
-    def get_ball_pixels(pixels):
+    def get_ball_pixels(self, pixels):
         """
         Gets all pixels that represent the ball by color
         :return: list of pixels representing the ball
@@ -281,13 +237,13 @@ class PongRewardShaper():
             y = key[1]
 
             if value == BALL_COLOR \
-                    and not (y >= 24 and y <= 33) \
-                    and not (y >= 194 and y <= 209):
+                    and not (y >= self.GREY_BAR_TOP_Y_MIN and y <= self.GREY_BAR_TOP_Y_MAX) \
+                    and not (y >= self.GREY_BAR_BOTTOM_Y_MIN and y <= self.GREY_BAR_BOTTOM_Y_MAX):
                 ball_pixels.append(key)
 
         return ball_pixels
 
-    def get_player_racket_pixels(pixels):
+    def get_player_racket_pixels(self, pixels):
         """
         Gets all pixels that represent the player's racket by color
         :return: list of pixels representing the the player's racket
@@ -302,12 +258,12 @@ class PongRewardShaper():
             y = key[1]
 
             if value == RACKET_COLOR \
-                    and (y >= 21):
+                    and (y >= self.SCORE_Y_MAX):
                 racket_pixels.append(key)
 
         return racket_pixels
 
-    def get_opponent_racket_pixels(pixels):
+    def get_opponent_racket_pixels(self, pixels):
         """
         Gets all pixels that represent the opponent's racket by color
         :return: list of pixels representing the the opponent's racket
@@ -322,50 +278,7 @@ class PongRewardShaper():
             y = key[1]
 
             if value == RACKET_COLOR \
-                    and (y >= 21):
+                    and (y >= self.SCORE_Y_MAX):
                 racket_pixels.append(key)
 
         return racket_pixels
-
-    def get_component_center(pixels):
-        """
-        Gets the central pixel of a given list
-        :return: central pixel
-        """
-        x_values = []
-        y_values = []
-
-        for p in pixels:
-            x_values.append(p[0])
-            y_values.append(p[1])
-
-        x_center = round(statistics.median(x_values))
-        y_center = round(statistics.median(y_values))
-
-        return (x_center, y_center)
-
-    def get_component_top(screen, pixels):
-        """
-        Gets the top pixel of a given list
-        :return: top pixel
-        """
-        top = (0, screen.shape[0])  # In this object element 0 means height, element 1 means width
-
-        for p in pixels:
-            if p[1] < top[1]:
-                top = p
-
-        return top
-
-    def get_component_bottom(pixels):
-        """
-        Gets the bottom pixel of a given list
-        :return: bottom pixel
-        """
-        bottom = (0, 0)
-
-        for p in pixels:
-            if p[1] > bottom[1]:
-                bottom = p
-
-        return bottom

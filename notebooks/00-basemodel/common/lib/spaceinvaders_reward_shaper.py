@@ -18,8 +18,8 @@ class SpaceInvadersRewardShaper():
     DARKGREEN = FLOOR_COLOR = (80, 89, 22)
 
     # Important positions
-    POINTS_Y_MIN = 10
-    POINTS_Y_MAX = 19
+    SCORE_Y_MIN = 10
+    SCORE_Y_MAX = 19
     FLOOR_Y_MIN = 195
     FLOOR_Y_MAX = 219
     LINE_IN_FLOOR_Y_MIN = 196
@@ -60,8 +60,8 @@ class SpaceInvadersRewardShaper():
             self.info = kwargs["info"]
 
             self.pixels = VisualAnalyzer.extract_pixels(self.screen)
-            self.colors = VisualAnalyzer.extract_colors(self.pixels)
-            
+            # self.colors = VisualAnalyzer.extract_colors(self.pixels)
+
             self.spaceship_pixels = SpaceInvadersRewardShaper.get_spaceship_pixels(self, self.pixels)
             self.rocks_pixels = SpaceInvadersRewardShaper.get_rocks_pixels(self, self.pixels)
             self.rays_pixels = SpaceInvadersRewardShaper.get_rays_pixels(self, self.pixels)
@@ -130,7 +130,7 @@ class SpaceInvadersRewardShaper():
             y = key[1]
 
             if value == self.SPACESHIP_COLOR \
-                    and (y > self.POINTS_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN):
+                    and (y > self.SCORE_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN):
                 spaceship_pixels.append(key)
 
         return spaceship_pixels
@@ -165,7 +165,7 @@ class SpaceInvadersRewardShaper():
             y = key[1]
 
             if value == self.RAY_COLOR \
-                    and (y > self.POINTS_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN):
+                    and (y > self.SCORE_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN):
                 ray_pixels.append(key)
 
         return ray_pixels

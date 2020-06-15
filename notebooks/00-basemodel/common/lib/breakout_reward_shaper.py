@@ -1,25 +1,8 @@
 import math
-import statistics
 
 from environment_enum import Environment
-
-
-class Component:
-    """
-    Represents a distinct visual entity on the screen
-    """
-
-    def __init__(self, pixels, screen):
-        if len(pixels) > 0:
-            self.visible = True
-            self.center = BreakoutRewardShaper.get_component_center(pixels)
-            self.left = BreakoutRewardShaper.get_component_left(screen, pixels)
-            self.right = BreakoutRewardShaper.get_component_right(pixels)
-        else:
-            self.visible = False
-            self.center = ()
-            self.left = ()
-            self.right = ()
+from visual_analyzer import VisualAnalyzer
+from visual_component import VisualComponent
 
 
 class BreakoutRewardShaper():
@@ -29,14 +12,14 @@ class BreakoutRewardShaper():
 
     # Colors contained in the game
     BLACK = (0, 0, 0)
-    GREY = (142,142,142)
-    RED = (200,72,72)
-    ORANGE = (198,108,58)
-    YELLOW = (180, 122,48)
-    LIME = (162,162,42)
-    GREEN = (72,160,72)
-    BLUE = (66,72,200)
-    TEAL = (66,158,130)
+    GREY = (142, 142, 142)
+    RED = (200, 72, 72)
+    ORANGE = (198, 108, 58)
+    YELLOW = (180, 122, 48)
+    LIME = (162, 162, 42)
+    GREEN = (72, 160, 72)
+    BLUE = (66, 72, 200)
+    TEAL = (66, 158, 130)
 
     # Important positions
     LINE_RED_Y_MIN = 57
@@ -74,11 +57,12 @@ class BreakoutRewardShaper():
             self.done = kwargs["done"]
             self.info = kwargs["info"]
 
-            self.pixels = BreakoutRewardShaper.extract_pixels(self.screen)
-            self.colors = BreakoutRewardShaper.extract_colors(self.pixels)
+            self.pixels = VisualAnalyzer.extract_pixels(self.screen)
+            # self.colors = VisualAnalyzer.extract_colors(self.pixels)
 
-            self.ball = Component(BreakoutRewardShaper.get_ball_pixels(self, self.pixels), self.screen)
-            self.player_racket = Component(BreakoutRewardShaper.get_player_racket_pixels(self, self.pixels), self.screen)
+            self.ball = VisualComponent(BreakoutRewardShaper.get_ball_pixels(self, self.pixels), self.screen)
+            self.player_racket = VisualComponent(BreakoutRewardShaper.get_player_racket_pixels(self, self.pixels),
+                                                 self.screen)
             self.lives = self.info["ale.lives"]
 
             # Remove arguments that were only used for this wrapper
@@ -173,39 +157,6 @@ class BreakoutRewardShaper():
         else:
             return 0
 
-    def extract_pixels(screen):
-        """
-        Extracts pixels from an screen
-        :return: a dictionary having coordinates as key, and rgb values as value
-        """
-        pixels = {}
-
-        screen_height = screen.shape[0]  # y-axis starting from top-left corner
-        screen_width = screen.shape[1]  # x-axis starting from top-left corner
-        # screen_dim = screen.shape[2]
-
-        for h in range(screen_height):
-            for w in range(screen_width):
-                coordinates = (w, h)  # Flip with and height here to match regular x-y syntax
-                value = (screen[h][w][0], screen[h][w][1], screen[h][w][2])
-
-                pixels[coordinates] = value
-        return pixels
-
-    def extract_colors(pixels):
-        """
-        Extracts distinct colors from map of pixels
-        :param pixels pixels to extract colors from
-        :return: list of distinct colors
-        """
-        colors = []
-
-        for color in pixels.values():
-            c = str(color[0]) + "," + str(color[1]) + "," + str(color[2])
-            if c not in colors:
-                colors.append(c)
-        return colors
-
     def get_ball_pixels(self, pixels):
         """
         Gets all pixels that represent the ball by color
@@ -267,46 +218,3 @@ class BreakoutRewardShaper():
                 racket_pixels.append(key)
 
         return racket_pixels
-
-    def get_component_center(pixels):
-        """
-        Gets the central pixel of a given list
-        :return: central pixel
-        """
-        x_values = []
-        y_values = []
-
-        for p in pixels:
-            x_values.append(p[0])
-            y_values.append(p[1])
-
-        x_center = round(statistics.median(x_values))
-        y_center = round(statistics.median(y_values))
-
-        return (x_center, y_center)
-
-    def get_component_left(screen, pixels):
-        """
-        Gets the left pixel of a given list
-        :return: left pixel
-        """
-        left = (screen.shape[1], 0)  # In this object element 0 means height, element 1 means width
-
-        for p in pixels:
-            if p[0] < left[0]:
-                left = p
-
-        return left
-
-    def get_component_right(pixels):
-        """
-        Gets the right pixel of a given list
-        :return: bottom pixel
-        """
-        right = (0, 0)
-
-        for p in pixels:
-            if p[0] > right[0]:
-                right = p
-
-        return right
