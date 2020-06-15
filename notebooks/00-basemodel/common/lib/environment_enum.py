@@ -11,4 +11,6 @@ class Environment(Enum):
 
     BREAKOUT_V0 = 'Breakout-v0'
 
+    SPACE_INVADERS_V0 = 'SpaceInvaders-v0'
+
     CART_POLE_v0 = 'CartPole-v0'

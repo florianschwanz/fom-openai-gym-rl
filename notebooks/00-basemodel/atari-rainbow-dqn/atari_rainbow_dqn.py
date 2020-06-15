@@ -29,6 +29,7 @@ from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
 from pong_reward_shaper import PongRewardShaper
 from replay_buffer import ReplayBuffer
+from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 
 # Path to model to be loaded
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
@@ -68,7 +69,7 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.BREAKOUT_V0)
+    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.SPACE_INVADERS_V0)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
         EnvironmentWrapper.NOOP_RESET,
@@ -105,13 +106,16 @@ else:
          "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
 
         {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.5)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0)}},
         {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
          "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0)}},
         {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.5)}},
+         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
         {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
          "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+
+        {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
+         "arguments": {"additional_reward": os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.025)}},
     ]
 
 # Set up device
@@ -166,6 +170,9 @@ for total_frames in progress_bar:
 
     # Retrieve current screen
     screen = env.original_observation
+
+    InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
+        total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
 
     # Iterate overall reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
