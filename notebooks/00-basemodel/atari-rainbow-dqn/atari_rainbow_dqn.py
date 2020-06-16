@@ -49,7 +49,7 @@ if RUN_TO_LOAD != None:
     REPLAY_MEMORY, \
     LOSS, \
  \
-    ENVIRONMENT_NAME, \
+    ENVIRONMENT, \
     ENVIRONMENT_WRAPPERS, \
     BATCH_SIZE, \
     GAMMA, \
@@ -69,7 +69,8 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_NAME = os.getenv('ENVIRONMENT_NAME', Environment.SPACE_INVADERS_V0)
+    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.SPACE_INVADERS_V0.value)
+    ENVIRONMENT = Environment(ENVIRONMENT_ID)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
         EnvironmentWrapper.NOOP_RESET,
@@ -79,43 +80,44 @@ else:
         EnvironmentWrapper.WARP_FRAME,
         EnvironmentWrapper.IMAGE_TO_PYTORCH,
     ]
-    BATCH_SIZE = os.getenv('BATCH_SIZE', 32)
-    GAMMA = os.getenv('GAMMA', 0.99)
-    NUM_ATOMS = os.getenv('NUM_ATOMS', 51)
-    VMIN = os.getenv('VMIN', -10)
-    VMAX = os.getenv('VMAX', 10)
-    TARGET_UPDATE = os.getenv('TARGET_UPDATE', 1_000)
-    REPLAY_MEMORY_SIZE = os.getenv('REPLAY_MEMORY', 100_000)
+    BATCH_SIZE = int(os.getenv('BATCH_SIZE', 32))
+    GAMMA = float(os.getenv('GAMMA', 0.99))
+    NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
+    VMIN = int(os.getenv('VMIN', -10))
+    VMAX = int(os.getenv('VMAX', 10))
+    TARGET_UPDATE = int(os.getenv('TARGET_UPDATE', 1_000))
+    REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))}},
         {"method": PongRewardShaper().reward_player_racket_covers_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0))}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0))}},
         {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0))}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
 
         {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0))}},
         {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
-         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))}},
         {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
         {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
 
         {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
-         "arguments": {"additional_reward": os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.025)}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE',
+                                                            0.025))}},
     ]
 
 # Set up device
@@ -126,7 +128,7 @@ Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda(True)
     *args, **kwargs)
 
 # Initialize environment
-env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT_NAME.value, ENVIRONMENT_WRAPPERS)
+env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT.value, ENVIRONMENT_WRAPPERS)
 # Reset environment
 env.reset()
 
@@ -171,13 +173,10 @@ for total_frames in progress_bar:
     # Retrieve current screen
     screen = env.original_observation
 
-    InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
-        total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
-
     # Iterate overall reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
         if reward_shaping["arguments"]["additional_reward"] != 0:
-            shaped_reward += reward_shaping["method"](environment_name=ENVIRONMENT_NAME,
+            shaped_reward += reward_shaping["method"](environment=ENVIRONMENT,
                                                       screen=screen,
                                                       reward=reward,
                                                       done=done,
@@ -251,7 +250,7 @@ for total_frames in progress_bar:
                                    optimizer=optimizer,
                                    memory=memory,
                                    loss=loss,
-                                   environment_name=ENVIRONMENT_NAME,
+                                   environment=ENVIRONMENT,
                                    environment_wrappers=ENVIRONMENT_WRAPPERS,
                                    batch_size=BATCH_SIZE,
                                    gamma=GAMMA,

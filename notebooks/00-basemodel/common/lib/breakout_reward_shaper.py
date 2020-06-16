@@ -37,14 +37,14 @@ class BreakoutRewardShaper():
     def check_environment(func):
         def check_environment_and_call(self, *args, **kwargs):
             """Checks if reward shaping is done on a matching environment"""
-            environment_name = kwargs["environment_name"]
+            environment = kwargs["environment"]
 
-            if environment_name not in self.ENVIRONMENTS:
+            if environment not in self.ENVIRONMENTS:
                 raise Exception("Reward shaping method does match environment "
-                                "(method:" + func.__name__ + ", environment:" + environment_name.value + ")")
+                                "(method:" + func.__name__ + ", environment:" + environment.value + ")")
 
             # Remove arguments that were only used for this wrapper
-            kwargs.pop("environment_name", None)
+            kwargs.pop("environment", None)
 
             return func(self, *args, **kwargs)
 
