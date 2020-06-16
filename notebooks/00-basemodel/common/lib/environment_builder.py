@@ -179,7 +179,7 @@ class LazyFrames(object):
         """This object ensures that lib frames between the observations are only stored once.
         It exists purely to optimize memory usage which can be huge for DQN's 1M frames replay
         buffers.
-        This object should only be converted to numpy array before being passed to the model.
+        This object should only be converted to numpy array before being passed to the output.
         You'd not believe how complex the previous solution was."""
         self._frames = frames
         self._out = None

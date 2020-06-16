@@ -7,7 +7,7 @@ import torch.nn.functional as F
 # Training loop
 # ^^^^^^^^^^^^^
 #
-# Finally, the code for training our model.
+# Finally, the code for training our output.
 #
 # Here, you can find an ``optimize_model`` function that performs a
 # single step of the optimization. It first samples a batch, concatenates
@@ -29,7 +29,7 @@ class ModelOptimizer:
 
     def optimize_model(policy_net, target_net, optimizer, memory, batch_size, gamma, device):
         """
-        Optimizes model
+        Optimizes output
         :param policy_net: policy net
         :param target_net: target net
         :param optimizer: optimizer
@@ -70,7 +70,7 @@ class ModelOptimizer:
         # Compute Huber loss
         loss = F.smooth_l1_loss(q_value, expected_q_value.unsqueeze(1))
 
-        # Optimize the model
+        # Optimize the output
         optimizer.zero_grad()
         loss.backward()
         for param in policy_net.parameters():

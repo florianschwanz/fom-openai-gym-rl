@@ -31,9 +31,9 @@ from pong_reward_shaper import PongRewardShaper
 from replay_buffer import ReplayBuffer
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 
-# Path to model to be loaded
+# Path to output to be loaded
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
-OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./model/")
+OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
@@ -64,7 +64,7 @@ if RUN_TO_LOAD != None:
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 
-    # Only use defined parameters if there is no previous model being loaded
+    # Only use defined parameters if there is no previous output being loaded
     FINISHED_FRAMES = 0
     FINISHED_EPISODES = 0
 
@@ -243,7 +243,7 @@ for total_frames in progress_bar:
         if total_episodes % TARGET_UPDATE == 0:
             target_net.load_state_dict(policy_net.state_dict())
 
-            # Save model
+            # Save output
             ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    total_episodes=total_episodes,

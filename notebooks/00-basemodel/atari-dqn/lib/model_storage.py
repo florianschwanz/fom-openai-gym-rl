@@ -9,7 +9,7 @@ class ModelStorage:
                   batch_size, gamma, eps_start, eps_end, eps_decay, target_update, replay_memory_size, num_frames,
                   reward_shapings):
         """
-        Saves model into a file
+        Saves output into a file
         """
 
         # Make path if not yet exists
@@ -29,12 +29,12 @@ class ModelStorage:
             'replay_memory_size': replay_memory_size,
             'num_frames': num_frames,
             'reward_shapings': reward_shapings
-        }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
+        }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".output")
 
     def loadModel(path):
         """
-        Loads model from a given path
-        :param path path to saved model
+        Loads output from a given path
+        :param path path to saved output
         :return:
         """
         checkpoint = torch.load(path)

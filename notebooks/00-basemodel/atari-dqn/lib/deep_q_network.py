@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 ######################################################################
-# Now, let's define our model. But first, let quickly recap what a DQN is.
+# Now, let's define our output. But first, let quickly recap what a DQN is.
 #
 # DQN algorithm
 # -------------
@@ -67,7 +67,7 @@ import torch.nn.functional as F
 # Q-network
 # ^^^^^^^^^
 #
-# Our model will be a convolutional neural network that takes in the
+# Our output will be a convolutional neural network that takes in the
 # difference between the current and previous screen patches. It has two
 # outputs, representing :math:`Q(s, \mathrm{left})` and
 # :math:`Q(s, \mathrm{right})` (where :math:`s` is the input to the

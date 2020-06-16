@@ -1,9 +1,8 @@
 /venv
 /.idea/
-/**/.DS_Store
-/notebooks/00-basemodel/atari-dqn/fom-openai-gym-rl/
-/notebooks/00-basemodel/atari-dqn/model/**/*
-/notebooks/00-basemodel/atari-dqn/lib/__pycache__
-/notebooks/00-basemodel/atari-rainbow-dqn/model/**/*
-/notebooks/00-basemodel/atari-rainbow-dqn/lib/__pycache__
 /.vscode
+/**/.DS_Store
+/**/__pycache__
+/notebooks/00-basemodel/atari-dqn/fom-openai-gym-rl/
+/notebooks/00-basemodel/atari-dqn/output/**/*
+/notebooks/00-basemodel/atari-rainbow-dqn/output/**/*
