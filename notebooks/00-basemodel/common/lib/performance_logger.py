@@ -34,5 +34,5 @@ class PerformanceLogger:
 
         # Write log into file
         log_file = open(directory + "/log.txt", "a")
-        log_file.write(line)
+        log_file.write(line + "\n")
         log_file.close()
