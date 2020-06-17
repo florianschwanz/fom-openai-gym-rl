@@ -160,7 +160,7 @@ episode_start_time = time.time()
 state = env.reset()
 
 # Iterate over frames
-progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
+#progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
 for total_frames in progress_bar:
     # Select and perform an action
     action = policy_net.act(state)
