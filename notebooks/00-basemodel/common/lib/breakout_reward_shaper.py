@@ -1,7 +1,6 @@
 import math
 
 from environment_enum import Environment
-from visual_analyzer import VisualAnalyzer
 from visual_component import VisualComponent
 
 
@@ -11,9 +10,9 @@ class BreakoutRewardShaper():
     """
 
     # Colors contained in the game
-    BLACK = (0, 0, 0)
-    GREY = (142, 142, 142)
-    RED = (200, 72, 72)
+    BLACK = BACKGROUND_COLOR = (0, 0, 0)
+    GREY = WALL_COLOR = (142, 142, 142)
+    RED = BALL_COLOR = RACKET_COLOR = (200, 72, 72)
     ORANGE = (198, 108, 58)
     YELLOW = (180, 122, 48)
     LIME = (162, 162, 42)
@@ -26,6 +25,10 @@ class BreakoutRewardShaper():
     LINE_RED_Y_MAX = 62
     PLAYER_RACKET_Y_MIN = 189
     PLAYER_RACKET_Y_MAX = 194
+    WALL_LEFT_X_MAX = 7
+    WALL_RIGHT_Y_MIN = 152
+    WALL_TOP_Y_MAX = 31
+    WALL_BOTTOM_Y_MAX = 187
 
     BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER = 184
 
@@ -57,12 +60,11 @@ class BreakoutRewardShaper():
             self.done = kwargs["done"]
             self.info = kwargs["info"]
 
-            self.pixels = VisualAnalyzer.extract_pixels(self.screen)
-            # self.colors = VisualAnalyzer.extract_colors(self.pixels)
+            self.ball_pixels, \
+            self.player_racket_pixels = BreakoutRewardShaper.extract_pixels(self, self.screen)
 
-            self.ball = VisualComponent(BreakoutRewardShaper.get_ball_pixels(self, self.pixels), self.screen)
-            self.player_racket = VisualComponent(BreakoutRewardShaper.get_player_racket_pixels(self, self.pixels),
-                                                 self.screen)
+            self.ball = VisualComponent(self.ball_pixels, self.screen)
+            self.player_racket = VisualComponent(self.player_racket_pixels, self.screen)
             self.lives = self.info["ale.lives"]
 
             # Remove arguments that were only used for this wrapper
@@ -157,64 +159,54 @@ class BreakoutRewardShaper():
         else:
             return 0
 
-    def get_ball_pixels(self, pixels):
+    def extract_pixels(self, screen):
         """
-        Gets all pixels that represent the ball by color
-        :return: list of pixels representing the ball
+        Extracts pixels from an screen
+        :return: a dictionary having coordinates as key, and rgb values as value
         """
-
-        BALL_COLOR = BreakoutRewardShaper.RED
 
         ball_pixels = []
+        player_racket_pixels = []
 
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
+        screen_height = screen.shape[0]  # y-axis starting from top-left corner
+        screen_width = screen.shape[1]  # x-axis starting from top-left corner
 
-            if value == BALL_COLOR \
+        # Define relevant section of the screen
+        section_x_min = self.WALL_LEFT_X_MAX +1
+        section_x_max = self.WALL_RIGHT_Y_MIN - 1
+        section_y_min = self.WALL_TOP_Y_MAX + 1
+        section_y_max = self.WALL_BOTTOM_Y_MAX - 1
+
+        # Define step size
+        steps_x = 1
+        steps_y = 1
+
+        for x in range(section_x_min, section_x_max, steps_x):
+            for y in range(section_y_min, section_y_max, steps_y):
+                coordinates = (x, y)
+                value = (screen[y][x][0], screen[y][x][1], screen[y][x][2])
+
+                if BreakoutRewardShaper.is_background_pixel(self, x, y, value):
+                    pass
+                elif BreakoutRewardShaper.is_ball_pixel(self, x, y, value):
+                    ball_pixels.append(coordinates)
+                elif BreakoutRewardShaper.is_player_racket_pixel(self, x, y, value):
+                    player_racket_pixels.append(coordinates)
+
+        return ball_pixels, player_racket_pixels
+
+    def is_background_pixel(self, x, y, value):
+        return value == self.BACKGROUND_COLOR
+
+    def is_wall_pixel(self, x, y, value):
+        return value == self.WALL_COLOR
+
+    def is_ball_pixel(self, x, y, value):
+        return value == self.BALL_COLOR \
                     and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
-                    and not (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX):
-                ball_pixels.append(key)
+                    and not (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
 
-        return ball_pixels
-
-    def get_player_racket_pixels(self, pixels):
-        """
-        Gets all pixels that represent the player's racket by color
-        :return: list of pixels representing the the player's racket
-        """
-
-        RACKET_COLOR = BreakoutRewardShaper.RED
-
-        racket_pixels = []
-
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
-
-            if value == RACKET_COLOR \
+    def is_player_racket_pixel(self, x, y, value):
+        return value == self.RACKET_COLOR \
                     and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
-                    and (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX):
-                racket_pixels.append(key)
-
-        return racket_pixels
-
-    def get_opponent_racket_pixels(pixels):
-        """
-        Gets all pixels that represent the opponent's racket by color
-        :return: list of pixels representing the the opponent's racket
-        """
-
-        RACKET_COLOR = BreakoutRewardShaper.ORANGE
-
-        racket_pixels = []
-
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
-
-            if value == RACKET_COLOR \
-                    and (y >= 21):
-                racket_pixels.append(key)
-
-        return racket_pixels
+                    and (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
