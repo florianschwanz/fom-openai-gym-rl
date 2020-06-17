@@ -1,5 +1,6 @@
+import time
+
 from environment_enum import Environment
-from visual_analyzer import VisualAnalyzer
 from visual_component import VisualComponent
 
 
@@ -31,6 +32,8 @@ class SpaceInvadersRewardShaper():
     ROCK_THREE_X_MIN = 106
     ROCK_THREE_X_MAX = 113
 
+    ALIENS_AREA_Y_MAX = 31
+
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
         Environment.SPACE_INVADERS_V0,
@@ -59,12 +62,10 @@ class SpaceInvadersRewardShaper():
             self.done = kwargs["done"]
             self.info = kwargs["info"]
 
-            self.pixels = VisualAnalyzer.extract_pixels(self.screen)
-            # self.colors = VisualAnalyzer.extract_colors(self.pixels)
-
-            self.spaceship_pixels = SpaceInvadersRewardShaper.get_spaceship_pixels(self, self.pixels)
-            self.rocks_pixels = SpaceInvadersRewardShaper.get_rocks_pixels(self, self.pixels)
-            self.rays_pixels = SpaceInvadersRewardShaper.get_rays_pixels(self, self.pixels)
+            self.spaceship_pixels, \
+            self.rocks_pixels, \
+            self.rays_pixels, \
+            aliens_pixels = SpaceInvadersRewardShaper.extract_pixels(self, self.screen)
 
             self.spaceship = VisualComponent(self.spaceship_pixels, self.screen)
             self.rays = VisualComponent(self.rays_pixels, self.screen)
@@ -95,6 +96,17 @@ class SpaceInvadersRewardShaper():
 
         return debug_positions_and_call
 
+    def debug_time(func):
+        def debug_time_and_call(self, *args, **kwargs):
+            start_time = time.time()
+            ret = func(self, *args, **kwargs)
+            end_time = time.time()
+            duration = end_time - start_time
+            print("DEBUG " + str(round(duration, 4)) + " / " + str(func.__name__))
+            return ret
+
+        return debug_time_and_call
+
     @check_environment
     @initialize_reward_shaper
     def reward_player_avoids_line_of_fire(self, additional_reward=0.025):
@@ -117,58 +129,64 @@ class SpaceInvadersRewardShaper():
         else:
             return 0
 
-    def get_spaceship_pixels(self, pixels):
+    def extract_pixels(self, screen):
         """
-        Gets all pixels that represent the spaceship by color
-        :return: list of pixels representing the spaceship
+        Extracts pixels from an screen
+        :return: a dictionary having coordinates as key, and rgb values as value
         """
 
         spaceship_pixels = []
+        rocks_pixels = []
+        rays_pixels = []
+        aliens_pixels = []
 
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
+        screen_height = screen.shape[0]  # y-axis starting from top-left corner
+        screen_width = screen.shape[1]  # x-axis starting from top-left corner
 
-            if value == self.SPACESHIP_COLOR \
-                    and (y > self.SCORE_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN):
-                spaceship_pixels.append(key)
+        # Define relevant section of the screen
+        section_x_min = 0
+        section_x_max = screen_width
+        section_y_min = self.ALIENS_AREA_Y_MAX
+        section_y_max = self.FLOOR_Y_MIN
 
-        return spaceship_pixels
+        # Define step size
+        steps_x = 1
+        steps_y = 3
 
-    def get_rocks_pixels(self, pixels):
-        """
-        Gets all pixels that represent the rocks by color
-        :return: list of pixels representing the rocks
-        """
+        for x in range(section_x_min, section_x_max, steps_x):
+            for y in range(section_y_min, section_y_max, steps_y):
+                coordinates = (x, y)
+                value = (screen[y][x][0], screen[y][x][1], screen[y][x][2])
 
-        rock_pixels = []
+                if SpaceInvadersRewardShaper.is_backgrund_pixel(self, x, y, value):
+                    pass
+                elif SpaceInvadersRewardShaper.is_spaceship_pixel(self, x, y, value):
+                    spaceship_pixels.append(coordinates)
+                elif SpaceInvadersRewardShaper.is_rocks_pixel(self, x, y, value):
+                    rocks_pixels.append(coordinates)
+                elif SpaceInvadersRewardShaper.is_rays_pixel(self, x, y, value):
+                    rays_pixels.append(coordinates)
+                elif SpaceInvadersRewardShaper.is_aliens_pixel(self, x, y, value):
+                    aliens_pixels.append(coordinates)
 
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
+        return spaceship_pixels, rocks_pixels, rays_pixels, aliens_pixels
 
-            if value == self.ROCKS_COLOR:
-                rock_pixels.append(key)
+    def is_backgrund_pixel(self, x, y, value):
+        return value == self.BACKGROUND_COLOR
 
-        return rock_pixels
+    def is_spaceship_pixel(self, x, y, value):
+        return value == self.SPACESHIP_COLOR \
+               and (y > self.SCORE_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN)
 
-    def get_rays_pixels(self, pixels):
-        """
-        Gets all pixels that represent the rays by color
-        :return: list of pixels representing the rays
-        """
+    def is_rocks_pixel(self, x, y, value):
+        return value == self.ROCKS_COLOR
 
-        ray_pixels = []
+    def is_rays_pixel(self, x, y, value):
+        return value == self.RAY_COLOR \
+               and (y > self.SCORE_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN)
 
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
-
-            if value == self.RAY_COLOR \
-                    and (y > self.SCORE_Y_MAX and y < self.LINE_IN_FLOOR_Y_MIN):
-                ray_pixels.append(key)
-
-        return ray_pixels
+    def is_aliens_pixel(self, x, y, value):
+        return value == self.ALIENS_COLOR
 
     def get_x_values(self, pixels):
         """
