@@ -1,7 +1,6 @@
 import math
 
 from environment_enum import Environment
-from visual_analyzer import VisualAnalyzer
 from visual_component import VisualComponent
 
 
@@ -12,10 +11,10 @@ class PongRewardShaper():
 
     # Colors contained in the game
     BLACK = (0, 0, 0)
-    BROWN = (144, 72, 17)
-    ORANGE = (213, 130, 74)
-    GREEN = (92, 186, 92)
-    LIGHTGREY = (236, 236, 236)
+    BROWN = BACKGROUND_COLOR = (144, 72, 17)
+    ORANGE = OPPONENT_RACKET_COLOR = (213, 130, 74)
+    GREEN = PLAYER_RACKET_COLOR = (92, 186, 92)
+    LIGHTGREY = BALL_COLOR = (236, 236, 236)
 
     # Important positions
     BALL_CENTER_X_WHEN_PLAYED_BY_PLAYER = 142
@@ -59,13 +58,14 @@ class PongRewardShaper():
             self.done = kwargs["done"]
             self.info = kwargs["info"]
 
-            self.pixels = VisualAnalyzer.extract_pixels(self.screen)
-            # self.colors = VisualAnalyzer.extract_colors(self.pixels)
+            self.ball_pixels, \
+            self.player_racket_pixels, \
+            self.opponent_racket_pixels = self.extract_pixels(self.screen)
 
-            self.ball = VisualComponent(PongRewardShaper.get_ball_pixels(self.pixels), self.screen)
-            self.player_racket = VisualComponent(PongRewardShaper.get_player_racket_pixels(self.pixels), self.screen)
-            self.opponent_racket = VisualComponent(PongRewardShaper.get_opponent_racket_pixels(self.pixels),
-                                                   self.screen)
+            self.ball = VisualComponent(self.ball_pixels, self.screen)
+            self.player_racket = VisualComponent(self.player_racket_pixels, self.screen)
+            self.opponent_racket = VisualComponent(self.opponent_racket_pixels, self.screen)
+            self.lives = self.info["ale.lives"]
 
             # Remove arguments that were only used for this wrapper
             kwargs.pop("screen", None)
@@ -222,63 +222,57 @@ class PongRewardShaper():
         else:
             return 0
 
-    def get_ball_pixels(self, pixels):
+    def extract_pixels(self, screen):
         """
-        Gets all pixels that represent the ball by color
-        :return: list of pixels representing the ball
+        Extracts pixels from an screen
+        :return: a dictionary having coordinates as key, and rgb values as value
         """
-
-        BALL_COLOR = PongRewardShaper.LIGHTGREY
 
         ball_pixels = []
+        player_racket_pixels = []
+        opponent_racket_pixels = []
 
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
+        screen_height = screen.shape[0]  # y-axis starting from top-left corner
+        screen_width = screen.shape[1]  # x-axis starting from top-left corner
 
-            if value == BALL_COLOR \
-                    and not (y >= self.GREY_BAR_TOP_Y_MIN and y <= self.GREY_BAR_TOP_Y_MAX) \
-                    and not (y >= self.GREY_BAR_BOTTOM_Y_MIN and y <= self.GREY_BAR_BOTTOM_Y_MAX):
-                ball_pixels.append(key)
+        # Define relevant section of the screen
+        section_x_min = 0
+        section_x_max = screen_width
+        section_y_min = self.GREY_BAR_TOP_Y_MAX + 1
+        section_y_max = self.GREY_BAR_BOTTOM_Y_MIN - 1
 
-        return ball_pixels
+        # Define step size
+        steps_x = 1
+        steps_y = 2
 
-    def get_player_racket_pixels(self, pixels):
-        """
-        Gets all pixels that represent the player's racket by color
-        :return: list of pixels representing the the player's racket
-        """
+        for x in range(section_x_min, section_x_max, steps_x):
+            for y in range(section_y_min, section_y_max, steps_y):
+                coordinates = (x, y)
+                value = (screen[y][x][0], screen[y][x][1], screen[y][x][2])
 
-        RACKET_COLOR = PongRewardShaper.GREEN
+                if PongRewardShaper.is_background_pixel(self, x, y, value):
+                    pass
+                elif PongRewardShaper.is_ball_pixel(self, x, y, value):
+                    ball_pixels.append(coordinates)
+                elif PongRewardShaper.is_player_racket_pixel(self, x, y, value):
+                    player_racket_pixels.append(coordinates)
+                elif PongRewardShaper.is_opponent_racket_pixel(self, x, y, value):
+                    opponent_racket_pixels.append(coordinates)
 
-        racket_pixels = []
+        return ball_pixels, player_racket_pixels
 
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
+    def is_background_pixel(self, x, y, value):
+        return value == self.BACKGROUND_COLOR
 
-            if value == RACKET_COLOR \
-                    and (y >= self.SCORE_Y_MAX):
-                racket_pixels.append(key)
+    def is_ball_pixel(self, x, y, value):
+        return value == self.BALL_COLOR \
+               and not (y >= self.GREY_BAR_TOP_Y_MIN and y <= self.GREY_BAR_TOP_Y_MAX) \
+               and not (y >= self.GREY_BAR_BOTTOM_Y_MIN and y <= self.GREY_BAR_BOTTOM_Y_MAX)
 
-        return racket_pixels
+    def is_player_racket_pixel(self, x, y, value):
+        return value == self.PLAYER_RACKET_COLOR \
+               and (y >= self.SCORE_Y_MAX)
 
-    def get_opponent_racket_pixels(self, pixels):
-        """
-        Gets all pixels that represent the opponent's racket by color
-        :return: list of pixels representing the the opponent's racket
-        """
-
-        RACKET_COLOR = PongRewardShaper.ORANGE
-
-        racket_pixels = []
-
-        for key, value in pixels.items():
-            x = key[0]
-            y = key[1]
-
-            if value == RACKET_COLOR \
-                    and (y >= self.SCORE_Y_MAX):
-                racket_pixels.append(key)
-
-        return racket_pixels
+    def is_opponent_racket_pixel(self, x, y, value):
+        return value == self.OPPONENT_RACKET_COLOR \
+               and (y >= self.SCORE_Y_MAX)
