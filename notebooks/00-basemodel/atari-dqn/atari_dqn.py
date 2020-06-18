@@ -213,7 +213,7 @@ for total_frames in progress_bar:
     # Retrieve current screen
     screen = observation
 
-    # Iterate overall reward shaping mechanisms
+    # Iterate over all reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
         if reward_shaping["arguments"]["additional_reward"] != 0:
             shaped_reward += reward_shaping["method"](environment=ENVIRONMENT,
