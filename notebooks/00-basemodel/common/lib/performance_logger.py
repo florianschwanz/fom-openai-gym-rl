@@ -23,8 +23,8 @@ class PerformanceLogger:
                 + " {: 4d}".format(round(episode_duration)) + "s"
                 + " {: 4d}".format(round(avg_frames_per_minute)) + "f/min"
                 + "     "
-                + " reward {: 5f}".format(round(episode_original_reward, 2))
-                + " reward(shaped) {: 5f}".format(round(episode_shaped_reward, 2))
+                + " reward {: 3f}".format(round(episode_original_reward, 2))
+                + " reward(shaped) {: 3f}".format(round(episode_shaped_reward, 2))
                 + " avg reward per episode {: 3f}".format(round(avg_original_reward_per_episode, 2))
                 + " avg reward(shaped) per episode {: 3f}".format(round(avg_shaped_reward_per_episode, 2))
                 + " loss " + str(round(episode_loss, 4)))

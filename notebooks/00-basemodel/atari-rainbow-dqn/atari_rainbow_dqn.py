@@ -23,6 +23,7 @@ from deep_q_network import RainbowCnnDQN
 from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
+from freeway_reward_shaper import FreewayRewardShaper
 from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
@@ -69,7 +70,7 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.SPACE_INVADERS_V0.value)
+    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.FREEWAY_V0.value)
     ENVIRONMENT = Environment(ENVIRONMENT_ID)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
@@ -117,7 +118,11 @@ else:
 
         {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
          "arguments": {"additional_reward": float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE',
-                                                            0.025))}},
+                                                            0.0))}},
+
+        {"method": FreewayRewardShaper().reward_chicken_vertical_position,
+         "arguments": {"additional_reward": float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION',
+                                                            1.0))}},
     ]
 
 # Set up device

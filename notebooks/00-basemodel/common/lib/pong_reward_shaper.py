@@ -140,7 +140,7 @@ class PongRewardShaper():
 
         if self.ball.visible and self.player_racket.visible:
             dist = abs(self.ball.center[1] - self.player_racket.center[1])
-            additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_min), 4)
+            additional_reward = round(((reward_max - reward_min) / (dist_min - dist_max) * dist + reward_max), 4)
             return additional_reward
         else:
             return 0

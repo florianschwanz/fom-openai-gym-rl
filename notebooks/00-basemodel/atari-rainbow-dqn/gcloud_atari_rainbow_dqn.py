@@ -25,6 +25,7 @@ from deep_q_network import RainbowCnnDQN
 from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
+from freeway_reward_shaper import FreewayRewardShaper
 from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
@@ -118,8 +119,10 @@ else:
          "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
 
         {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE',
-                                                            0.0))}},
+         "arguments": {"additional_reward": float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))}},
+
+        {"method": FreewayRewardShaper().reward_chicken_vertical_position,
+         "arguments": {"additional_reward": float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))}},
     ]
 
 # Set up device
