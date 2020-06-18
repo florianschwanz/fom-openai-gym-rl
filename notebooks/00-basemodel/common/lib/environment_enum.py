@@ -14,3 +14,11 @@ class Environment(Enum):
     SPACE_INVADERS_V0 = 'SpaceInvaders-v0'
 
     CART_POLE_v0 = 'CartPole-v0'
+
+    FREEWAY_V0 = 'Freeway-v0'
+    GRAVITAR_V0 = 'Gravitar-v0'
+    MONTEZUMAS_REVENGE_V0 = 'MontezumaRevenge-v0'
+    PITFALL_V0 = 'Pitfall-v0'
+    PRIVATE_EYE_V0 = 'PrivateEye-v0'
+    SOLARIS_V0 = 'Solaris-v0'
+    VENTURE_V0 = 'Venture-v0'
