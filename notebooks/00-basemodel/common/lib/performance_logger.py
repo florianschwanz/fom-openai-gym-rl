@@ -83,7 +83,7 @@ class PerformanceLogger:
                 + " {: 4d}".format(round(episode_duration)) + "s"
                 + " {: 4d}".format(round(avg_frames_per_minute)) + "f/min"
                 + "     "
-                + " reward {: 3f}".format(round(episode_original_reward, 2))
+                + " reward {: 1f}".format(round(episode_original_reward, 2))
                 + " reward(shaped) {: 3f}".format(round(episode_shaped_reward, 2))
                 + " avg reward per episode {: 3f}".format(round(avg_original_reward_per_episode, 2))
                 + " avg reward(shaped) per episode {: 3f}".format(round(avg_shaped_reward_per_episode, 2))
@@ -95,4 +95,15 @@ class PerformanceLogger:
         # Write log into file
         log_file = open(directory + "/log.txt", "a")
         log_file.write(line + "\n")
+        log_file.close()
+
+        csv = str(total_frames) + "," \
+              + str(episode_duration) + "," \
+              + str(episode_original_reward) + "," \
+              + str(episode_loss) + "," \
+              + str(episode_shaped_reward) + "," \
+
+        # Write csv into file
+        log_file = open(directory + "/log.csv", "a")
+        log_file.write(csv + "\n")
         log_file.close()
