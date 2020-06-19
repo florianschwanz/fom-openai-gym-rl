@@ -3,6 +3,10 @@ export ENVIRONMENT_ID="SpaceInvaders-v0"
 export BATCH_SIZE=32
 export GAMMA=0.99
 
+export EPS_START=1.0
+export EPS_END=0.01
+export EPS_DECAY=10_000
+
 export NUM_ATOMS=51
 export VMIN=-10
 export VMAX=10

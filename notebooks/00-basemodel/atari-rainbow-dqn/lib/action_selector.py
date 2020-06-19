@@ -10,12 +10,13 @@ steps_done = 0
 
 class ActionSelector:
 
-    def select_action(state, n_actions, policy_net, epsilon_end, epsilon_start, epsilon_decay,
+    def select_action(state, n_actions, total_frames, policy_net, epsilon_end, epsilon_start, epsilon_decay,
                       vmin, vmax, num_atoms, device, USE_CUDA):
         """
         Selects an action based on the current state
         :param state: state of the environment
         :param n_actions: number of possible actions
+        :param total_frames: number of frames since the beginning
         :param policy_net: policy net
         :param epsilon_end: epsilon end
         :param epsilon_start: epsilon start
@@ -23,15 +24,13 @@ class ActionSelector:
         :param device: device
         :return:
         """
-        global steps_done
         sample = random.random()
 
         # Epsilon threshold is decreasing over time
         # at the beginning more actions are done randomly
         # later the amount of random actions tends to 0
         eps_threshold = epsilon_end + (epsilon_start - epsilon_end) * \
-                        math.exp(-1. * steps_done / epsilon_decay)
-        steps_done += 1
+                        math.exp(-1. * total_frames / epsilon_decay)
         if sample > eps_threshold:
             # Select action based on policy net
             with torch.no_grad():

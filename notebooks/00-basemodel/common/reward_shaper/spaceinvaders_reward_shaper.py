@@ -37,6 +37,7 @@ class SpaceInvadersRewardShaper():
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
         Environment.SPACE_INVADERS_V0,
+        Environment.SPACE_INVADERS_NO_FRAMESKIP_V0
     ]
 
     def check_environment(func):

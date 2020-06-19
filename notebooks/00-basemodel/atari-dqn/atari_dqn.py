@@ -16,10 +16,13 @@ if not (lib_path in sys.path):
 common_lib_path = os.path.join(os.getcwd(), '..', 'common', 'lib')
 if not (common_lib_path in sys.path):
     sys.path.insert(0, common_lib_path)
+common_reward_shaper_path = os.path.join(os.getcwd(), '..', 'common', 'reward_shaper')
+if not (common_reward_shaper_path in sys.path):
+    sys.path.insert(0, common_reward_shaper_path)
 
 # Import library classes
-from breakout_reward_shaper import BreakoutRewardShaper
 from action_selector import ActionSelector
+from breakout_reward_shaper import BreakoutRewardShaper
 from deep_q_network import DeepQNetwork
 from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
@@ -58,6 +61,9 @@ if RUN_TO_LOAD != None:
     EPS_START, \
     EPS_END, \
     EPS_DECAY, \
+    NUM_ATOMS, \
+    VMIN, \
+    VMAX, \
     TARGET_UPDATE, \
     REPLAY_MEMORY_SIZE, \
     NUM_FRAMES, \
@@ -87,6 +93,9 @@ else:
     EPS_START = float(os.getenv('EPS_START', 1.0))
     EPS_END = float(os.getenv('EPS_END', 0.01))
     EPS_DECAY = int(os.getenv('EPS_DECAY', 500))
+    NUM_ATOMS = os.getenv('NUM_ATOMS', None)
+    VMIN = os.getenv('VMIN', None)
+    VMAX = os.getenv('VMAX', None)
     TARGET_UPDATE = int(os.getenv('TARGET_UPDATE', 1_000))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
@@ -201,6 +210,7 @@ for total_frames in progress_bar:
     # Select action
     action = ActionSelector.select_action(state=state,
                                           n_actions=n_actions,
+                                          total_frames=total_frames,
                                           policy_net=policy_net,
                                           epsilon_end=EPS_END,
                                           epsilon_start=EPS_START,
@@ -306,6 +316,9 @@ for total_frames in progress_bar:
                                    eps_start=EPS_START,
                                    eps_end=EPS_END,
                                    eps_decay=EPS_DECAY,
+                                   num_atoms=NUM_ATOMS,
+                                   vmin=VMIN,
+                                   vmax=VMAX,
                                    target_update=TARGET_UPDATE,
                                    replay_memory_size=REPLAY_MEMORY_SIZE,
                                    num_frames=NUM_FRAMES,
@@ -331,7 +344,3 @@ for total_frames in progress_bar:
     episode_frames += 1
 
 print('Complete')
-# env.render()
-# env.close()
-# plt.ioff()
-# plt.show()
