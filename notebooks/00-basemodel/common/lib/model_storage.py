@@ -5,10 +5,30 @@ import torch
 
 class ModelStorage:
 
-    def saveModel(directory, total_frames, total_episodes, net, optimizer, memory, loss, environment,
+    def saveModel(directory,
+                  total_frames,
+                  total_episodes,
+                  total_original_rewards,
+                  total_shaped_rewards,
+                  total_losses,
+                  net,
+                  optimizer,
+                  memory,
+                  loss,
+                  environment,
                   environment_wrappers,
-                  batch_size, gamma, eps_start, eps_end, eps_decay,
-                  num_atoms, vmin, vmax, target_update_rate, model_save_rate, replay_memory_size, num_frames,
+                  batch_size,
+                  gamma,
+                  eps_start,
+                  eps_end,
+                  eps_decay,
+                  num_atoms,
+                  vmin,
+                  vmax,
+                  target_update_rate,
+                  model_save_rate,
+                  replay_memory_size,
+                  num_frames,
                   reward_pong_player_racket_hits_ball,
                   reward_pong_player_racket_covers_ball,
                   reward_pong_player_racket_close_to_ball_linear,
@@ -34,6 +54,9 @@ class ModelStorage:
         torch.save({
             'total_frames': total_frames,
             'total_episodes': total_episodes,
+            'total_original_rewards': total_original_rewards,
+            'total_shaped_rewards': total_shaped_rewards,
+            'total_losses': total_losses,
             'model_state_dict': net.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'replay_memory': memory,
@@ -78,6 +101,9 @@ class ModelStorage:
 
         return checkpoint['total_frames'], \
                checkpoint['total_episodes'], \
+               checkpoint['total_original_rewards'], \
+               checkpoint['total_shaped_rewards'], \
+               checkpoint['total_losses'], \
                checkpoint['model_state_dict'], \
                checkpoint['optimizer_state_dict'], \
                checkpoint['replay_memory'], \

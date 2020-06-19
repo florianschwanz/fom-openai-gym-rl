@@ -51,6 +51,9 @@ if RUN_TO_LOAD != None:
 
     FINISHED_FRAMES, \
     FINISHED_EPISODES, \
+    TOTAL_ORIGINAL_REWARDS, \
+    TOTAL_SHAPED_REWARDS, \
+    TOTAL_LOSSES, \
     MODEL_STATE_DICT, \
     OPTIMIZER_STATE_DICT, \
     REPLAY_MEMORY, \
@@ -91,6 +94,9 @@ else:
     # Only use defined parameters if there is no previous output being loaded
     FINISHED_FRAMES = 0
     FINISHED_EPISODES = 0
+    TOTAL_ORIGINAL_REWARDS = []
+    TOTAL_SHAPED_REWARDS = []
+    TOTAL_LOSSES = []
 
     # Define setup
     ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.BREAKOUT_NO_FRAMESKIP_V0.value)
@@ -253,9 +259,9 @@ else:
 # Initialize total variables
 total_frames = 0
 total_episodes = FINISHED_EPISODES
-total_original_rewards = []
-total_shaped_rewards = []
-total_losses = []
+total_original_rewards = TOTAL_ORIGINAL_REWARDS
+total_shaped_rewards = TOTAL_SHAPED_REWARDS
+total_losses = TOTAL_LOSSES
 total_start_time = time.time()
 
 # Initialize episode variables
@@ -369,6 +375,9 @@ for total_frames in progress_bar:
             ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    total_episodes=total_episodes,
+                                   total_original_rewards=total_original_rewards,
+                                   total_shaped_rewards=total_shaped_rewards,
+                                   total_losses=total_losses,
                                    net=target_net,
                                    optimizer=optimizer,
                                    memory=memory,
