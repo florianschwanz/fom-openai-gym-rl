@@ -28,7 +28,7 @@ class BreakoutRewardShaper():
     WALL_LEFT_X_MAX = 7
     WALL_RIGHT_Y_MIN = 152
     WALL_TOP_Y_MAX = 31
-    WALL_BOTTOM_Y_MAX = 187
+    WALL_BOTTOM_Y_MAX = 195
 
     BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER = 184
 
