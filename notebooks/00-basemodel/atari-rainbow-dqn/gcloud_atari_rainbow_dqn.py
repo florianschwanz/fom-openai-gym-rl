@@ -211,14 +211,35 @@ env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT.value, ENVIR
 # Reset environment
 env.reset()
 
-# Initialize policy net and target net
-policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
-target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+# Only use defined parameters if there is no previous output being loaded
+if RUN_TO_LOAD != None:
+    # Initialize and load policy net and target net
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    policy_net.load_state_dict(MODEL_STATE_DICT)
 
-# Initialize optimizer
-optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
-# Initialize replay memory
-memory = ReplayMemory(REPLAY_MEMORY_SIZE)
+    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    target_net.load_state_dict(MODEL_STATE_DICT)
+else:
+    # Initialize policy net and target net
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+
+    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    target_net.load_state_dict(policy_net.state_dict())
+    target_net.eval()
+
+# Only use defined parameters if there is no previous output being loaded
+if RUN_TO_LOAD != None:
+    # Initialize and load optimizer
+    optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
+    optimizer.load_state_dict(OPTIMIZER_STATE_DICT)
+
+    # Load memory
+    memory = REPLAY_MEMORY
+else:
+    # Initialize optimizer
+    optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
+    # Initialize replay memory
+    memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
 # Initialize total variables
 total_frames = 0
