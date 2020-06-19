@@ -235,8 +235,10 @@ episode_start_time = time.time()
 state = env.reset()
 
 # Iterate over frames
-progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
+progress_bar = tqdm(iterable=range(NUM_FRAMES), unit='frames', initial=FINISHED_FRAMES)
 for total_frames in progress_bar:
+    total_frames += FINISHED_FRAMES
+
     # Select and perform an action
     action = ActionSelector.select_action(state=state,
                                           n_actions=env.action_space.n,

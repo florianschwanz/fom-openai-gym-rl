@@ -268,9 +268,9 @@ current_screen = InputExtractor.get_screen(env=env, device=device)
 state = current_screen - last_screen
 
 # Iterate over frames
-progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
-progress_bar.update(FINISHED_FRAMES)
+progress_bar = tqdm(iterable=range(NUM_FRAMES), unit='frames', initial=FINISHED_FRAMES)
 for total_frames in progress_bar:
+    total_frames += FINISHED_FRAMES
 
     # Select action
     action = ActionSelector.select_action(state=state,
