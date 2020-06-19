@@ -6,7 +6,7 @@ import numpy as np
 class PerformanceLogger:
 
     def log_parameters(directory, batch_size, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax,
-                       target_update, replay_memory_size, num_frames,
+                       target_update_rate, model_save_rate, replay_memory_size, num_frames,
                        reward_pong_player_racket_hits_ball,
                        reward_pong_player_racket_covers_ball,
                        reward_pong_player_racket_close_to_ball_linear,
@@ -33,7 +33,8 @@ class PerformanceLogger:
                + "\nNUM_ATOMS=" + str(num_atoms) \
                + "\nVMIN=" + str(vmin) \
                + "\nVMAX=" + str(vmax) \
-               + "\nTARGET_UPDATE=" + str(target_update) \
+               + "\nTARGET_UPDATE_RATE=" + str(target_update_rate) \
+               + "\nSAVE_MODEL_RATE=" + str(model_save_rate) \
                + "\nREPLAY_MEMORY_SIZE=" + str(replay_memory_size) \
                + "\nNUM_FRAMES=" + str(num_frames) \
                + "\nREWARD_PONG_PLAYER_RACKET_HITS_BALL=" + str(reward_pong_player_racket_hits_ball) \

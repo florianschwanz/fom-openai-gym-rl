@@ -8,8 +8,21 @@ class ModelStorage:
     def saveModel(directory, total_frames, total_episodes, net, optimizer, memory, loss, environment,
                   environment_wrappers,
                   batch_size, gamma, eps_start, eps_end, eps_decay,
-                  num_atoms, vmin, vmax, target_update, replay_memory_size, num_frames,
-                  reward_shapings):
+                  num_atoms, vmin, vmax, target_update_rate, model_save_rate, replay_memory_size, num_frames,
+                  reward_pong_player_racket_hits_ball,
+                  reward_pong_player_racket_covers_ball,
+                  reward_pong_player_racket_close_to_ball_linear,
+                  reward_pong_player_racket_close_to_ball_quadratic,
+                  reward_pong_opponent_racket_hits_ball,
+                  reward_pong_opponent_racket_covers_ball,
+                  reward_pong_opponent_racket_close_to_ball_linear,
+                  reward_pong_opponent_racket_close_to_ball_quadratic,
+                  reward_breakout_player_racket_hits_ball,
+                  reward_breakout_player_racket_covers_ball,
+                  reward_breakout_player_racket_close_to_ball_linear,
+                  reward_breakout_player_racket_close_to_ball_quadratic,
+                  reward_spaceinvaders_player_avoids_line_of_fire,
+                  reward_freeway_chicken_vertical_position):
         """
         Saves output into a file
         """
@@ -35,10 +48,24 @@ class ModelStorage:
             'num_atoms': num_atoms,
             'vmin': vmin,
             'vmax': vmax,
-            'target_update': target_update,
+            'target_update_rate': target_update_rate,
+            'model_save_rate': model_save_rate,
             'replay_memory_size': replay_memory_size,
             'num_frames': num_frames,
-            'reward_shapings': reward_shapings
+            'reward_pong_player_racket_hits_ball': reward_pong_player_racket_hits_ball,
+            'reward_pong_player_racket_covers_ball': reward_pong_player_racket_covers_ball,
+            'reward_pong_player_racket_close_to_ball_linear': reward_pong_player_racket_close_to_ball_linear,
+            'reward_pong_player_racket_close_to_ball_quadratic': reward_pong_player_racket_close_to_ball_quadratic,
+            'reward_pong_opponent_racket_hits_ball': reward_pong_opponent_racket_hits_ball,
+            'reward_pong_opponent_racket_covers_ball': reward_pong_opponent_racket_covers_ball,
+            'reward_pong_opponent_racket_close_to_ball_linear': reward_pong_opponent_racket_close_to_ball_linear,
+            'reward_pong_opponent_racket_close_to_ball_quadratic': reward_pong_opponent_racket_close_to_ball_quadratic,
+            'reward_breakout_player_racket_hits_ball': reward_breakout_player_racket_hits_ball,
+            'reward_breakout_player_racket_covers_ball': reward_breakout_player_racket_covers_ball,
+            'reward_breakout_player_racket_close_to_ball_linear': reward_breakout_player_racket_close_to_ball_linear,
+            'reward_breakout_player_racket_close_to_ball_quadratic': reward_breakout_player_racket_close_to_ball_quadratic,
+            'reward_spaceinvaders_player_avoids_line_of_fire': reward_spaceinvaders_player_avoids_line_of_fire,
+            'reward_freeway_chicken_vertical_position': reward_freeway_chicken_vertical_position
         }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
     def loadModel(path):
@@ -65,7 +92,21 @@ class ModelStorage:
                checkpoint['num_atoms'], \
                checkpoint['vmin'], \
                checkpoint['vmax'], \
-               checkpoint['target_update'], \
+               checkpoint['target_update_rate'], \
+               checkpoint['model_save_rate'], \
                checkpoint['replay_memory_size'], \
                checkpoint['num_frames'], \
-               checkpoint['reward_shapings']
+               checkpoint['reward_pong_player_racket_hits_ball'], \
+               checkpoint['reward_pong_player_racket_covers_ball'], \
+               checkpoint['reward_pong_player_racket_close_to_ball_linear'], \
+               checkpoint['reward_pong_player_racket_close_to_ball_quadratic'], \
+               checkpoint['reward_pong_opponent_racket_hits_ball'], \
+               checkpoint['reward_pong_opponent_racket_covers_ball'], \
+               checkpoint['reward_pong_opponent_racket_close_to_ball_linear'], \
+               checkpoint['reward_pong_opponent_racket_close_to_ball_quadratic'], \
+               checkpoint['reward_breakout_player_racket_hits_ball'], \
+               checkpoint['reward_breakout_player_racket_covers_ball'], \
+               checkpoint['reward_breakout_player_racket_close_to_ball_linear'], \
+               checkpoint['reward_breakout_player_racket_close_to_ball_quadratic'], \
+               checkpoint['reward_freeway_chicken_vertical_position'], \
+               checkpoint['reward_spaceinvaders_player_avoids_line_of_fire']
