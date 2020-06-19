@@ -142,7 +142,7 @@ class MinSegmentTree(SegmentTree):
         return super(MinSegmentTree, self).reduce(start, end)
 
 
-class ReplayBuffer(object):
+class ReplayMemory(object):
     def __init__(self, size):
         """Create Replay buffer.
         Parameters
@@ -203,7 +203,7 @@ class ReplayBuffer(object):
         return self._encode_sample(idxes)
 
 
-class PrioritizedReplayBuffer(ReplayBuffer):
+class PrioritizedReplayBuffer(ReplayMemory):
     def __init__(self, size, alpha):
         """Create Prioritized Replay buffer.
         Parameters

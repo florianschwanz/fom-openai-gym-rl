@@ -31,8 +31,10 @@ from freeway_reward_shaper import FreewayRewardShaper
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
+from performance_plotter import PerformancePlotter
 from pong_reward_shaper import PongRewardShaper
-from replay_buffer import ReplayBuffer
+from replay_memory import ReplayMemory
+from screen_plotter import ScreenPlotter
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 
 # Path to output to be loaded
@@ -70,7 +72,7 @@ if RUN_TO_LOAD != None:
     REWARD_PONG_PLAYER_RACKET_HITS_BALL, \
     REWARD_PONG_PLAYER_RACKET_COVERS_BALL, \
     REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
-    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC , \
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
     REWARD_PONG_OPPONENT_RACKET_HITS_BALL, \
     REWARD_PONG_OPPONENT_RACKET_COVERS_BALL, \
     REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR, \
@@ -216,13 +218,14 @@ target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_
 # Initialize optimizer
 optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
 # Initialize replay memory
-memory = ReplayBuffer(REPLAY_MEMORY_SIZE)
+memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
 # Initialize total variables
 total_frames = 0
 total_episodes = FINISHED_EPISODES
 total_original_rewards = []
 total_shaped_rewards = []
+total_losses = []
 total_start_time = time.time()
 
 # Initialize episode variables
@@ -273,11 +276,6 @@ for total_frames in progress_bar:
                                                       info=info,
                                                       **reward_shaping["arguments"])
 
-    # Plot intermediate screen
-    # if total_frames % 50 == 0:
-    #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
-    #         total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
-
     # Use shaped reward for further processing
     reward = shaped_reward
 
@@ -304,6 +302,9 @@ for total_frames in progress_bar:
                                           vmin=VMIN,
                                           vmax=VMAX,
                                           USE_CUDA=USE_CUDA)
+
+    # Add loss to total loss
+    total_losses.append(loss)
 
     if done:
         # Track episode time
@@ -333,7 +334,7 @@ for total_frames in progress_bar:
             target_net.load_state_dict(policy_net.state_dict())
 
         if total_episodes % MODEL_SAVE_RATE == 0:
-            # Save output
+            # Save model
             ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    total_episodes=total_episodes,
@@ -370,6 +371,33 @@ for total_frames in progress_bar:
                                    reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                    reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
                                    )
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_original_rewards,
+                                                title="original rewards",
+                                                xlabel="reward",
+                                                ylabel="episode")
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_shaped_rewards,
+                                                title="shaped rewards",
+                                                xlabel="reward",
+                                                ylabel="episode")
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_losses,
+                                                title="losses",
+                                                xlabel="loss",
+                                                ylabel="frame")
+
+            ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                           total_frames=total_frames,
+                                           env=env,
+                                           title="screenshot",
+                                           device=device)
 
         # Reset episode variables
         episode_frames = 0

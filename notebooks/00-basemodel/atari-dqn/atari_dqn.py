@@ -32,8 +32,10 @@ from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
+from performance_plotter import PerformancePlotter
 from pong_reward_shaper import PongRewardShaper
 from replay_memory import ReplayMemory
+from screen_plotter import ScreenPlotter
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 
 # Path to output to be loaded
@@ -71,7 +73,7 @@ if RUN_TO_LOAD != None:
     REWARD_PONG_PLAYER_RACKET_HITS_BALL, \
     REWARD_PONG_PLAYER_RACKET_COVERS_BALL, \
     REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
-    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC , \
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
     REWARD_PONG_OPPONENT_RACKET_HITS_BALL, \
     REWARD_PONG_OPPONENT_RACKET_COVERS_BALL, \
     REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR, \
@@ -112,7 +114,7 @@ else:
     VMAX = int(os.getenv('VMAX', 10))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10_000))
     MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 100))
-    REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
+    REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY_SIZE', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
 
     REWARD_PONG_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))
@@ -253,6 +255,7 @@ total_frames = 0
 total_episodes = FINISHED_EPISODES
 total_original_rewards = []
 total_shaped_rewards = []
+total_losses = []
 total_start_time = time.time()
 
 # Initialize episode variables
@@ -301,11 +304,6 @@ for total_frames in progress_bar:
                                                       done=done,
                                                       info=info,
                                                       **reward_shaping["arguments"])
-
-    # # Plot intermediate screen
-    # if total_frames % 50 == 0:
-    #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
-    #         total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
 
     # Use shaped reward for further processing
     reward = shaped_reward
@@ -404,6 +402,33 @@ for total_frames in progress_bar:
                                    reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                    reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
                                    )
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_original_rewards,
+                                                title="original rewards",
+                                                xlabel="reward",
+                                                ylabel="episode")
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_shaped_rewards,
+                                                title="shaped rewards",
+                                                xlabel="reward",
+                                                ylabel="episode")
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_losses,
+                                                title="losses",
+                                                xlabel="loss",
+                                                ylabel="frame")
+
+            ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                           total_frames=total_frames,
+                                           env=env,
+                                           title="screenshot",
+                                           device=device)
 
         # Reset episode variables
         episode_frames = 0

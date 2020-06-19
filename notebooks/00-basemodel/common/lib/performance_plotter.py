@@ -1,21 +1,60 @@
-import matplotlib
+import os
+from email.utils import formatdate
+
 import matplotlib.pyplot as plt
 import torch
-
-is_ipython = 'inline' in matplotlib.get_backend()
-if is_ipython:
-    from IPython import display
 
 
 class PerformancePlotter:
 
-    def plot_values(values, title, xlabel, ylabel):
+    def display_values_plot(values, title, xlabel, ylabel):
         """
-        Plots values of a epoch (e.g. duration, loss, reward)
-        :param values: values of each episode
+        Plots values to screen
+        :param values: values to be plotted
+        :param title:  title
+        :param xlabel: label of x-axis
+        :param ylabel: label of y-axis
         :return:
         """
 
+        plt = PerformancePlotter.generate_plot(values, title, xlabel, ylabel)
+
+        plt.show()
+
+    def save_values_plot(directory, total_frames, values, title, xlabel, ylabel):
+        """
+        Saves plot to png file
+        :param directory to save plot in
+        :param total_frames: number of frames since the beginning
+        :param values: values to be plotted
+        :param title:  title
+        :param xlabel: label of x-axis
+        :param ylabel: label of y-axis
+        :return:
+        """
+        # Make path if not yet exists
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+
+        plt = PerformancePlotter.generate_plot(values, title, xlabel, ylabel)
+
+        plt.savefig(fname=directory + "/" + str(title) + "-frame-{:07d}".format(total_frames) + ".png",
+                    format="png",
+                    metadata={
+                        "Title": str(title) + "-frame-{:07d}".format(total_frames),
+                        "Author": "Daniel Pleuss, Clemens Voehringer, Patrick Schmidt, Florian Schwanz",
+                        "Creation Time": formatdate(timeval=None, localtime=False, usegmt=True),
+                        "Description": "Plot of " + str(title)
+                    })
+
+    def generate_plot(values, title, xlabel, ylabel):
+        """
+        Generates plot of values
+        :param title:  title
+        :param xlabel: label of x-axis
+        :param ylabel: label of y-axis
+        :return:
+        """
         plt.figure(2)
         plt.clf()
         durations_t = torch.tensor(values, dtype=torch.float)
@@ -28,8 +67,4 @@ class PerformancePlotter:
             means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
             means = torch.cat((torch.zeros(99), means))
             plt.plot(means.numpy())
-
-        plt.pause(0.001)  # pause a bit so that plots are updated
-        if is_ipython:
-            display.clear_output(wait=True)
-            display.display(plt.gcf())
+        return plt

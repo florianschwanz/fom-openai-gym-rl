@@ -1,5 +1,3 @@
-#!/opt/conda/bin/python3
-
 import glob
 import os
 import sys
@@ -18,20 +16,25 @@ if not (lib_path in sys.path):
 common_lib_path = os.path.join(os.getcwd(), '..', 'common', 'lib')
 if not (common_lib_path in sys.path):
     sys.path.insert(0, common_lib_path)
+common_reward_shaper_path = os.path.join(os.getcwd(), '..', 'common', 'reward_shaper')
+if not (common_reward_shaper_path in sys.path):
+    sys.path.insert(0, common_reward_shaper_path)
 
 # Import library classes
+from action_selector import ActionSelector
 from breakout_reward_shaper import BreakoutRewardShaper
 from deep_q_network import RainbowCnnDQN
 from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
 from freeway_reward_shaper import FreewayRewardShaper
-from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
+from performance_plotter import PerformancePlotter
 from pong_reward_shaper import PongRewardShaper
-from replay_buffer import ReplayBuffer
+from replay_memory import ReplayMemory
+from screen_plotter import ScreenPlotter
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 
 # Path to output to be loaded
@@ -40,7 +43,7 @@ OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
-    list_of_files = glob.glob(OUTPUT_DIRECTORY + RUN_TO_LOAD + "/*")
+    list_of_files = glob.glob(OUTPUT_DIRECTORY + RUN_TO_LOAD + "/*.model")
     MODEL_TO_LOAD = max(list_of_files, key=os.path.getctime)
 
     RUN_DIRECTORY = RUN_TO_LOAD
@@ -56,13 +59,30 @@ if RUN_TO_LOAD != None:
     ENVIRONMENT_WRAPPERS, \
     BATCH_SIZE, \
     GAMMA, \
+    EPS_START, \
+    EPS_END, \
+    EPS_DECAY, \
     NUM_ATOMS, \
     VMIN, \
     VMAX, \
-    TARGET_UPDATE, \
+    TARGET_UPDATE_RATE, \
+    MODEL_SAVE_RATE, \
     REPLAY_MEMORY_SIZE, \
     NUM_FRAMES, \
-    REWARD_SHAPINGS, \
+    REWARD_PONG_PLAYER_RACKET_HITS_BALL, \
+    REWARD_PONG_PLAYER_RACKET_COVERS_BALL, \
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
+    REWARD_PONG_OPPONENT_RACKET_HITS_BALL, \
+    REWARD_PONG_OPPONENT_RACKET_COVERS_BALL, \
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR, \
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC, \
+    REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL, \
+    REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL, \
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
+    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
+    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
@@ -72,7 +92,7 @@ else:
     FINISHED_EPISODES = 0
 
     # Define setup
-    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.PONG_NO_FRAMESKIP_v4.value)
+    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.BREAKOUT_NO_FRAMESKIP_V0.value)
     ENVIRONMENT = Environment(ENVIRONMENT_ID)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
@@ -85,45 +105,99 @@ else:
     ]
     BATCH_SIZE = int(os.getenv('BATCH_SIZE', 32))
     GAMMA = float(os.getenv('GAMMA', 0.99))
+    EPS_START = float(os.getenv('EPS_START', 1.0))
+    EPS_END = float(os.getenv('EPS_END', 0.01))
+    EPS_DECAY = int(os.getenv('EPS_DECAY', 10_000))
     NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
-    TARGET_UPDATE = int(os.getenv('TARGET_UPDATE', 1_000))
+    TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10_000))
+    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 100))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
-    REWARD_SHAPINGS = [
-        {"method": PongRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))}},
-        {"method": PongRewardShaper().reward_player_racket_covers_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0))}},
-        {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
-        {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
-        {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0))}},
-        {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0))}},
-        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
-        {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
 
-        {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0))}},
-        {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))}},
-        {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
-        {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
+    REWARD_PONG_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))
+    REWARD_PONG_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0))
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_COVERS_BALL = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(
+        os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
+    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION = float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))
 
-        {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))}},
-
-        {"method": FreewayRewardShaper().reward_chicken_vertical_position,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))}},
-    ]
+    # Log parameters
+    PerformanceLogger.log_parameters(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                     batch_size=BATCH_SIZE,
+                                     gamma=GAMMA,
+                                     eps_start=EPS_START,
+                                     eps_end=EPS_END,
+                                     eps_decay=EPS_END,
+                                     num_atoms=NUM_ATOMS,
+                                     vmin=VMIN,
+                                     vmax=VMAX,
+                                     target_update_rate=TARGET_UPDATE_RATE,
+                                     model_save_rate=MODEL_SAVE_RATE,
+                                     replay_memory_size=REPLAY_MEMORY_SIZE,
+                                     num_frames=NUM_FRAMES,
+                                     reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                     reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                     reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                     reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                     reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                     reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                     reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                     reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                     reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                     reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                     reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                     reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                     reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                     reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
+                                     )
+# Assemble reward shapings
+REWARD_SHAPINGS = [
+    {"method": PongRewardShaper().reward_player_racket_hits_ball,
+     "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_HITS_BALL}},
+    {"method": PongRewardShaper().reward_player_racket_covers_ball,
+     "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_COVERS_BALL}},
+    {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
+     "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR}},
+    {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
+     "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
+    {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
+     "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_HITS_BALL}},
+    {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
+     "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_COVERS_BALL}},
+    {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
+     "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR}},
+    {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
+     "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC}},
+    {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
+     "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL}},
+    {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
+     "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL}},
+    {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
+     "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR}},
+    {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
+     "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
+    {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
+     "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
+    {"method": FreewayRewardShaper().reward_chicken_vertical_position,
+     "arguments": {"additional_reward": REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION}},
+]
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -144,13 +218,14 @@ target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_
 # Initialize optimizer
 optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
 # Initialize replay memory
-memory = ReplayBuffer(REPLAY_MEMORY_SIZE)
+memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
 # Initialize total variables
 total_frames = 0
 total_episodes = FINISHED_EPISODES
 total_original_rewards = []
 total_shaped_rewards = []
+total_losses = []
 total_start_time = time.time()
 
 # Initialize episode variables
@@ -163,10 +238,23 @@ episode_start_time = time.time()
 state = env.reset()
 
 # Iterate over frames
-progress_bar = tqdm(range(NUM_FRAMES), unit='frames')
+progress_bar = tqdm(iterable=range(NUM_FRAMES), unit='frames', initial=FINISHED_FRAMES)
 for total_frames in progress_bar:
+    total_frames += FINISHED_FRAMES
+
     # Select and perform an action
-    action = policy_net.act(state)
+    action = ActionSelector.select_action(state=state,
+                                          n_actions=env.action_space.n,
+                                          total_frames=total_frames,
+                                          policy_net=policy_net,
+                                          epsilon_end=EPS_END,
+                                          epsilon_start=EPS_START,
+                                          epsilon_decay=EPS_DECAY,
+                                          vmin=VMIN,
+                                          vmax=VMAX,
+                                          num_atoms=NUM_ATOMS,
+                                          device=device,
+                                          USE_CUDA=USE_CUDA)
 
     # Perform action
     observation, reward, done, info = env.step(action)
@@ -187,11 +275,6 @@ for total_frames in progress_bar:
                                                       done=done,
                                                       info=info,
                                                       **reward_shaping["arguments"])
-
-    # Plot intermediate screen
-    # if total_frames % 50 == 0:
-    #     InputExtractor.plot_screen(InputExtractor.get_sharp_screen(env=env, device=device), "Frame " + str(
-    #         total_frames) + " / shaped reward " + str(round(shaped_reward, 4)))
 
     # Use shaped reward for further processing
     reward = shaped_reward
@@ -220,6 +303,9 @@ for total_frames in progress_bar:
                                           vmax=VMAX,
                                           USE_CUDA=USE_CUDA)
 
+    # Add loss to total loss
+    total_losses.append(loss)
+
     if done:
         # Track episode time
         episode_end_time = time.time()
@@ -244,10 +330,11 @@ for total_frames in progress_bar:
                                           episode_duration=episode_duration)
 
         # Update the target network, copying all weights and biases from policy net into target net
-        if total_episodes % TARGET_UPDATE == 0:
+        if total_episodes % TARGET_UPDATE_RATE == 0:
             target_net.load_state_dict(policy_net.state_dict())
 
-            # Save output
+        if total_episodes % MODEL_SAVE_RATE == 0:
+            # Save model
             ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    total_episodes=total_episodes,
@@ -259,14 +346,58 @@ for total_frames in progress_bar:
                                    environment_wrappers=ENVIRONMENT_WRAPPERS,
                                    batch_size=BATCH_SIZE,
                                    gamma=GAMMA,
+                                   eps_start=EPS_START,
+                                   eps_end=EPS_END,
+                                   eps_decay=EPS_DECAY,
                                    num_atoms=NUM_ATOMS,
                                    vmin=VMIN,
                                    vmax=VMAX,
-                                   target_update=TARGET_UPDATE,
+                                   target_update_rate=TARGET_UPDATE_RATE,
+                                   model_save_rate=MODEL_SAVE_RATE,
                                    replay_memory_size=REPLAY_MEMORY_SIZE,
                                    num_frames=NUM_FRAMES,
-                                   reward_shapings=REWARD_SHAPINGS
+                                   reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                   reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                   reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                   reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                   reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                   reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                   reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                   reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                   reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                   reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                   reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                   reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                   reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                   reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
                                    )
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_original_rewards,
+                                                title="original rewards",
+                                                xlabel="reward",
+                                                ylabel="episode")
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_shaped_rewards,
+                                                title="shaped rewards",
+                                                xlabel="reward",
+                                                ylabel="episode")
+
+            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                total_frames=total_frames,
+                                                values=total_losses,
+                                                title="losses",
+                                                xlabel="loss",
+                                                ylabel="frame")
+
+            ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                           total_frames=total_frames,
+                                           env=env,
+                                           title="screenshot",
+                                           device=device)
 
         # Reset episode variables
         episode_frames = 0
@@ -284,7 +415,3 @@ for total_frames in progress_bar:
     episode_frames += 1
 
 print('Complete')
-# env.render()
-# env.close()
-# plt.ioff()
-# plt.show()
