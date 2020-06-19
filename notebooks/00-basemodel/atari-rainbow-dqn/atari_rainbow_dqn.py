@@ -28,7 +28,6 @@ from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
 from freeway_reward_shaper import FreewayRewardShaper
-from input_extractor import InputExtractor
 from model_optimizer import ModelOptimizer
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
@@ -99,39 +98,88 @@ else:
     TARGET_UPDATE = int(os.getenv('TARGET_UPDATE', 10_000))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
+
+    REWARD_PONG_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))
+    REWARD_PONG_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0))
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_COVERS_BALL = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(
+        os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
+    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION = float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))
+
     REWARD_SHAPINGS = [
         {"method": PongRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_HITS_BALL}},
         {"method": PongRewardShaper().reward_player_racket_covers_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_COVERS_BALL}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR}},
         {"method": PongRewardShaper().reward_player_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
         {"method": PongRewardShaper().reward_opponent_racket_hits_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_HITS_BALL}},
         {"method": PongRewardShaper().reward_opponent_racket_covers_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_COVERS_BALL}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))}},
+         "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR}},
         {"method": PongRewardShaper().reward_opponent_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
-
+         "arguments": {"additional_reward": REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC}},
         {"method": BreakoutRewardShaper().reward_player_racket_hits_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 1.0))}},
+         "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL}},
         {"method": BreakoutRewardShaper().reward_player_racket_covers_ball,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))}},
+         "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL}},
         {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_linear,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.5))}},
+         "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR}},
         {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))}},
-
+         "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
         {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))}},
-
+         "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
         {"method": FreewayRewardShaper().reward_chicken_vertical_position,
-         "arguments": {"additional_reward": float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))}},
+         "arguments": {"additional_reward": REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION}},
     ]
+
+    # Log parameters
+    PerformanceLogger.log_parameters(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                     batch_size=BATCH_SIZE,
+                                     gamma=GAMMA,
+                                     eps_start=EPS_START,
+                                     eps_end=EPS_END,
+                                     eps_decay=EPS_END,
+                                     num_atoms=NUM_ATOMS,
+                                     vmin=VMIN,
+                                     vmax=VMAX,
+                                     target_update=TARGET_UPDATE,
+                                     replay_memory_size=REPLAY_MEMORY_SIZE,
+                                     num_frames=NUM_FRAMES,
+                                     reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                     reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                     reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                     reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                     reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                     reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                     reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                     reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                     reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                     reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                     reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                     reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                     reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                     reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
+                                     )
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
