@@ -344,113 +344,122 @@ for total_frames in progress_bar:
     total_losses.append(loss)
 
     if done:
-        # Track episode time
-        episode_end_time = time.time()
-        episode_duration = episode_end_time - episode_start_time
-        total_duration = episode_end_time - total_start_time
-
-        # Add rewards to total reward
-        total_original_rewards.append(episode_original_reward)
-        total_shaped_rewards.append(episode_shaped_reward)
-
-        if loss is not None:
-            PerformanceLogger.log_episode(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
-                                          max_frames=NUM_FRAMES,
-                                          total_episodes=total_episodes + 1,
-                                          total_frames=total_frames,
-                                          total_duration=total_duration,
-                                          total_original_rewards=total_original_rewards,
-                                          total_shaped_rewards=total_shaped_rewards,
-                                          episode_frames=episode_frames + 1,
-                                          episode_original_reward=episode_original_reward,
-                                          episode_shaped_reward=episode_shaped_reward,
-                                          episode_loss=loss.item(),
-                                          episode_duration=episode_duration)
-
-        # Update the target network, copying all weights and biases from policy net into target net
-        if total_episodes % TARGET_UPDATE_RATE == 0:
-            target_net.load_state_dict(policy_net.state_dict())
-
-        if total_episodes % MODEL_SAVE_RATE == 0:
-            # Save model
-            ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
-                                   total_frames=total_frames,
-                                   total_episodes=total_episodes,
-                                   total_original_rewards=total_original_rewards,
-                                   total_shaped_rewards=total_shaped_rewards,
-                                   total_losses=total_losses,
-                                   net=target_net,
-                                   optimizer=optimizer,
-                                   memory=memory,
-                                   loss=loss,
-                                   environment=ENVIRONMENT,
-                                   environment_wrappers=ENVIRONMENT_WRAPPERS,
-                                   batch_size=BATCH_SIZE,
-                                   gamma=GAMMA,
-                                   eps_start=EPS_START,
-                                   eps_end=EPS_END,
-                                   eps_decay=EPS_DECAY,
-                                   num_atoms=NUM_ATOMS,
-                                   vmin=VMIN,
-                                   vmax=VMAX,
-                                   target_update_rate=TARGET_UPDATE_RATE,
-                                   model_save_rate=MODEL_SAVE_RATE,
-                                   replay_memory_size=REPLAY_MEMORY_SIZE,
-                                   num_frames=NUM_FRAMES,
-                                   reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
-                                   reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
-                                   reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                   reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                   reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
-                                   reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
-                                   reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
-                                   reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                   reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
-                                   reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
-                                   reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                   reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                   reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                   reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
-                                   )
-
-            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
-                                                total_frames=total_frames,
-                                                values=total_original_rewards,
-                                                title="original rewards",
-                                                xlabel="episode",
-                                                ylabel="reward")
-
-            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
-                                                total_frames=total_frames,
-                                                values=total_shaped_rewards,
-                                                title="shaped rewards",
-                                                xlabel="episode",
-                                                ylabel="reward")
-
-            PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
-                                                total_frames=total_frames,
-                                                values=total_losses,
-                                                title="losses",
-                                                xlabel="frame",
-                                                ylabel="loss")
-
-            ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
-                                           total_frames=total_frames,
-                                           env=env,
-                                           title="screenshot",
-                                           device=device)
-
-        # Reset episode variables
-        episode_frames = 0
-        episode_original_reward = 0
-        episode_shaped_reward = 0
-        episode_start_time = time.time()
-
         # Reset the environment and state
         state = env.reset()
 
-        # Increment counter
-        total_episodes += 1
+        if info["ale.lives"] == 0:
+
+            # Track episode time
+            episode_end_time = time.time()
+            episode_duration = episode_end_time - episode_start_time
+            total_duration = episode_end_time - total_start_time
+
+            # Add rewards to total reward
+            total_original_rewards.append(episode_original_reward)
+            total_shaped_rewards.append(episode_shaped_reward)
+
+            # Update max and min episode rewards
+            if max_episode_original_reward == None or episode_original_reward > max_episode_original_reward:
+                max_episode_original_reward = episode_original_reward
+            if min_episode_original_reward == None or episode_original_reward < min_episode_original_reward:
+                min_episode_original_reward = episode_original_reward
+
+            if loss is not None:
+                PerformanceLogger.log_episode(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                              max_frames=NUM_FRAMES,
+                                              total_episodes=total_episodes + 1,
+                                              total_frames=total_frames,
+                                              total_duration=total_duration,
+                                              total_original_rewards=total_original_rewards,
+                                              total_shaped_rewards=total_shaped_rewards,
+                                              episode_frames=episode_frames + 1,
+                                              episode_original_reward=episode_original_reward,
+                                              episode_shaped_reward=episode_shaped_reward,
+                                              episode_loss=loss.item(),
+                                              episode_duration=episode_duration)
+
+            # Update the target network, copying all weights and biases from policy net into target net
+            if total_episodes % TARGET_UPDATE_RATE == 0:
+                target_net.load_state_dict(policy_net.state_dict())
+
+            if total_episodes % MODEL_SAVE_RATE == 0:
+                # Save model
+                ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                       total_frames=total_frames,
+                                       total_episodes=total_episodes,
+                                       total_original_rewards=total_original_rewards,
+                                       total_shaped_rewards=total_shaped_rewards,
+                                       total_losses=total_losses,
+                                       net=target_net,
+                                       optimizer=optimizer,
+                                       memory=memory,
+                                       loss=loss,
+                                       environment=ENVIRONMENT,
+                                       environment_wrappers=ENVIRONMENT_WRAPPERS,
+                                       batch_size=BATCH_SIZE,
+                                       gamma=GAMMA,
+                                       eps_start=EPS_START,
+                                       eps_end=EPS_END,
+                                       eps_decay=EPS_DECAY,
+                                       num_atoms=NUM_ATOMS,
+                                       vmin=VMIN,
+                                       vmax=VMAX,
+                                       target_update_rate=TARGET_UPDATE_RATE,
+                                       model_save_rate=MODEL_SAVE_RATE,
+                                       replay_memory_size=REPLAY_MEMORY_SIZE,
+                                       num_frames=NUM_FRAMES,
+                                       reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                       reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                       reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                       reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                       reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                       reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                       reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                       reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                       reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                       reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                       reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                       reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                       reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                       reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                       reward_potential_based=REWARD_POTENTIAL_BASED
+                                       )
+
+                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                    total_frames=total_frames,
+                                                    values=total_original_rewards,
+                                                    title="original rewards",
+                                                    xlabel="episode",
+                                                    ylabel="reward")
+
+                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                    total_frames=total_frames,
+                                                    values=total_shaped_rewards,
+                                                    title="shaped rewards",
+                                                    xlabel="episode",
+                                                    ylabel="reward")
+
+                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                    total_frames=total_frames,
+                                                    values=total_losses,
+                                                    title="losses",
+                                                    xlabel="frame",
+                                                    ylabel="loss")
+
+                # ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                #                                total_frames=total_frames,
+                #                                env=env,
+                #                                title="screenshot",
+                #                                device=device)
+
+            # Reset episode variables
+            episode_frames = 0
+            episode_original_reward = 0
+            episode_shaped_reward = 0
+            episode_start_time = time.time()
+
+            # Increment counter
+            total_episodes += 1
 
     # Increment counter
     episode_frames += 1
