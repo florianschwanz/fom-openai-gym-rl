@@ -416,22 +416,22 @@ for total_frames in progress_bar:
                                                 total_frames=total_frames,
                                                 values=total_original_rewards,
                                                 title="original rewards",
-                                                xlabel="reward",
-                                                ylabel="episode")
+                                                xlabel="episode",
+                                                ylabel="reward")
 
             PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                 total_frames=total_frames,
                                                 values=total_shaped_rewards,
                                                 title="shaped rewards",
-                                                xlabel="reward",
-                                                ylabel="episode")
+                                                xlabel="episode",
+                                                ylabel="reward")
 
             PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                 total_frames=total_frames,
                                                 values=total_losses,
                                                 title="losses",
-                                                xlabel="loss",
-                                                ylabel="frame")
+                                                xlabel="frame",
+                                                ylabel="loss")
 
             ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                            total_frames=total_frames,
