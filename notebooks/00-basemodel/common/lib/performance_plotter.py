@@ -1,3 +1,4 @@
+import glob
 import os
 from email.utils import formatdate
 
@@ -6,6 +7,9 @@ import torch
 
 
 class PerformancePlotter:
+
+    # Maximum number of files we want to store
+    MAX_FILES = 3
 
     def display_values_plot(values, title, xlabel, ylabel):
         """
@@ -38,14 +42,16 @@ class PerformancePlotter:
 
         plt = PerformancePlotter.generate_plot(values, title, xlabel, ylabel)
 
-        plt.savefig(fname=directory + "/" + str(title) + "-frame-{:07d}".format(total_frames) + ".png",
+        plt.savefig(fname=directory + "/" + str(title).replace(" ", "-") + "-frame-{:07d}".format(total_frames) + ".png",
                     format="png",
                     metadata={
                         "Title": str(title) + "-frame-{:07d}".format(total_frames),
-                        "Author": "Daniel Pleuss, Clemens Voehringer, Patrick Schmidt, Florian Schwanz",
+                        "Author": "Daniel Pleus, Clemens Voehringer, Patrick Schmidt, Florian Schwanz",
                         "Creation Time": formatdate(timeval=None, localtime=False, usegmt=True),
                         "Description": "Plot of " + str(title)
                     })
+
+        PerformancePlotter.prune_storage(directory, str(title).replace(" ", "-") + "*.png")
 
     def generate_plot(values, title, xlabel, ylabel):
         """
@@ -68,3 +74,11 @@ class PerformancePlotter:
             means = torch.cat((torch.zeros(99), means))
             plt.plot(means.numpy())
         return plt
+
+    def prune_storage(directory, pattern):
+        list_of_files = glob.glob(directory + "/" + pattern)
+
+        while len(list_of_files) > PerformancePlotter.MAX_FILES:
+            oldest_file = min(list_of_files, key=os.path.getctime)
+            os.remove(oldest_file)
+            list_of_files = glob.glob(directory + "/" + pattern)

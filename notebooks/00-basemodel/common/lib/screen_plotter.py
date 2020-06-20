@@ -1,4 +1,5 @@
 import os
+import glob
 from email.utils import formatdate
 
 import matplotlib.pyplot as plt
@@ -8,6 +9,9 @@ import torchvision.transforms as T
 
 
 class ScreenPlotter:
+
+    # Maximum number of files we want to store
+    MAX_FILES = 3
 
     def display_screen_plot(total_frames, env, title, device):
         """
@@ -44,10 +48,12 @@ class ScreenPlotter:
                     format="png",
                     metadata={
                         "Title": str(title) + "-frame-{:07d}".format(total_frames),
-                        "Author": "Daniel Pleuss, Clemens Voehringer, Patrick Schmidt, Florian Schwanz",
+                        "Author": "Daniel Pleus, Clemens Voehringer, Patrick Schmidt, Florian Schwanz",
                         "Creation Time": formatdate(timeval=None, localtime=False, usegmt=True),
                         "Description": "Plot of " + str(title)
                     })
+
+        ScreenPlotter.prune_storage(directory, str(title) + "*.png")
 
     def generate_plot(env, title, device):
         """
@@ -76,3 +82,11 @@ class ScreenPlotter:
                    interpolation='none')
         plt.title(title)
         return plt
+
+    def prune_storage(directory, pattern):
+        list_of_files = glob.glob(directory + "/" + pattern)
+
+        while len(list_of_files) > ScreenPlotter.MAX_FILES:
+            oldest_file = min(list_of_files, key=os.path.getctime)
+            os.remove(oldest_file)
+            list_of_files = glob.glob(directory + "/" + pattern)

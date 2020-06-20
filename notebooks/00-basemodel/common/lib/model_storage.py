@@ -1,9 +1,12 @@
+import glob
 import os
 
 import torch
 
 
 class ModelStorage:
+    # Maximum number of files we want to store
+    MAX_FILES = 3
 
     def saveModel(directory,
                   total_frames,
@@ -91,6 +94,9 @@ class ModelStorage:
             'reward_freeway_chicken_vertical_position': reward_freeway_chicken_vertical_position
         }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
+        # Prune old model files
+        ModelStorage.prune_storage(directory)
+
     def loadModel(path):
         """
         Loads output from a given path
@@ -136,3 +142,11 @@ class ModelStorage:
                checkpoint['reward_breakout_player_racket_close_to_ball_quadratic'], \
                checkpoint['reward_freeway_chicken_vertical_position'], \
                checkpoint['reward_spaceinvaders_player_avoids_line_of_fire']
+
+    def prune_storage(directory):
+        list_of_files = glob.glob(directory + "/*.model")
+
+        while len(list_of_files) > ModelStorage.MAX_FILES:
+            oldest_file = min(list_of_files, key=os.path.getctime)
+            os.remove(oldest_file)
+            list_of_files = glob.glob(directory + "/*.model")
