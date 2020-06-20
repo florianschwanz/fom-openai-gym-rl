@@ -355,6 +355,7 @@ for total_frames in progress_bar:
 
         if loss is not None:
             PerformanceLogger.log_episode(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                          max_frames=NUM_FRAMES,
                                           total_episodes=total_episodes + 1,
                                           total_frames=total_frames,
                                           total_duration=total_duration,

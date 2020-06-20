@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import numpy as np
 
@@ -67,7 +68,7 @@ class PerformanceLogger:
         log_file.write(line + "\n")
         log_file.close()
 
-    def log_episode(directory, total_episodes, total_frames, total_duration, total_original_rewards,
+    def log_episode(directory, max_frames, total_episodes, total_frames, total_duration, total_original_rewards,
                     total_shaped_rewards, episode_frames, episode_original_reward,
                     episode_shaped_reward, episode_loss, episode_duration):
         # Make path if not yet exists
@@ -79,16 +80,18 @@ class PerformanceLogger:
         avg_original_reward_per_episode = np.mean(total_original_rewards[-50:])
         avg_shaped_reward_per_episode = np.mean(total_shaped_rewards[-50:])
 
-        line = ("{: 5d}".format(total_episodes)
-                + " {: 5d}".format(episode_frames) + "f"
-                + " {: 4d}".format(round(episode_duration)) + "s"
-                + " {: 4d}".format(round(avg_frames_per_minute)) + "f/min"
+        line = (datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                + " {:8d}".format(total_frames) + "/" + str(max_frames) + "f"
+                + " {:5d}".format(total_episodes) + "e"
+                # + " {: 5d}".format(episode_frames) + "f"
+                # + " {: 4d}".format(round(episode_duration)) + "s"
+                + " {:4d}".format(round(avg_frames_per_minute)) + "f/min"
                 + "     "
-                + " reward {: 1f}".format(round(episode_original_reward, 2))
-                + " reward(shaped) {: 3f}".format(round(episode_shaped_reward, 2))
-                + " avg reward per episode {: 3f}".format(round(avg_original_reward_per_episode, 2))
-                + " avg reward(shaped) per episode {: 3f}".format(round(avg_shaped_reward_per_episode, 2))
-                + " loss " + str(round(episode_loss, 4)))
+                + " r={:1f}".format(round(episode_original_reward, 2))
+                + " rs={:3f}".format(round(episode_shaped_reward, 2))
+                + " avgr={:3f}".format(round(avg_original_reward_per_episode, 2))
+                + " avgrs={:3f}".format(round(avg_shaped_reward_per_episode, 2))
+                + " l=" + str(round(episode_loss, 4)))
 
         # Print log
         print(line)
@@ -103,8 +106,11 @@ class PerformanceLogger:
               + str(episode_original_reward) + "," \
               + str(episode_loss) + "," \
               + str(episode_shaped_reward) + "," \
-
+ \
         # Write csv into file
         log_file = open(directory + "/log.csv", "a")
         log_file.write(csv + "\n")
         log_file.close()
+
+    def log_final(self):
+        pass
