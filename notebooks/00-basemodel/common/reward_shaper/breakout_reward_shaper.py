@@ -30,7 +30,8 @@ class BreakoutRewardShaper():
     WALL_TOP_Y_MAX = 31
     WALL_BOTTOM_Y_MAX = 195
 
-    BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER = 184
+    BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER_MIN = 180
+    BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER_MAX = 184
 
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
@@ -108,7 +109,8 @@ class BreakoutRewardShaper():
         """
 
         if self.ball.visible and self.player_racket.visible \
-                and self.ball.center[1] == self.BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER \
+                and self.BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER_MIN <= self.ball.center[1] <= \
+                self.BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER_MAX \
                 and self.player_racket.left[0] <= self.ball.center[0] <= self.player_racket.right[0]:
             return additional_reward
         else:
@@ -179,8 +181,8 @@ class BreakoutRewardShaper():
         section_y_max = self.WALL_BOTTOM_Y_MAX - 1
 
         # Define step size
-        steps_x = 1
-        steps_y = 1
+        steps_x = 2
+        steps_y = 4
 
         for x in range(section_x_min, section_x_max, steps_x):
             for y in range(section_y_min, section_y_max, steps_y):
