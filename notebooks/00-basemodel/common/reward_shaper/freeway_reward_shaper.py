@@ -1,3 +1,4 @@
+from argument_extractor import ArgumentExtractor
 from environment_enum import Environment
 from visual_component import VisualComponent
 
@@ -45,7 +46,7 @@ class FreewayRewardShaper():
     def check_environment(func):
         def check_environment_and_call(self, *args, **kwargs):
             """Checks if reward shaping is done on a matching environment"""
-            environment = kwargs["environment"]
+            environment = ArgumentExtractor.extract_argument(kwargs, "environment", None)
 
             if environment not in self.ENVIRONMENTS:
                 raise Exception("Reward shaping method does match environment "
@@ -60,21 +61,19 @@ class FreewayRewardShaper():
 
     def initialize_reward_shaper(func):
         def initialize_reward_shaper_and_call(self, *args, **kwargs):
-            self.screen = kwargs["screen"]
-            self.reward = kwargs["reward"]
-            self.done = kwargs["done"]
-            self.info = kwargs["info"]
+            self.screen = ArgumentExtractor.extract_argument(kwargs, "screen", None)
+            self.reward = ArgumentExtractor.extract_argument(kwargs, "reward", None)
+            self.done = ArgumentExtractor.extract_argument(kwargs, "done", None)
+            self.info = ArgumentExtractor.extract_argument(kwargs, "info", None)
 
             self.player_chicken_pixels = self.extract_pixels(self.screen)
 
             self.player_chicken = VisualComponent(self.player_chicken_pixels, self.screen)
             self.lives = self.info["ale.lives"]
 
-            # Remove arguments that were only used for this wrapper
-            kwargs.pop("screen", None)
-            kwargs.pop("reward", None)
-            kwargs.pop("done", None)
-            kwargs.pop("info", None)
+            kwargs.pop("current_episode_reward", None)
+            kwargs.pop("max_episode_reward", None)
+            kwargs.pop("min_episode_reward", None)
 
             return func(self, *args, **kwargs)
 
@@ -101,18 +100,19 @@ class FreewayRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_chicken_vertical_position(self, additional_reward=0.5):
+    def reward_chicken_vertical_position(self, **kwargs):
         """
         Gives an additional reward if the player's racket hits the ball
         :return: shaped reward
         """
+
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         reward_max = additional_reward
         reward_min = 0
 
         chicken_y_min = 0  # TODO Use the y coordinate when the player scores
         chicken_y_max = 210
-
 
         if self.player_chicken.visible:
             chicken_y = self.player_chicken.center[1]
@@ -125,7 +125,7 @@ class FreewayRewardShaper():
 
     def extract_pixels(self, screen):
         """
-        Extracts pixels from an screen
+        Extracts pixels from a screen
         :return: a dictionary having coordinates as key, and rgb values as value
         """
 

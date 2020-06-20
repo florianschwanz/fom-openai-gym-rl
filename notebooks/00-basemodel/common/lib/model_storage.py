@@ -45,7 +45,8 @@ class ModelStorage:
                   reward_breakout_player_racket_close_to_ball_linear,
                   reward_breakout_player_racket_close_to_ball_quadratic,
                   reward_spaceinvaders_player_avoids_line_of_fire,
-                  reward_freeway_chicken_vertical_position):
+                  reward_freeway_chicken_vertical_position,
+                  reward_potential_based):
         """
         Saves output into a file
         """
@@ -91,7 +92,8 @@ class ModelStorage:
             'reward_breakout_player_racket_close_to_ball_linear': reward_breakout_player_racket_close_to_ball_linear,
             'reward_breakout_player_racket_close_to_ball_quadratic': reward_breakout_player_racket_close_to_ball_quadratic,
             'reward_spaceinvaders_player_avoids_line_of_fire': reward_spaceinvaders_player_avoids_line_of_fire,
-            'reward_freeway_chicken_vertical_position': reward_freeway_chicken_vertical_position
+            'reward_freeway_chicken_vertical_position': reward_freeway_chicken_vertical_position,
+            'reward_potential_based': reward_potential_based
         }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
         # Prune old model files
@@ -141,7 +143,8 @@ class ModelStorage:
                checkpoint['reward_breakout_player_racket_close_to_ball_linear'], \
                checkpoint['reward_breakout_player_racket_close_to_ball_quadratic'], \
                checkpoint['reward_freeway_chicken_vertical_position'], \
-               checkpoint['reward_spaceinvaders_player_avoids_line_of_fire']
+               checkpoint['reward_spaceinvaders_player_avoids_line_of_fire'], \
+               checkpoint['reward_potential_based']
 
     def prune_storage(directory):
         list_of_files = glob.glob(directory + "/*.model")

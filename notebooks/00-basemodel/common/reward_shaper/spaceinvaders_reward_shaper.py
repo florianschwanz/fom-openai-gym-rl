@@ -1,5 +1,6 @@
 import time
 
+from argument_extractor import ArgumentExtractor
 from environment_enum import Environment
 from visual_component import VisualComponent
 
@@ -43,14 +44,11 @@ class SpaceInvadersRewardShaper():
     def check_environment(func):
         def check_environment_and_call(self, *args, **kwargs):
             """Checks if reward shaping is done on a matching environment"""
-            environment = kwargs["environment"]
+            environment = ArgumentExtractor.extract_argument(kwargs, "environment", None)
 
             if environment not in self.ENVIRONMENTS:
                 raise Exception("Reward shaping method does match environment "
                                 "(method:" + func.__name__ + ", environment:" + environment.value + ")")
-
-            # Remove arguments that were only used for this wrapper
-            kwargs.pop("environment", None)
 
             return func(self, *args, **kwargs)
 
@@ -58,10 +56,10 @@ class SpaceInvadersRewardShaper():
 
     def initialize_reward_shaper(func):
         def initialize_reward_shaper_and_call(self, *args, **kwargs):
-            self.screen = kwargs["screen"]
-            self.reward = kwargs["reward"]
-            self.done = kwargs["done"]
-            self.info = kwargs["info"]
+            self.screen = ArgumentExtractor.extract_argument(kwargs, "screen", None)
+            self.reward = ArgumentExtractor.extract_argument(kwargs, "reward", None)
+            self.done = ArgumentExtractor.extract_argument(kwargs, "done", None)
+            self.info = ArgumentExtractor.extract_argument(kwargs, "info", None)
 
             self.spaceship_pixels, \
             self.rocks_pixels, \
@@ -71,12 +69,6 @@ class SpaceInvadersRewardShaper():
             self.spaceship = VisualComponent(self.spaceship_pixels, self.screen)
             self.rays = VisualComponent(self.rays_pixels, self.screen)
             self.lives = self.info["ale.lives"]
-
-            # Remove arguments that were only used for this wrapper
-            kwargs.pop("screen", None)
-            kwargs.pop("reward", None)
-            kwargs.pop("done", None)
-            kwargs.pop("info", None)
 
             return func(self, *args, **kwargs)
 
@@ -110,11 +102,13 @@ class SpaceInvadersRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_player_avoids_line_of_fire(self, additional_reward=0.025):
+    def reward_player_avoids_line_of_fire(self, **kwargs):
         """
         Gives an additional reward if the player's spaceship avoids line of fire
         :return: shaped reward
         """
+        
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         if self.spaceship.visible and self.rays.visible:
             spaceship_x_values = self.get_x_values(self.spaceship_pixels)
@@ -132,7 +126,7 @@ class SpaceInvadersRewardShaper():
 
     def extract_pixels(self, screen):
         """
-        Extracts pixels from an screen
+        Extracts pixels from a screen
         :return: a dictionary having coordinates as key, and rgb values as value
         """
 

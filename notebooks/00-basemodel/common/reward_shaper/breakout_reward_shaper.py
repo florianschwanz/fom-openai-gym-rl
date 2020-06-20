@@ -1,5 +1,6 @@
 import math
 
+from argument_extractor import ArgumentExtractor
 from environment_enum import Environment
 from visual_component import VisualComponent
 
@@ -42,7 +43,7 @@ class BreakoutRewardShaper():
     def check_environment(func):
         def check_environment_and_call(self, *args, **kwargs):
             """Checks if reward shaping is done on a matching environment"""
-            environment = kwargs["environment"]
+            environment = ArgumentExtractor.extract_argument(kwargs, "environment", None)
 
             if environment not in self.ENVIRONMENTS:
                 raise Exception("Reward shaping method does match environment "
@@ -57,10 +58,10 @@ class BreakoutRewardShaper():
 
     def initialize_reward_shaper(func):
         def initialize_reward_shaper_and_call(self, *args, **kwargs):
-            self.screen = kwargs["screen"]
-            self.reward = kwargs["reward"]
-            self.done = kwargs["done"]
-            self.info = kwargs["info"]
+            self.screen = ArgumentExtractor.extract_argument(kwargs, "screen", None)
+            self.reward = ArgumentExtractor.extract_argument(kwargs, "reward", None)
+            self.done = ArgumentExtractor.extract_argument(kwargs, "done", None)
+            self.info = ArgumentExtractor.extract_argument(kwargs, "info", None)
 
             self.ball_pixels, \
             self.player_racket_pixels = BreakoutRewardShaper.extract_pixels(self, self.screen)
@@ -68,12 +69,6 @@ class BreakoutRewardShaper():
             self.ball = VisualComponent(self.ball_pixels, self.screen)
             self.player_racket = VisualComponent(self.player_racket_pixels, self.screen)
             self.lives = self.info["ale.lives"]
-
-            # Remove arguments that were only used for this wrapper
-            kwargs.pop("screen", None)
-            kwargs.pop("reward", None)
-            kwargs.pop("done", None)
-            kwargs.pop("info", None)
 
             return func(self, *args, **kwargs)
 
@@ -102,11 +97,13 @@ class BreakoutRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_player_racket_hits_ball(self, additional_reward=0.025):
+    def reward_player_racket_hits_ball(self, **kwargs):
         """
         Gives an additional reward if the player's racket hits the ball
         :return: shaped reward
         """
+
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         if self.ball.visible and self.player_racket.visible \
                 and self.BALL_CENTER_Y_WHEN_PLAYED_BY_PLAYER_MIN <= self.ball.center[1] <= \
@@ -118,11 +115,13 @@ class BreakoutRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_player_racket_covers_ball(self, additional_reward=0.025):
+    def reward_player_racket_covers_ball(self, **kwargs):
         """
         Gives an additional reward if the player's racket covers y-coordinate of the ball
         :return: shaped reward
         """
+
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         if self.ball.visible and self.player_racket.visible \
                 and self.player_racket.left[0] <= self.ball.center[0] <= self.player_racket.right[0]:
@@ -132,7 +131,10 @@ class BreakoutRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_player_racket_close_to_ball_linear(self, additional_reward=0.05):
+    def reward_player_racket_close_to_ball_linear(self, **kwargs):
+
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
+
         reward_max = additional_reward
         reward_min = 0
 
@@ -148,7 +150,9 @@ class BreakoutRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_player_racket_close_to_ball_quadratic(self, additional_reward=0.05):
+    def reward_player_racket_close_to_ball_quadratic(self, **kwargs):
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
+
         reward_max = math.sqrt(additional_reward)
         reward_min = 0
 
@@ -164,7 +168,7 @@ class BreakoutRewardShaper():
 
     def extract_pixels(self, screen):
         """
-        Extracts pixels from an screen
+        Extracts pixels from a screen
         :return: a dictionary having coordinates as key, and rgb values as value
         """
 
@@ -175,7 +179,7 @@ class BreakoutRewardShaper():
         screen_width = screen.shape[1]  # x-axis starting from top-left corner
 
         # Define relevant section of the screen
-        section_x_min = self.WALL_LEFT_X_MAX +1
+        section_x_min = self.WALL_LEFT_X_MAX + 1
         section_x_max = self.WALL_RIGHT_Y_MIN - 1
         section_y_min = self.WALL_TOP_Y_MAX + 1
         section_y_max = self.WALL_BOTTOM_Y_MAX - 1
@@ -206,10 +210,10 @@ class BreakoutRewardShaper():
 
     def is_ball_pixel(self, x, y, value):
         return value == self.BALL_COLOR \
-                    and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
-                    and not (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
+               and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
+               and not (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
 
     def is_player_racket_pixel(self, x, y, value):
         return value == self.RACKET_COLOR \
-                    and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
-                    and (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
+               and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
+               and (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
