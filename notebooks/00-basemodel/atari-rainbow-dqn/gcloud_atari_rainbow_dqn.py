@@ -2,6 +2,7 @@
 
 import glob
 import os
+import random
 import sys
 import time
 from datetime import datetime
@@ -12,7 +13,7 @@ import torch.optim as optim
 from tqdm import tqdm
 
 old_stdout = sys.stdout
-log_file = open("./output/training.log","w")
+log_file = open("./output/training.log", "w")
 sys.stdout = log_file
 
 # Make library available in path
@@ -211,6 +212,11 @@ REWARD_SHAPINGS = [
      "arguments": {"additional_reward": REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION}},
 ]
 
+# Set seed to get reproducible results
+manualSeed = 42
+random.seed(manualSeed)
+torch.manual_seed(manualSeed)
+
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -226,16 +232,20 @@ env.reset()
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
     # Initialize and load policy net and target net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
 
-    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
     target_net.load_state_dict(MODEL_STATE_DICT)
 else:
     # Initialize policy net and target net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
 
-    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
     target_net.load_state_dict(policy_net.state_dict())
     target_net.eval()
 

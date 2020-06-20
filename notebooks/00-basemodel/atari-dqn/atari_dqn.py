@@ -1,5 +1,6 @@
 import glob
 import os
+import random
 import sys
 import time
 from datetime import datetime
@@ -205,6 +206,11 @@ REWARD_SHAPINGS = [
     {"method": FreewayRewardShaper().reward_chicken_vertical_position,
      "arguments": {"additional_reward": REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION}},
 ]
+
+# Set seed to get reproducible results
+manualSeed = 42
+random.seed(manualSeed)
+torch.manual_seed(manualSeed)
 
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
