@@ -1,5 +1,3 @@
-#! /opt/conda/bin/python3
-
 import glob
 import os
 import sys
@@ -10,10 +8,6 @@ import torch
 import torch.autograd as autograd
 import torch.optim as optim
 from tqdm import tqdm
-
-old_stdout = sys.stdout
-log_file = open("./output/training.log","w")
-sys.stdout = log_file
 
 # Make library available in path
 lib_path = os.path.join(os.getcwd(), 'lib')
