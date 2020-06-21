@@ -439,7 +439,8 @@ for total_frames in progress_bar:
                                        reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                        reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                        reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                       reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION
+                                       reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                       reward_potential_based=REWARD_POTENTIAL_BASED
                                        )
 
                 PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
