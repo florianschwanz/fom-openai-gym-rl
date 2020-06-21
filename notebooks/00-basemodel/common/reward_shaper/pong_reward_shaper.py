@@ -28,12 +28,12 @@ class PongRewardShaper():
 
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
-        Environment.PONG_v0,
-        Environment.PONG_v4,
-        Environment.PONG_DETERMINISTIC_v0,
-        Environment.PONG_DETERMINISTIC_v4,
-        Environment.PONG_NO_FRAMESKIP_v0,
-        Environment.PONG_NO_FRAMESKIP_v4
+        Environment.PONG_V0,
+        Environment.PONG_V4,
+        Environment.PONG_DETERMINISTIC_V0,
+        Environment.PONG_DETERMINISTIC_V4,
+        Environment.PONG_NO_FRAMESKIP_V0,
+        Environment.PONG_NO_FRAMESKIP_V4
     ]
 
     def check_environment(func):
@@ -267,7 +267,7 @@ class PongRewardShaper():
                 elif PongRewardShaper.is_opponent_racket_pixel(self, x, y, value):
                     opponent_racket_pixels.append(coordinates)
 
-        return ball_pixels, player_racket_pixels
+        return ball_pixels, player_racket_pixels, opponent_racket_pixels
 
     def is_background_pixel(self, x, y, value):
         return value == self.BACKGROUND_COLOR
