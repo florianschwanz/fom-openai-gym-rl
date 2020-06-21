@@ -244,9 +244,11 @@ if RUN_TO_LOAD != None:
     # Initialize and load policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
+    policy_net.eval()
 
     target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     target_net.load_state_dict(MODEL_STATE_DICT)
+    target_net.eval()
 else:
     # Initialize policy net and target net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)

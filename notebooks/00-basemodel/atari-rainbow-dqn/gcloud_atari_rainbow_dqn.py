@@ -241,10 +241,12 @@ if RUN_TO_LOAD != None:
     policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
         device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
+    policy_net.eval()
 
     target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
         device)
     target_net.load_state_dict(MODEL_STATE_DICT)
+    target_net.eval()
 else:
     # Initialize policy net and target net
     policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
