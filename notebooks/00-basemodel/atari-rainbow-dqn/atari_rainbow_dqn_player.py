@@ -3,7 +3,6 @@ import os
 import random
 import sys
 
-import imageio
 import torch
 import torch.autograd as autograd
 from tqdm import tqdm
@@ -25,6 +24,7 @@ from deep_q_network import RainbowCnnDQN
 from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from model_storage import ModelStorage
+from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
 
 # Path to output to be loaded
@@ -114,7 +114,7 @@ env.reset()
 policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
     device)
 policy_net.load_state_dict(MODEL_STATE_DICT)
-policy_net.eval()
+policy_net.train()
 
 # Initialize total variables
 total_frames = 0
@@ -161,18 +161,10 @@ for total_frames in progress_bar:
         state = env.reset()
 
         if info["ale.lives"] == 0:
-            list_of_screenshots = glob.glob(OUTPUT_DIRECTORY + RUN_TO_LOAD + "/gif-screenshot*")
-
-            # Render gif
-            images = []
-            progress_bar_render = tqdm(sorted(list_of_screenshots), unit='frames', desc="Render gif")
-            for filename in progress_bar_render:
-                images.append(imageio.imread(filename))
-            imageio.mimsave(OUTPUT_DIRECTORY + RUN_TO_LOAD + '/movie.gif', images)
-
-            # Remove screenshots
-            for filename in sorted(list_of_screenshots):
-                os.remove(filename)
+            ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_TO_LOAD,
+                                                 total_episodes=0,
+                                                 title="gif-screenshot"
+            )
 
             print("Complete")
             sys.exit()

@@ -37,6 +37,8 @@ from pong_reward_shaper import PongRewardShaper
 from potential_based_reward_shaper import PotentialBasedRewardShaper
 from replay_memory import ReplayMemory
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
+from screen_animator import ScreenAnimator
+from screen_plotter import ScreenPlotter
 
 # Path to output to be loaded
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
@@ -286,7 +288,7 @@ min_episode_original_reward = None
 state = env.reset()
 
 # Iterate over frames
-progress_bar = tqdm(iterable=range(NUM_FRAMES), unit='frames', initial=FINISHED_FRAMES)
+progress_bar = tqdm(iterable=range(NUM_FRAMES), unit='frames', initial=FINISHED_FRAMES, desc="Train model")
 for total_frames in progress_bar:
     total_frames += FINISHED_FRAMES
 
@@ -358,6 +360,15 @@ for total_frames in progress_bar:
 
     # Add loss to total loss
     total_losses.append(loss)
+
+    if total_episodes % MODEL_SAVE_RATE == 0:
+        # Plot screen for gif
+        ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                       total_frames=total_frames,
+                                       env=env,
+                                       title="gif-screenshot",
+                                       device=device,
+                                       prune=False)
 
     if done:
         # Reset the environment and state
@@ -467,6 +478,10 @@ for total_frames in progress_bar:
                 #                                env=env,
                 #                                title="screenshot",
                 #                                device=device)
+
+                ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                                     total_episodes=total_episodes,
+                                                     title="gif-screenshot")
 
             # Reset episode variables
             episode_frames = 0
