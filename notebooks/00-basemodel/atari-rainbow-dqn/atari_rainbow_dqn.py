@@ -404,7 +404,7 @@ for total_frames in progress_bar:
     # Add loss to total loss
     total_losses.append(loss)
 
-    if total_episodes % MODEL_SAVE_RATE == 0 and total_frames % 2 == 0:
+    if total_episodes != 0 and total_episodes % MODEL_SAVE_RATE == 0 and total_frames % 2 == 0:
         # Plot screen for gif
         ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
@@ -449,10 +449,10 @@ for total_frames in progress_bar:
                                               episode_duration=episode_duration)
 
             # Update the target network, copying all weights and biases from policy net into target net
-            if total_episodes % TARGET_UPDATE_RATE == 0:
+            if total_episodes != 0 and total_episodes % TARGET_UPDATE_RATE == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
-            if total_episodes % MODEL_SAVE_RATE == 0:
+            if total_episodes != 0 and total_episodes % MODEL_SAVE_RATE == 0:
                 # Save model
                 ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
