@@ -6,8 +6,8 @@ import numpy as np
 
 class PerformanceLogger:
 
-    def log_parameters(directory, batch_size, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax,
-                       target_update_rate, model_save_rate, replay_memory_size, num_frames,
+    def log_parameters(directory, environment_id, batch_size, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin,
+                       vmax, target_update_rate, model_save_rate, replay_memory_size, num_frames,
                        reward_pong_player_racket_hits_ball,
                        reward_pong_player_racket_covers_ball,
                        reward_pong_player_racket_close_to_ball_linear,
@@ -27,7 +27,8 @@ class PerformanceLogger:
         if not os.path.exists(directory):
             os.mkdir(directory)
 
-        line = "BATCH_SIZE=" + str(batch_size) \
+        line = "ENVIRONMENT_ID" + str(environment_id) \
+               + "\nBATCH_SIZE=" + str(batch_size) \
                + "\nGAMMA=" + str(gamma) \
                + "\nEPS_START=" + str(eps_start) \
                + "\nEPS_END=" + str(eps_end) \
@@ -109,7 +110,7 @@ class PerformanceLogger:
               + str(episode_loss) + "," \
               + str(episode_shaped_reward) + "," \
  \
-        # Write csv into file
+            # Write csv into file
         log_file = open(directory + "/log.csv", "a")
         log_file.write(csv + "\n")
         log_file.close()

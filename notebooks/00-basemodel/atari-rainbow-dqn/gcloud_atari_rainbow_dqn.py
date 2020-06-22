@@ -5,6 +5,7 @@ import os
 import random
 import sys
 import time
+import uuid
 from datetime import datetime
 
 import torch
@@ -45,10 +46,13 @@ from replay_memory import ReplayMemory
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
+from telegram_logger import TelegramLogger
 
 # Path to output to be loaded
+RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
 OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
+CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config/")
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
@@ -157,6 +161,7 @@ else:
 
     # Log parameters
     PerformanceLogger.log_parameters(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                     environment_id=ENVIRONMENT_ID,
                                      batch_size=BATCH_SIZE,
                                      gamma=GAMMA,
                                      eps_start=EPS_START,
@@ -185,6 +190,39 @@ else:
                                      reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
                                      reward_potential_based=REWARD_POTENTIAL_BASED
                                      )
+
+    TelegramLogger.log_parameters(run_name=RUN_NAME,
+                                  output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                  conf_directory=CONFIG_DIRECTORY,
+                                  environment_id=ENVIRONMENT_ID,
+                                  batch_size=BATCH_SIZE,
+                                  gamma=GAMMA,
+                                  eps_start=EPS_START,
+                                  eps_end=EPS_END,
+                                  eps_decay=EPS_END,
+                                  num_atoms=NUM_ATOMS,
+                                  vmin=VMIN,
+                                  vmax=VMAX,
+                                  target_update_rate=TARGET_UPDATE_RATE,
+                                  model_save_rate=MODEL_SAVE_RATE,
+                                  replay_memory_size=REPLAY_MEMORY_SIZE,
+                                  num_frames=NUM_FRAMES,
+                                  reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                  reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                  reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                  reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                  reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                  reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                  reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                  reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                  reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                  reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                  reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                  reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                  reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                  reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                  reward_potential_based=REWARD_POTENTIAL_BASED
+                                  )
 
 # Assemble reward shapings
 REWARD_SHAPINGS = [
@@ -482,6 +520,21 @@ for total_frames in progress_bar:
                 ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                      total_episodes=total_episodes,
                                                      title="gif-screenshot")
+
+                TelegramLogger.log_episode(run_name=RUN_NAME,
+                                           output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                           conf_directory=CONFIG_DIRECTORY,
+                                           max_frames=NUM_FRAMES,
+                                           total_episodes=total_episodes + 1,
+                                           total_frames=total_frames,
+                                           total_duration=total_duration,
+                                           total_original_rewards=total_original_rewards,
+                                           total_shaped_rewards=total_shaped_rewards,
+                                           episode_frames=episode_frames + 1,
+                                           episode_original_reward=episode_original_reward,
+                                           episode_shaped_reward=episode_shaped_reward,
+                                           episode_loss=loss.item(),
+                                           episode_duration=episode_duration)
 
             # Reset episode variables
             episode_frames = 0

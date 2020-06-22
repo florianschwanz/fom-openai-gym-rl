@@ -1,3 +1,5 @@
+export RUN_NAME="pong_rs1"
+
 export OUTPUT_DIRECTORY="$HOME/fom-openai-gym-rl/notebooks/00-basemodel/atari-rainbow-dqn/output/"
 export ENVIRONMENT_ID="PongNoFrameskip-v4"
 export BATCH_SIZE=32
