@@ -10,7 +10,7 @@ class ScreenAnimator:
     MAX_FILES = 3
 
     def save_screen_animation(directory, total_episodes, title, prune=True):
-        list_of_screenshots = glob.glob(directory + "/gif-screenshot*")
+        list_of_screenshots = glob.glob(directory + "/gif-screenshot*.png")
 
         # Render gif
         images = []
