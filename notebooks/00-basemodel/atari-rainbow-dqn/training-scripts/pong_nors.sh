@@ -27,4 +27,5 @@ export REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR=0.0
 export REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC=0.0
 export REWARD_POTENTIAL_BASED=0.0
 
-../gcloud_atari_rainbow_dqn.py &
+cd ..
+./gcloud_atari_rainbow_dqn.py &

@@ -1,6 +1,7 @@
 ## Automatic Startup on Google Cloud
 Open up the Google Cloud Shell, copy/paste the following and press ENTER:
 
+```shell script
 gcloud compute instances create fom-training \
   --zone=europe-west2-a \
   --machine-type=n1-standard-8 \
@@ -15,6 +16,7 @@ cp startup.sh /home/training/
 chmod +x /home/training/startup.sh
 sudo -u training bash -c "cd ~/; ./startup.sh pong nors >/dev/null 2>&1 &"
 EOF'
+```
 
 In this case, you will spin-up a GCloud Instance which will start the training 
 of pong without rewards shaping based on the Script pong_nors.sh in the directory
