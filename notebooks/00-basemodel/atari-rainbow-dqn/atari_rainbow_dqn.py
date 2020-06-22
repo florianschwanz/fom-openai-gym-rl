@@ -122,7 +122,7 @@ else:
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
-    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 10))
+    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 1))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
 
@@ -361,7 +361,7 @@ for total_frames in progress_bar:
     # Add loss to total loss
     total_losses.append(loss)
 
-    if total_episodes % MODEL_SAVE_RATE == 0:
+    if total_episodes % MODEL_SAVE_RATE == 0 and total_frames % 2 == 0:
         # Plot screen for gif
         ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,

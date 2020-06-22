@@ -368,7 +368,7 @@ for total_frames in progress_bar:
                                          gamma=GAMMA,
                                          device=device)
 
-    if total_episodes % MODEL_SAVE_RATE == 0:
+    if total_episodes % MODEL_SAVE_RATE == 0 and total_frames % 2 == 0:
         # Plot screen for gif
         ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
