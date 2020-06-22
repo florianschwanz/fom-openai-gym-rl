@@ -21,6 +21,7 @@ class ModelStorage:
                   environment,
                   environment_wrappers,
                   batch_size,
+                  learning_rate,
                   gamma,
                   eps_start,
                   eps_end,
@@ -68,6 +69,7 @@ class ModelStorage:
             'environment': environment,
             'environment_wrappers': environment_wrappers,
             'batch_size': batch_size,
+            'learning_rate': learning_rate,
             'gamma': gamma,
             'eps_start': eps_start,
             'eps_end': eps_end,
@@ -119,6 +121,7 @@ class ModelStorage:
                checkpoint['environment'], \
                checkpoint['environment_wrappers'], \
                checkpoint['batch_size'], \
+               checkpoint['learning_rate'], \
                checkpoint['gamma'], \
                checkpoint['eps_start'], \
                checkpoint['eps_end'], \

@@ -6,8 +6,8 @@ import numpy as np
 
 class PerformanceLogger:
 
-    def log_parameters(directory, environment_id, batch_size, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin,
-                       vmax, target_update_rate, model_save_rate, replay_memory_size, num_frames,
+    def log_parameters(directory, environment_id, batch_size, learning_rate, gamma, eps_start, eps_end, eps_decay,
+                       num_atoms, vmin, vmax, target_update_rate, model_save_rate, replay_memory_size, num_frames,
                        reward_pong_player_racket_hits_ball,
                        reward_pong_player_racket_covers_ball,
                        reward_pong_player_racket_close_to_ball_linear,
@@ -29,6 +29,7 @@ class PerformanceLogger:
 
         line = "ENVIRONMENT_ID" + str(environment_id) \
                + "\nBATCH_SIZE=" + str(batch_size) \
+               + "\nLEARNING_RATE=" + str(learning_rate) \
                + "\nGAMMA=" + str(gamma) \
                + "\nEPS_START=" + str(eps_start) \
                + "\nEPS_END=" + str(eps_end) \

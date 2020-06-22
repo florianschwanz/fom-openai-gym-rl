@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.autograd as autograd
 import torch.nn as nn
@@ -61,14 +60,3 @@ class RainbowCnnDQN(nn.Module):
 
     def feature_size(self):
         return self.features(autograd.Variable(torch.zeros(1, *self.input_shape))).view(1, -1).size(1)
-
-    def act(self, state):
-        Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if \
-            self.USE_CUDA else autograd.Variable(*args, **kwargs)
-
-        with torch.no_grad():
-            state = Variable(torch.FloatTensor(np.float32(state)).unsqueeze(0))
-            dist = self.forward(state).data.cpu()
-            dist = dist * torch.linspace(self.Vmin, self.Vmax, self.num_atoms)
-            action = dist.sum(2).max(1)[1].numpy()[0]
-        return action

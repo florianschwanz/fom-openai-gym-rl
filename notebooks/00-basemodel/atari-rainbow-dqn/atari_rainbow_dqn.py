@@ -68,6 +68,7 @@ if RUN_TO_LOAD != None:
     ENVIRONMENT, \
     ENVIRONMENT_WRAPPERS, \
     BATCH_SIZE, \
+    LEARNING_RATE, \
     GAMMA, \
     EPS_START, \
     EPS_END, \
@@ -118,6 +119,7 @@ else:
         EnvironmentWrapper.IMAGE_TO_PYTORCH,
     ]
     BATCH_SIZE = int(os.getenv('BATCH_SIZE', 32))
+    LEARNING_RATE = float(os.getenv('LEARNING_RATE', 0.0001))
     GAMMA = float(os.getenv('GAMMA', 0.99))
     EPS_START = float(os.getenv('EPS_START', 1.0))
     EPS_END = float(os.getenv('EPS_END', 0.01))
@@ -157,6 +159,7 @@ else:
     PerformanceLogger.log_parameters(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                      environment_id=ENVIRONMENT_ID,
                                      batch_size=BATCH_SIZE,
+                                     learning_rate=LEARNING_RATE,
                                      gamma=GAMMA,
                                      eps_start=EPS_START,
                                      eps_end=EPS_END,
@@ -190,6 +193,7 @@ else:
                                   conf_directory=CONFIG_DIRECTORY,
                                   environment_id=ENVIRONMENT_ID,
                                   batch_size=BATCH_SIZE,
+                                  learning_rate=LEARNING_RATE,
                                   gamma=GAMMA,
                                   eps_start=EPS_START,
                                   eps_end=EPS_END,
@@ -294,14 +298,14 @@ else:
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
     # Initialize and load optimizer
-    optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
+    optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
     optimizer.load_state_dict(OPTIMIZER_STATE_DICT)
 
     # Load memory
     memory = REPLAY_MEMORY
 else:
     # Initialize optimizer
-    optimizer = optim.Adam(policy_net.parameters(), lr=0.0001)
+    optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
     # Initialize replay memory
     memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
@@ -463,6 +467,7 @@ for total_frames in progress_bar:
                                        environment=ENVIRONMENT,
                                        environment_wrappers=ENVIRONMENT_WRAPPERS,
                                        batch_size=BATCH_SIZE,
+                                       learning_rate=LEARNING_RATE,
                                        gamma=GAMMA,
                                        eps_start=EPS_START,
                                        eps_end=EPS_END,
