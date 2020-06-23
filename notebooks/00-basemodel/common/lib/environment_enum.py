@@ -19,7 +19,11 @@ class Environment(Enum):
     CART_POLE_NO_FRAMESKIP_v0 = 'CartPole-v0'
 
     FREEWAY_V0 = 'Freeway-v0'
+    FREEWAY_V4 = 'Freeway-v4'
+    FREEWAY_DETERMINISTIC_V0 = 'FreewayDeterministic-v0'
+    FREEWAY_DETERMINISTIC_V4 = 'FreewayDeterministic-v4'
     FREEWAY_NO_FRAMESKIP_V0 = 'FreewayNoFrameskip-v0'
+    FREEWAY_NO_FRAMESKIP_V4 = 'FreewayNoFrameskip-v4'
 
     GRAVITAR_V0 = 'Gravitar-v0'
     GRAVITAR_NO_FRAMESKIP_V0 = 'GravitarNoFrameskip-v0'
