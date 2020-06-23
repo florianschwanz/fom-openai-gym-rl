@@ -47,6 +47,7 @@ RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
 OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
 CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config/")
+TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
@@ -191,6 +192,7 @@ else:
     TelegramLogger.log_parameters(run_name=RUN_NAME,
                                   output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                   conf_directory=CONFIG_DIRECTORY,
+                                  conf_file=TELEGRAM_CONFIG_FILE,
                                   environment_id=ENVIRONMENT_ID,
                                   batch_size=BATCH_SIZE,
                                   learning_rate=LEARNING_RATE,
@@ -530,6 +532,7 @@ for total_frames in progress_bar:
                 TelegramLogger.log_episode(run_name=RUN_NAME,
                                            output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                            conf_directory=CONFIG_DIRECTORY,
+                                           conf_file=TELEGRAM_CONFIG_FILE,
                                            max_frames=NUM_FRAMES,
                                            total_episodes=total_episodes + 1,
                                            total_frames=total_frames,

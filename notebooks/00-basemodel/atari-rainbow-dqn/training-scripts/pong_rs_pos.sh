@@ -1,6 +1,7 @@
 export RUN_NAME="pong_rs_pos"
 
 export OUTPUT_DIRECTORY="$HOME/fom-openai-gym-rl/notebooks/00-basemodel/atari-rainbow-dqn/output/"
+export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="PongNoFrameskip-v4"
 export BATCH_SIZE=32
 export LEARNING_RATE=0.0001

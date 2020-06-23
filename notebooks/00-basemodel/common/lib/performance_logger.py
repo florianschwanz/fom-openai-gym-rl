@@ -27,7 +27,7 @@ class PerformanceLogger:
         if not os.path.exists(directory):
             os.mkdir(directory)
 
-        line = "ENVIRONMENT_ID" + str(environment_id) \
+        line = "ENVIRONMENT_ID=" + str(environment_id) \
                + "\nBATCH_SIZE=" + str(batch_size) \
                + "\nLEARNING_RATE=" + str(learning_rate) \
                + "\nGAMMA=" + str(gamma) \
