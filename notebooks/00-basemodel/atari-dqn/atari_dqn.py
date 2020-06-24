@@ -562,4 +562,9 @@ for total_frames in progress_bar:
     # Increment counter
     episode_frames += 1
 
+TelegramLogger.log_results(run_name=RUN_NAME,
+                           output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                           conf_directory=CONFIG_DIRECTORY,
+                           conf_file=TELEGRAM_CONFIG_FILE)
+
 print('Complete')

@@ -151,7 +151,7 @@ for total_frames in progress_bar:
                                    total_frames=total_frames,
                                    env=env,
                                    name="gif-screenshot",
-                                   title="frame" + str(total_frames),
+                                   title="frame " + str(total_frames),
                                    device=device,
                                    prune=False)
 
