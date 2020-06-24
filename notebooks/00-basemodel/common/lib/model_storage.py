@@ -46,7 +46,8 @@ class ModelStorage:
                   reward_breakout_player_racket_close_to_ball_linear,
                   reward_breakout_player_racket_close_to_ball_quadratic,
                   reward_spaceinvaders_player_avoids_line_of_fire,
-                  reward_freeway_chicken_vertical_position,
+                  reward_freeway_distance_walked,
+                  reward_freeway_distance_to_car,
                   reward_potential_based):
         """
         Saves output into a file
@@ -94,7 +95,8 @@ class ModelStorage:
             'reward_breakout_player_racket_close_to_ball_linear': reward_breakout_player_racket_close_to_ball_linear,
             'reward_breakout_player_racket_close_to_ball_quadratic': reward_breakout_player_racket_close_to_ball_quadratic,
             'reward_spaceinvaders_player_avoids_line_of_fire': reward_spaceinvaders_player_avoids_line_of_fire,
-            'reward_freeway_chicken_vertical_position': reward_freeway_chicken_vertical_position,
+            'reward_freeway_distance_walked': reward_freeway_distance_walked,
+            'reward_freeway_distance_to_car': reward_freeway_distance_to_car,
             'reward_potential_based': reward_potential_based
         }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
