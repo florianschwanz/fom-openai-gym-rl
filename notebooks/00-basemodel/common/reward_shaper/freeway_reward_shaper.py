@@ -69,6 +69,7 @@ class FreewayRewardShaper():
     ENVIRONMENTS = [
         Environment.FREEWAY_V0,
         Environment.FREEWAY_NO_FRAMESKIP_V0
+        Environment.FREEWAY_NO_FRAMESKIP_V4
     ]
 
     def check_environment(func):
