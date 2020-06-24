@@ -51,6 +51,8 @@ class PerformancePlotter:
                         "Description": "Plot of " + str(title)
                     })
 
+        plt.close()
+
         PerformancePlotter.prune_storage(directory, str(title).replace(" ", "-") + "*.png")
 
     def generate_plot(values, title, xlabel, ylabel):

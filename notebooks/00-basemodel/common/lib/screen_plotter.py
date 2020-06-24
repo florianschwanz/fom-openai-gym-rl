@@ -26,6 +26,7 @@ class ScreenPlotter:
         plt = ScreenPlotter.generate_plot(env, title, device)
 
         plt.show()
+        plt.close()
 
     def save_screen_plot(directory, total_frames, env, name, title, device, prune=True):
         """
@@ -52,6 +53,9 @@ class ScreenPlotter:
                         "Creation Time": formatdate(timeval=None, localtime=False, usegmt=True),
                         "Description": "Plot of " + str(title)
                     })
+
+        # Close plot
+        plt.close()
 
         if prune:
             ScreenPlotter.prune_storage(directory, str(title) + "*.png")
