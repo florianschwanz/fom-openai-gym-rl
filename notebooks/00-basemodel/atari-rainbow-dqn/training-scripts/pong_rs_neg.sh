@@ -1,6 +1,5 @@
 export RUN_NAME="pong_rs_pos"
 
-export OUTPUT_DIRECTORY="$HOME/fom-openai-gym-rl/notebooks/00-basemodel/atari-rainbow-dqn/output/"
 export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="PongNoFrameskip-v4"
 export BATCH_SIZE=32
@@ -21,5 +20,4 @@ export NUM_FRAMES=3_000_000
 
 export REWARD_PONG_OPPONENT_RACKET_HITS_BALL=-0.5
 
-cd ..
 ./gcloud_atari_rainbow_dqn.py &
