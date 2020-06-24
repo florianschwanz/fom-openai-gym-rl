@@ -1,3 +1,4 @@
+#! /bin/bash
 export RUN_NAME="freeway_rs_both"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"

@@ -1,3 +1,4 @@
+#! /bin/bash
 export RUN_NAME="pong_rs_pos"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
