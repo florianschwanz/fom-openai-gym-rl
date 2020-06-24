@@ -27,7 +27,7 @@ class ScreenPlotter:
 
         plt.show()
 
-    def save_screen_plot(directory, total_frames, env, title, device, prune=True):
+    def save_screen_plot(directory, total_frames, env, name, title, device, prune=True):
         """
         Saves current state of the screen as png file
         :param directory to save plot in
@@ -44,7 +44,7 @@ class ScreenPlotter:
 
         plt = ScreenPlotter.generate_plot(env, title, device)
 
-        plt.savefig(fname=directory + "/" + str(title) + "-frame-{:07d}".format(total_frames) + ".png",
+        plt.savefig(fname=directory + "/" + str(name) + "-frame-{:07d}".format(total_frames) + ".png",
                     format="png",
                     metadata={
                         "Title": str(title) + "-frame-{:07d}".format(total_frames),

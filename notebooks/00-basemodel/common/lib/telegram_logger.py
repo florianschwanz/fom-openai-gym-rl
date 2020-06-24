@@ -24,7 +24,8 @@ class TelegramLogger:
                        reward_breakout_player_racket_close_to_ball_linear,
                        reward_breakout_player_racket_close_to_ball_quadratic,
                        reward_spaceinvaders_player_avoids_line_of_fire,
-                       reward_freeway_chicken_vertical_position,
+                        reward_freeway_distance_walked,
+                        reward_freeway_distance_to_car,
                        reward_potential_based):
         if conf_file == None:
             return
@@ -72,8 +73,10 @@ class TelegramLogger:
                                                                 reward_breakout_player_racket_close_to_ball_quadratic) \
                         + TelegramLogger.build_reward_parameter("player avoids line of fire",
                                                                 reward_spaceinvaders_player_avoids_line_of_fire) \
-                        + TelegramLogger.build_reward_parameter("chicken vertical position",
-                                                                reward_freeway_chicken_vertical_position) \
+                        + TelegramLogger.build_reward_parameter("chicken distance walked",
+                                                                reward_freeway_distance_walked) \
+                        + TelegramLogger.build_reward_parameter("chicken distance to car",
+                                                                reward_freeway_distance_to_car) \
                         + TelegramLogger.build_reward_parameter("potential based", reward_potential_based)
 
         # Get config path

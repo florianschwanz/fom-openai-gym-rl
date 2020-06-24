@@ -145,8 +145,9 @@ class ModelStorage:
                checkpoint['reward_breakout_player_racket_covers_ball'], \
                checkpoint['reward_breakout_player_racket_close_to_ball_linear'], \
                checkpoint['reward_breakout_player_racket_close_to_ball_quadratic'], \
-               checkpoint['reward_freeway_chicken_vertical_position'], \
                checkpoint['reward_spaceinvaders_player_avoids_line_of_fire'], \
+               checkpoint['reward_freeway_distance_walked'], \
+               checkpoint['reward_freeway_distance_to_car'], \
                checkpoint['reward_potential_based']
 
     def prune_storage(directory):

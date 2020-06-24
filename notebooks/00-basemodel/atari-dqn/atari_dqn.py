@@ -94,7 +94,8 @@ if RUN_TO_LOAD != None:
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
-    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION, \
+    REWARD_FREEWAY_DISTANCE_WALKED, \
+    REWARD_FREEWAY_DISTANCE_TO_CAR, \
     REWARD_POTENTIAL_BASED \
         = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
@@ -152,7 +153,8 @@ else:
         os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(
         os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
-    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION = float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))
+    REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
+    REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
 
     # Log parameters
@@ -183,7 +185,8 @@ else:
                                      reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                      reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                      reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                     reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                     reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
+                                     reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                      reward_potential_based=REWARD_POTENTIAL_BASED
                                      )
 
@@ -217,7 +220,8 @@ else:
                                   reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                   reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                   reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                  reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                  reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
+                                  reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                   reward_potential_based=REWARD_POTENTIAL_BASED
                                   )
 
@@ -249,8 +253,10 @@ REWARD_SHAPINGS = [
      "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
     {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
      "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
-    {"method": FreewayRewardShaper().reward_chicken_vertical_position,
-     "arguments": {"additional_reward": REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION}},
+    {"method": FreewayRewardShaper().reward_distance_walked,
+     "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_WALKED}},
+    {"method": FreewayRewardShaper().reward_distance_to_car,
+     "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_TO_CAR}},
     {"method": PotentialBasedRewardShaper().reward,
      "arguments": {"additional_reward": REWARD_POTENTIAL_BASED}},
 ]
@@ -413,7 +419,8 @@ for total_frames in progress_bar:
         ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
                                        env=env,
-                                       title="gif-screenshot",
+                                       name="gif-screenshot",
+                                       title="frame" + str(total_frames),
                                        device=device,
                                        prune=False)
 
@@ -491,7 +498,8 @@ for total_frames in progress_bar:
                                        reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                        reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                        reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                       reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                       reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
+                                       reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                        reward_potential_based=REWARD_POTENTIAL_BASED
                                        )
 

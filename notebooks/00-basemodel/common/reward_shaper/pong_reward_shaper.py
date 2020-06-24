@@ -133,7 +133,7 @@ class PongRewardShaper():
         reward_max = additional_reward
         reward_min = 0
 
-        dist_max = 160
+        dist_max = self.screen.shape[1]
         dist_min = 0
 
         if self.ball.visible and self.player_racket.visible:
@@ -151,7 +151,7 @@ class PongRewardShaper():
         reward_max = math.sqrt(additional_reward)
         reward_min = 0
 
-        dist_max = 160
+        dist_max = self.screen.shape[1]
         dist_min = 0
 
         if self.ball.visible and self.player_racket.visible:

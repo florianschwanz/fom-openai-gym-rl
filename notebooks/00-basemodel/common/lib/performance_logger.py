@@ -21,7 +21,8 @@ class PerformanceLogger:
                        reward_breakout_player_racket_close_to_ball_linear,
                        reward_breakout_player_racket_close_to_ball_quadratic,
                        reward_spaceinvaders_player_avoids_line_of_fire,
-                       reward_freeway_chicken_vertical_position,
+                       reward_freeway_distance_walked,
+                       reward_freeway_distance_to_car,
                        reward_potential_based):
         # Make path if not yet exists
         if not os.path.exists(directory):
@@ -61,7 +62,8 @@ class PerformanceLogger:
             reward_breakout_player_racket_close_to_ball_quadratic) \
                + "\nREWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE=" + str(
             reward_spaceinvaders_player_avoids_line_of_fire) \
-               + "\nREWARD_FREEWAY_CHICKEN_VERTICAL_POSITION=" + str(reward_freeway_chicken_vertical_position) \
+               + "\nREWARD_FREEWAY_DISTANCE_WALKED=" + str(reward_freeway_distance_walked) \
+               + "\nREWARD_FREEWAY_DISTANCE_TO_CAR=" + str(reward_freeway_distance_to_car) \
                + "\nREWARD_POTENTIAL_BASED=" + str(reward_potential_based)
 
         # Print log

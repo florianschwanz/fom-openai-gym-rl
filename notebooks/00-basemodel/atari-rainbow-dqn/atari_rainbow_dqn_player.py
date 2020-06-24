@@ -77,7 +77,8 @@ REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL, \
 REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
 REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
 REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
-REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION, \
+REWARD_FREEWAY_DISTANCE_WALKED, \
+REWARD_FREEWAY_DISTANCE_TO_CAR, \
 REWARD_POTENTIAL_BASED \
     = ModelStorage.loadModel(MODEL_TO_LOAD)
 
@@ -149,7 +150,8 @@ for total_frames in progress_bar:
     ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    env=env,
-                                   title="gif-screenshot",
+                                   name="gif-screenshot",
+                                   title="frame" + str(total_frames),
                                    device=device,
                                    prune=False)
 

@@ -40,6 +40,7 @@ class FreewayRewardShaper():
     PLAYER_2_CHICKEN_X_MAX = 113
 
     PLAYER_1_CHICKEN_CENTER_X = 47
+
     CAR_1_CENTER_Y = 176
     CAR_2_CENTER_Y = 159
     CAR_3_CENTER_Y = 143
@@ -50,6 +51,19 @@ class FreewayRewardShaper():
     CAR_8_CENTER_Y = 62
     CAR_9_CENTER_Y = 46
     CAR_10_CENTER_Y = 30
+
+    CAR_CENTER_Y = [
+        CAR_1_CENTER_Y,
+        CAR_2_CENTER_Y,
+        CAR_3_CENTER_Y,
+        CAR_4_CENTER_Y,
+        CAR_5_CENTER_Y,
+        CAR_6_CENTER_Y,
+        CAR_7_CENTER_Y,
+        CAR_8_CENTER_Y,
+        CAR_9_CENTER_Y,
+        CAR_10_CENTER_Y,
+    ]
 
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
@@ -73,6 +87,40 @@ class FreewayRewardShaper():
 
         return check_environment_and_call
 
+    def init(self, *args, **kwargs):
+        self.screen = ArgumentExtractor.extract_argument(kwargs, "screen", None)
+        self.reward = ArgumentExtractor.extract_argument(kwargs, "reward", None)
+        self.done = ArgumentExtractor.extract_argument(kwargs, "done", None)
+        self.info = ArgumentExtractor.extract_argument(kwargs, "info", None)
+
+        self.player_chicken_pixels, \
+        self.car_1_pixels, \
+        self.car_2_pixels, \
+        self.car_3_pixels, \
+        self.car_4_pixels, \
+        self.car_5_pixels, \
+        self.car_6_pixels, \
+        self.car_7_pixels, \
+        self.car_8_pixels, \
+        self.car_9_pixels, \
+        self.car_10_pixels = self.extract_pixels_optimized(self.screen)
+
+        self.player_chicken = VisualComponent(self.player_chicken_pixels, self.screen)
+        self.cars = [
+            VisualComponent(self.car_1_pixels, self.screen),
+            VisualComponent(self.car_2_pixels, self.screen),
+            VisualComponent(self.car_3_pixels, self.screen),
+            VisualComponent(self.car_4_pixels, self.screen),
+            VisualComponent(self.car_5_pixels, self.screen),
+            VisualComponent(self.car_6_pixels, self.screen),
+            VisualComponent(self.car_7_pixels, self.screen),
+            VisualComponent(self.car_8_pixels, self.screen),
+            VisualComponent(self.car_9_pixels, self.screen),
+            VisualComponent(self.car_10_pixels, self.screen)
+        ]
+
+        self.lives = self.info["ale.lives"]
+
     def initialize_reward_shaper(func):
         def initialize_reward_shaper_and_call(self, *args, **kwargs):
             self.screen = ArgumentExtractor.extract_argument(kwargs, "screen", None)
@@ -93,16 +141,19 @@ class FreewayRewardShaper():
             self.car_10_pixels = self.extract_pixels_optimized(self.screen)
 
             self.player_chicken = VisualComponent(self.player_chicken_pixels, self.screen)
-            self.car_1 = VisualComponent(self.car_1_pixels, self.screen)
-            self.car_2 = VisualComponent(self.car_2_pixels, self.screen)
-            self.car_3 = VisualComponent(self.car_3_pixels, self.screen)
-            self.car_4 = VisualComponent(self.car_4_pixels, self.screen)
-            self.car_5 = VisualComponent(self.car_5_pixels, self.screen)
-            self.car_6 = VisualComponent(self.car_6_pixels, self.screen)
-            self.car_7 = VisualComponent(self.car_7_pixels, self.screen)
-            self.car_8 = VisualComponent(self.car_8_pixels, self.screen)
-            self.car_9 = VisualComponent(self.car_9_pixels, self.screen)
-            self.car_10 = VisualComponent(self.car_10_pixels, self.screen)
+            self.cars = [
+                VisualComponent(self.car_1_pixels, self.screen),
+                VisualComponent(self.car_2_pixels, self.screen),
+                VisualComponent(self.car_3_pixels, self.screen),
+                VisualComponent(self.car_4_pixels, self.screen),
+                VisualComponent(self.car_5_pixels, self.screen),
+                VisualComponent(self.car_6_pixels, self.screen),
+                VisualComponent(self.car_7_pixels, self.screen),
+                VisualComponent(self.car_8_pixels, self.screen),
+                VisualComponent(self.car_9_pixels, self.screen),
+                VisualComponent(self.car_10_pixels, self.screen)
+            ]
+
             self.lives = self.info["ale.lives"]
 
             kwargs.pop("current_episode_reward", None)
@@ -122,12 +173,10 @@ class FreewayRewardShaper():
             :param kwargs:
             :return:
             """
-            if (self.chicken.visible):
-                print("DEBUG"
-                      + " chicken " + str(self.chicken.center))
-            else:
-                print("DEBUG "
-                      + " no chicken")
+
+            if (self.player_chicken.visible):
+                print("DEBUG chicken " + str(self.player_chicken.center))
+
             return func(self, *args, **kwargs)
 
         return debug_positions_and_call
@@ -145,25 +194,52 @@ class FreewayRewardShaper():
 
     @check_environment
     @initialize_reward_shaper
-    def reward_chicken_vertical_position(self, **kwargs):
+    def reward_distance_walked(self, **kwargs):
         """
-        Gives an additional reward if the player's racket hits the ball
+        Gives an additional reward if the chicken has a huge distance to a car that can hit on the lane it stands on
         :return: shaped reward
         """
 
         additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         reward_max = additional_reward
-        reward_min = 0
+        reward_min = - additional_reward
 
-        chicken_y_min = 0  # TODO Use the y coordinate when the player scores
-        chicken_y_max = 210
+        dist_max = 0
+        dist_min = self.screen.shape[0] # Screen height
+
+        distance_walked = FreewayRewardShaper.get_distance_walked()
 
         if self.player_chicken.visible:
-            chicken_y = self.player_chicken.center[1]
+            m = ((reward_max - reward_min) / (dist_max - dist_min))
+            n = reward_min - (m * dist_min)
+            additional_reward = m * distance_walked + n
+            return additional_reward
+        else:
+            return 0
 
-            additional_reward = round(
-                ((reward_max - reward_min) / (chicken_y_min - chicken_y_max) * chicken_y + reward_max), 4)
+    @check_environment
+    @initialize_reward_shaper
+    def reward_distance_to_car(self, **kwargs):
+        """
+        Gives an additional reward if the chicken has a huge distance to a car that can hit on the lane it stands on
+        :return: shaped reward
+        """
+
+        additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
+
+        reward_max = additional_reward
+        reward_min = - additional_reward
+
+        dist_max = self.screen.shape[1]  # Screen width
+        dist_min = 0
+
+        distance_to_car = FreewayRewardShaper.get_distance_to_car(self)
+
+        if self.player_chicken.visible:
+            m = ((reward_max - reward_min) / (dist_max - dist_min))
+            n = reward_min - (m * dist_min)
+            additional_reward = m * distance_to_car + n
             return additional_reward
         else:
             return 0
@@ -307,3 +383,84 @@ class FreewayRewardShaper():
 
     def is_car_pixel(self, x, y, value, car_color):
         return value == car_color
+
+    def get_chicken_lane(self):
+        """
+        Determines which lane the chicken is on starting with the bottom lane being 1
+        :return: lane the chicken is on
+        """
+        if self.player_chicken.visible:
+            if (169 <= self.player_chicken.center[1] <= 184):
+                return 1
+            elif (153 <= self.player_chicken.center[1] <= 168):
+                return 2
+            elif (137 <= self.player_chicken.center[1] <= 152):
+                return 3
+            elif (119 <= self.player_chicken.center[1] <= 136):
+                return 4
+            elif (103 <= self.player_chicken.center[1] <= 120):
+                return 5
+
+            elif (85 <= self.player_chicken.center[1] <= 100):
+                return 6
+            elif (69 <= self.player_chicken.center[1] <= 84):
+                return 7
+            elif (53 <= self.player_chicken.center[1] <= 68):
+                return 8
+            elif (37 <= self.player_chicken.center[1] <= 52):
+                return 9
+            elif (21 <= self.player_chicken.center[1] <= 36):
+                return 10
+            else:
+                return None
+        else:
+            return None
+
+    def get_distance_walked(self):
+        return self.screen.shape[0] - self.player_chicken.center[1]
+
+    def get_distance_to_car(self):
+        """
+        Calculates the distance the next car has to drive in order to hit the chicken
+        :return:
+        """
+        chicken_lane = FreewayRewardShaper.get_chicken_lane(self)
+
+        # Check if chicken is on a lane
+        if chicken_lane != None:
+            car_in_lane = self.cars[chicken_lane - 1]
+            screen_width = self.screen.shape[1]
+
+            # Check if car is current lane is visible
+            if car_in_lane.visible:
+                chicken_center_x = self.player_chicken.center[0]
+                car_in_lane_center_x = car_in_lane.center[0]
+
+                # Check if chicken are collide
+                if abs(chicken_center_x - car_in_lane_center_x) < 6:
+                    return 0
+
+                # Check if chicken is in first five lanes
+                if chicken_lane <= 5:
+                    # Check if car is left of chicken
+                    if car_in_lane_center_x < chicken_center_x:
+                        return chicken_center_x - car_in_lane_center_x
+                    # Check if car is right of chicken
+                    else:
+                        return screen_width + chicken_center_x - car_in_lane_center_x
+
+                # Check if chicken is in second five lanes
+                elif chicken_lane >= 6:
+                    # Check if car is left of chicken
+                    if car_in_lane_center_x < chicken_center_x:
+                        return screen_width + car_in_lane_center_x - chicken_center_x
+                    # Check if car is right of chicken
+                    else:
+                        return car_in_lane_center_x - chicken_center_x
+            else:
+                if chicken_lane <= 5:
+                    return self.player_chicken.center[0]
+                elif chicken_lane >= 6:
+                    return screen_width - self.player_chicken.center[0]
+        else:
+            return 0
