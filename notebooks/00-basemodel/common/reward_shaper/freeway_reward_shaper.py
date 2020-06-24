@@ -68,7 +68,7 @@ class FreewayRewardShaper():
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
         Environment.FREEWAY_V0,
-        Environment.FREEWAY_NO_FRAMESKIP_V0
+        Environment.FREEWAY_NO_FRAMESKIP_V0,
         Environment.FREEWAY_NO_FRAMESKIP_V4
     ]
 
