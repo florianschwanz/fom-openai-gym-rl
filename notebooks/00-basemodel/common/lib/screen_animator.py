@@ -14,8 +14,8 @@ class ScreenAnimator:
 
         # Render gif
         images = []
-        progress_bar_render = tqdm(sorted(list_of_screenshots), unit='frames', desc="Render gif")
-        for filename in progress_bar_render:
+        # progress_bar_render = tqdm(sorted(list_of_screenshots), unit='frames', desc="Render gif")
+        for filename in sorted(list_of_screenshots):
             images.append(imageio.imread(filename))
         imageio.mimsave(directory + "/" + str(title) + "-episode-{:07d}".format(total_episodes) + ".gif", images)
 
