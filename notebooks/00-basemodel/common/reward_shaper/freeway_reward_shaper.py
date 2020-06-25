@@ -34,6 +34,10 @@ class FreewayRewardShaper():
 
     MEDIAN_STRIP_TOP_Y = 102
     MEDIAN_STRIP_BOTTOM_Y = 104
+
+    CHICKEN_Y_MIN = 24
+    CHICKEN_Y_MAX = 190
+
     PLAYER_1_CHICKEN_X_MIN = 44
     PLAYER_1_CHICKEN_X_MAX = 50
     PLAYER_2_CHICKEN_X_MIN = 108
@@ -204,16 +208,15 @@ class FreewayRewardShaper():
         additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         reward_max = additional_reward
-        reward_min = - additional_reward
+        reward_min = 0
 
-        dist_max = 0
-        dist_min = self.screen.shape[0]  # Screen height
+        dist_max = self.CHICKEN_Y_MAX - self.CHICKEN_Y_MIN
+        dist_min = 0
 
         if self.player_chicken.visible:
             distance_walked = FreewayRewardShaper.get_distance_walked(self)
             m = ((reward_max - reward_min) / (dist_max - dist_min))
-            n = reward_min - (m * dist_min)
-            additional_reward = m * distance_walked + n
+            additional_reward = m * distance_walked
             return additional_reward
         else:
             return 0
@@ -229,7 +232,7 @@ class FreewayRewardShaper():
         additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         reward_max = additional_reward
-        reward_min = - additional_reward
+        reward_min = 0
 
         dist_max = self.screen.shape[1]  # Screen width
         dist_min = 0
@@ -416,7 +419,7 @@ class FreewayRewardShaper():
             return None
 
     def get_distance_walked(self):
-        return self.screen.shape[0] - self.player_chicken.center[1]
+        return self.CHICKEN_Y_MAX - self.player_chicken.center[1]
 
     def get_distance_to_car(self):
         """
