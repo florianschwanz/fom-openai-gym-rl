@@ -288,21 +288,19 @@ n_actions = env.action_space.n
 
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
-    # Initialize and load policy net and target net
+    # Initialize and load policy net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
     policy_net.load_state_dict(MODEL_STATE_DICT)
+    policy_net.to(device)
     policy_net.eval()
-
-    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-    target_net.load_state_dict(MODEL_STATE_DICT)
-    target_net.eval()
 else:
-    # Initialize policy net and target net
+    # Initialize policy net
     policy_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
 
-    target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
-    target_net.load_state_dict(policy_net.state_dict())
-    target_net.eval()
+# Clone policy net state into target net
+target_net = DeepQNetwork(screen_height, screen_width, n_actions).to(device)
+target_net.load_state_dict(policy_net.state_dict())
+target_net.eval()
 
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
