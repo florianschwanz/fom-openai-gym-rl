@@ -358,21 +358,25 @@ for total_frames in progress_bar:
                                           device=device)
 
     # Perform action
-    observation, reward, done, info = env.step(action.item())
-
-    # Shape reward
-    original_reward = reward
-    shaped_reward = reward
+    observation, original_reward, done, info = env.step(action.item())
 
     # Retrieve current screen
     screen = observation
 
+    # Track potentially max value of shaped reward
+    shaped_reward = 0
+    shaped_reward_max = 0
+
     # Iterate over all reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
-        if reward_shaping["arguments"]["additional_reward"] != 0:
-            shaped_reward += reward_shaping["method"](environment=ENVIRONMENT,
+        method = reward_shaping["method"]
+        additional_reward = reward_shaping["arguments"]["additional_reward"]
+
+        if additional_reward != 0:
+            shaped_reward_max += additional_reward
+            shaped_reward += method(environment=ENVIRONMENT,
                                                       screen=screen,
-                                                      reward=reward,
+                                                      reward=original_reward,
                                                       done=done,
                                                       info=info,
                                                       **reward_shaping["arguments"],
@@ -382,15 +386,18 @@ for total_frames in progress_bar:
                                                       min_episode_reward=min_episode_original_reward
                                                       )
 
-    # Use shaped reward for further processing
-    reward = shaped_reward
+    # Normalize shaped reward
+    shaped_reward /= shaped_reward_max
 
-    # Add reward to episode reward
+    # Track episode rewards
     episode_original_reward += original_reward
     episode_shaped_reward += shaped_reward
 
+    # Add shaped reward to original reward
+    total_reward = original_reward + shaped_reward
+
     # Transform reward into a tensor
-    reward = torch.tensor([reward], device=device)
+    total_reward = torch.tensor([total_reward], device=device)
 
     # Observe new state
     last_screen = current_screen
@@ -400,7 +407,7 @@ for total_frames in progress_bar:
     next_state = current_screen - last_screen
 
     # Store the transition in memory
-    memory.push(state, action, next_state, reward)
+    memory.push(state, action, next_state, total_reward)
 
     # Move to the next state
     state = next_state

@@ -154,8 +154,8 @@ else:
         os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(
         os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
-    REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
-    REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
+    REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.5))
+    REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 1.0))
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
 
     # Log parameters
@@ -358,21 +358,25 @@ for total_frames in progress_bar:
                                           USE_CUDA=USE_CUDA)
 
     # Perform action
-    observation, reward, done, info = env.step(action)
-
-    # Shape reward
-    original_reward = reward
-    shaped_reward = reward
+    observation, original_reward, done, info = env.step(action)
 
     # Retrieve current screen
     screen = env.original_observation
 
+    # Track potentially max value of shaped reward
+    shaped_reward = 0
+    shaped_reward_max = 0
+
     # Iterate over all reward shaping mechanisms
     for reward_shaping in REWARD_SHAPINGS:
-        if reward_shaping["arguments"]["additional_reward"] != 0:
+        method = reward_shaping["method"]
+        additional_reward = reward_shaping["arguments"]["additional_reward"]
+
+        if additional_reward != 0:
+            shaped_reward_max += additional_reward
             shaped_reward += reward_shaping["method"](environment=ENVIRONMENT,
                                                       screen=screen,
-                                                      reward=reward,
+                                                      reward=original_reward,
                                                       done=done,
                                                       info=info,
                                                       **reward_shaping["arguments"],
@@ -382,18 +386,21 @@ for total_frames in progress_bar:
                                                       min_episode_reward=min_episode_original_reward
                                                       )
 
-    # Use shaped reward for further processing
-    reward = shaped_reward
+    # Normalize shaped reward
+    shaped_reward /= shaped_reward_max
 
-    # Add reward to episode reward
+    # Track episode rewards
     episode_original_reward += original_reward
     episode_shaped_reward += shaped_reward
+
+    # Add shaped reward to original reward
+    total_reward = original_reward + shaped_reward
 
     # Update next state
     next_state = observation
 
     # Store the transition in memory
-    memory.push(state, action, reward, next_state, done)
+    memory.push(state, action, total_reward, next_state, done)
 
     # Move to the next state
     state = next_state
