@@ -31,6 +31,7 @@ class ModelStorage:
                   vmax,
                   target_update_rate,
                   model_save_rate,
+                  episode_log_rate,
                   replay_memory_size,
                   num_frames,
                   reward_pong_player_racket_hits_ball,
@@ -80,6 +81,7 @@ class ModelStorage:
             'vmax': vmax,
             'target_update_rate': target_update_rate,
             'model_save_rate': model_save_rate,
+            'episode_log_rate': episode_log_rate,
             'replay_memory_size': replay_memory_size,
             'num_frames': num_frames,
             'reward_pong_player_racket_hits_ball': reward_pong_player_racket_hits_ball,
@@ -133,6 +135,7 @@ class ModelStorage:
                checkpoint['vmax'], \
                checkpoint['target_update_rate'], \
                checkpoint['model_save_rate'], \
+               checkpoint['episode_log_rate'], \
                checkpoint['replay_memory_size'], \
                checkpoint['num_frames'], \
                checkpoint['reward_pong_player_racket_hits_ball'], \

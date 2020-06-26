@@ -85,6 +85,7 @@ if RUN_TO_LOAD != None:
     VMAX, \
     TARGET_UPDATE_RATE, \
     MODEL_SAVE_RATE, \
+    EPISODE_LOG_RATE, \
     REPLAY_MEMORY_SIZE, \
     NUM_FRAMES, \
     REWARD_PONG_PLAYER_RACKET_HITS_BALL, \
@@ -137,6 +138,7 @@ else:
     VMAX = int(os.getenv('VMAX', 10))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
     MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 10))
+    EPISODE_LOG_RATE = int(os.getenv('EPISODE_LOG_RATE', 10))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
 
@@ -178,6 +180,7 @@ else:
                                      vmax=VMAX,
                                      target_update_rate=TARGET_UPDATE_RATE,
                                      model_save_rate=MODEL_SAVE_RATE,
+                                     episode_log_rate=EPISODE_LOG_RATE,
                                      replay_memory_size=REPLAY_MEMORY_SIZE,
                                      num_frames=NUM_FRAMES,
                                      reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
@@ -214,6 +217,7 @@ else:
                                   vmax=VMAX,
                                   target_update_rate=TARGET_UPDATE_RATE,
                                   model_save_rate=MODEL_SAVE_RATE,
+                                  episode_log_rate=EPISODE_LOG_RATE,
                                   replay_memory_size=REPLAY_MEMORY_SIZE,
                                   num_frames=NUM_FRAMES,
                                   reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
@@ -422,7 +426,8 @@ for total_frames in progress_bar:
     # Add loss to total loss
     total_losses.append(loss)
 
-    if total_episodes != 0 and total_episodes % MODEL_SAVE_RATE == 0 and total_frames % 2 == 0:
+    if total_episodes != 0 and EPISODE_LOG_RATE != -1 and total_episodes % EPISODE_LOG_RATE == 0 and total_frames % 2 \
+            == 0:
         # Plot screen for gif
         ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
@@ -464,7 +469,7 @@ for total_frames in progress_bar:
             if total_episodes != 0 and total_episodes % TARGET_UPDATE_RATE == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
-            if total_episodes != 0 and total_episodes % MODEL_SAVE_RATE == 0:
+            if total_episodes != 0 and MODEL_SAVE_RATE != -1 and total_episodes % MODEL_SAVE_RATE == 0:
                 # Save model
                 ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
@@ -489,6 +494,7 @@ for total_frames in progress_bar:
                                        vmax=VMAX,
                                        target_update_rate=TARGET_UPDATE_RATE,
                                        model_save_rate=MODEL_SAVE_RATE,
+                                       episode_log_rate=EPISODE_LOG_RATE,
                                        replay_memory_size=REPLAY_MEMORY_SIZE,
                                        num_frames=NUM_FRAMES,
                                        reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
@@ -509,6 +515,7 @@ for total_frames in progress_bar:
                                        reward_potential_based=REWARD_POTENTIAL_BASED
                                        )
 
+            if total_episodes != 0 and EPISODE_LOG_RATE != -1 and total_episodes % EPISODE_LOG_RATE == 0:
                 PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_original_rewards,
