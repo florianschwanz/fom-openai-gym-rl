@@ -125,6 +125,8 @@ else:
         EnvironmentWrapper.EPISODIC_LIFE,
         EnvironmentWrapper.FIRE_RESET,
         EnvironmentWrapper.WARP_FRAME,
+        EnvironmentWrapper.CLIP_REWARD,
+        EnvironmentWrapper.FRAME_STACK,
         EnvironmentWrapper.IMAGE_TO_PYTORCH,
     ]
     BATCH_SIZE = int(os.getenv('BATCH_SIZE', 32))
