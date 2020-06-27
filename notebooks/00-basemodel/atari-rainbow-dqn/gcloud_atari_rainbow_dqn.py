@@ -434,7 +434,8 @@ for total_frames in progress_bar:
     # Add loss to total loss
     total_losses.append(loss)
 
-    if total_episodes != 0 and EPISODE_LOG_RATE != -1 and total_episodes % EPISODE_LOG_RATE + 1 == 0 and total_frames % 2 \
+    if total_episodes != 0 and EPISODE_LOG_RATE != -1 and (total_episodes + 1) % EPISODE_LOG_RATE == 0 and \
+            total_frames % 2 \
             == 0:
         # Plot screen for gif
         ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
