@@ -1,5 +1,5 @@
 #! /bin/bash
-export RUN_NAME="freeway_rs_both_emph_hori"
+export RUN_NAME="freeway_hp_optim"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="FreewayNoFrameskip-v4"
