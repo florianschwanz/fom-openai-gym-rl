@@ -397,7 +397,8 @@ for total_frames in progress_bar:
                                                       )
 
     # Normalize shaped reward
-    shaped_reward /= shaped_reward_max
+    if shaped_reward_max != 0:
+        shaped_reward /= shaped_reward_max
 
     # Track episode rewards
     episode_original_reward += original_reward
