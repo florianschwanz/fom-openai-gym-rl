@@ -8,7 +8,8 @@ class ModelStorage:
     # Maximum number of files we want to store
     MAX_FILES = 3
 
-    def saveModel(directory,
+    def saveModel(output_directory,
+                  run_directory,
                   total_frames,
                   total_episodes,
                   total_original_rewards,
@@ -54,9 +55,7 @@ class ModelStorage:
         Saves output into a file
         """
 
-        # Make path if not yet exists
-        if not os.path.exists(directory):
-            os.mkdir(directory)
+        target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
 
         torch.save({
             'total_frames': total_frames,
@@ -100,10 +99,10 @@ class ModelStorage:
             'reward_freeway_distance_walked': reward_freeway_distance_walked,
             'reward_freeway_distance_to_car': reward_freeway_distance_to_car,
             'reward_potential_based': reward_potential_based
-        }, directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
+        }, target_directory + "/target_net-frame-{:07d}".format(total_frames) + ".model")
 
         # Prune old model files
-        ModelStorage.prune_storage(directory)
+        ModelStorage.prune_storage(target_directory)
 
     def loadModel(path):
         """
@@ -155,10 +154,44 @@ class ModelStorage:
                checkpoint['reward_freeway_distance_to_car'], \
                checkpoint['reward_potential_based']
 
-    def prune_storage(directory):
-        list_of_files = glob.glob(directory + "/*.model")
+    def prune_storage(prune_directory):
+        list_of_files = glob.glob(prune_directory + "/*.model")
 
         while len(list_of_files) > ModelStorage.MAX_FILES:
             oldest_file = min(list_of_files, key=os.path.getctime)
             os.remove(oldest_file)
-            list_of_files = glob.glob(directory + "/*.model")
+            list_of_files = glob.glob(prune_directory + "/*.model")
+
+    def prepare_directory(output_directory, run_directory):
+        target_directory = output_directory + "/" + run_directory
+        symlink_directory = "latest"
+
+        # Make path if not yet exists
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+        if not os.path.exists(target_directory):
+            os.mkdir(target_directory)
+
+        # Create symlink
+        if os.path.islink(output_directory + "/" + symlink_directory):
+            os.unlink(output_directory + "/" + symlink_directory)
+        os.symlink(run_directory, output_directory + "/" + symlink_directory)
+
+        return target_directory
+
+    def prepare_directory(output_directory, run_directory):
+        target_directory = output_directory + "/" + run_directory
+        symlink_directory = "latest"
+
+        # Make path if not yet exists
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+        if not os.path.exists(target_directory):
+            os.mkdir(target_directory)
+
+        # Create symlink
+        if os.path.islink(output_directory + "/" + symlink_directory):
+            os.unlink(output_directory + "/" + symlink_directory)
+        os.symlink(run_directory, output_directory + "/" + symlink_directory)
+
+        return target_directory

@@ -6,7 +6,8 @@ import numpy as np
 
 class PerformanceLogger:
 
-    def log_parameters(directory, environment_id, batch_size, learning_rate, gamma, eps_start, eps_end, eps_decay,
+    def log_parameters(output_directory, run_directory, environment_id, batch_size, learning_rate, gamma,
+                       eps_start, eps_end, eps_decay,
                        num_atoms, vmin, vmax, target_update_rate, model_save_rate, episode_log_rate,
                        replay_memory_size, num_frames,
                        reward_pong_player_racket_hits_ball,
@@ -25,9 +26,8 @@ class PerformanceLogger:
                        reward_freeway_distance_walked,
                        reward_freeway_distance_to_car,
                        reward_potential_based):
-        # Make path if not yet exists
-        if not os.path.exists(directory):
-            os.mkdir(directory)
+
+        target_directory = PerformanceLogger.prepare_directory(output_directory, run_directory)
 
         line = "ENVIRONMENT_ID=" + str(environment_id) \
                + "\nBATCH_SIZE=" + str(batch_size) \
@@ -72,16 +72,15 @@ class PerformanceLogger:
         print(line)
 
         # Write log into file
-        log_file = open(directory + "/parameters.txt", "a")
+        log_file = open(target_directory + "/parameters.txt", "a")
         log_file.write(line + "\n")
         log_file.close()
 
-    def log_episode(directory, max_frames, total_episodes, total_frames, total_duration, total_original_rewards,
+    def log_episode(output_directory, run_directory, max_frames, total_episodes, total_frames, total_duration,
+                    total_original_rewards,
                     total_shaped_rewards, episode_frames, episode_original_reward,
                     episode_shaped_reward, episode_loss, episode_duration):
-        # Make path if not yet exists
-        if not os.path.exists(directory):
-            os.mkdir(directory)
+        target_directory = PerformanceLogger.prepare_directory(output_directory, run_directory)
 
         avg_frames_per_minute = total_frames / (total_duration / 60)
         # avg_episodes_per_minute = total_episodes / (total_duration / 60)
@@ -105,7 +104,7 @@ class PerformanceLogger:
         print(line)
 
         # Write log into file
-        log_file = open(directory + "/log.txt", "a")
+        log_file = open(target_directory + "/log.txt", "a")
         log_file.write(line + "\n")
         log_file.close()
 
@@ -116,9 +115,23 @@ class PerformanceLogger:
               + str(episode_shaped_reward) + "," \
  \
             # Write csv into file
-        log_file = open(directory + "/log.csv", "a")
+        log_file = open(target_directory + "/log.csv", "a")
         log_file.write(csv + "\n")
         log_file.close()
 
-    def log_final(self):
-        pass
+    def prepare_directory(output_directory, run_directory):
+        target_directory = output_directory + "/" + run_directory
+        symlink_directory = "latest"
+
+        # Make path if not yet exists
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+        if not os.path.exists(target_directory):
+            os.mkdir(target_directory)
+
+        # Create symlink
+        if os.path.islink(output_directory + "/" + symlink_directory):
+            os.unlink(output_directory + "/" + symlink_directory)
+        os.symlink(run_directory, output_directory + "/" + symlink_directory)
+
+        return target_directory

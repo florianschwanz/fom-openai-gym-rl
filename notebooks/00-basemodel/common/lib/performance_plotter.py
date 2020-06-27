@@ -25,7 +25,7 @@ class PerformancePlotter:
 
         plt.show()
 
-    def save_values_plot(directory, total_frames, values, title, xlabel, ylabel):
+    def save_values_plot(output_directory, run_directory, total_frames, values, title, xlabel, ylabel):
         """
         Saves plot to png file
         :param directory to save plot in
@@ -36,13 +36,12 @@ class PerformancePlotter:
         :param ylabel: label of y-axis
         :return:
         """
-        # Make path if not yet exists
-        if not os.path.exists(directory):
-            os.mkdir(directory)
+
+        target_directory = PerformancePlotter.prepare_directory(output_directory, run_directory)
 
         plt = PerformancePlotter.generate_plot(values, title, xlabel, ylabel)
 
-        plt.savefig(fname=directory + "/" + str(title).replace(" ", "-") + "-frame-{:07d}".format(total_frames) + ".png",
+        plt.savefig(fname=target_directory + "/" + str(title).replace(" ", "-") + "-frame-{:07d}".format(total_frames) + ".png",
                     format="png",
                     metadata={
                         "Title": str(title) + "-frame-{:07d}".format(total_frames),
@@ -53,7 +52,7 @@ class PerformancePlotter:
 
         plt.close()
 
-        PerformancePlotter.prune_storage(directory, str(title).replace(" ", "-") + "*.png")
+        PerformancePlotter.prune_storage(target_directory, str(title).replace(" ", "-") + "*.png")
 
     def generate_plot(values, title, xlabel, ylabel):
         """
@@ -77,10 +76,27 @@ class PerformancePlotter:
             plt.plot(means.numpy())
         return plt
 
-    def prune_storage(directory, pattern):
-        list_of_files = glob.glob(directory + "/" + pattern)
+    def prune_storage(prune_directory, pattern):
+        list_of_files = glob.glob(prune_directory + "/" + pattern)
 
         while len(list_of_files) > PerformancePlotter.MAX_FILES:
             oldest_file = min(list_of_files, key=os.path.getctime)
             os.remove(oldest_file)
-            list_of_files = glob.glob(directory + "/" + pattern)
+            list_of_files = glob.glob(prune_directory + "/" + pattern)
+
+    def prepare_directory(output_directory, run_directory):
+        target_directory = output_directory + "/" + run_directory
+        symlink_directory = "latest"
+
+        # Make path if not yet exists
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+        if not os.path.exists(target_directory):
+            os.mkdir(target_directory)
+
+        # Create symlink
+        if os.path.islink(output_directory + "/" + symlink_directory):
+            os.unlink(output_directory + "/" + symlink_directory)
+        os.symlink(run_directory, output_directory + "/" + symlink_directory)
+
+        return target_directory

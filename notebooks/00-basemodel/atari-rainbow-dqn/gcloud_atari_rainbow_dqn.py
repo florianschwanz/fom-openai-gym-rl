@@ -169,7 +169,8 @@ else:
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
 
     # Log parameters
-    PerformanceLogger.log_parameters(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+    PerformanceLogger.log_parameters(output_directory=OUTPUT_DIRECTORY,
+                                     run_directory=RUN_DIRECTORY,
                                      environment_id=ENVIRONMENT_ID,
                                      batch_size=BATCH_SIZE,
                                      learning_rate=LEARNING_RATE,
@@ -204,7 +205,8 @@ else:
                                      )
 
     TelegramLogger.log_parameters(run_name=RUN_NAME,
-                                  output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                  output_directory=OUTPUT_DIRECTORY,
+                                  run_directory=RUN_DIRECTORY,
                                   conf_directory=CONFIG_DIRECTORY,
                                   conf_file=TELEGRAM_CONFIG_FILE,
                                   environment_id=ENVIRONMENT_ID,
@@ -435,7 +437,8 @@ for total_frames in progress_bar:
     if total_episodes != 0 and EPISODE_LOG_RATE != -1 and total_episodes % EPISODE_LOG_RATE == 0 and total_frames % 2 \
             == 0:
         # Plot screen for gif
-        ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+        ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
+                                       run_directory=RUN_DIRECTORY,
                                        total_frames=total_frames,
                                        env=env,
                                        name="gif-screenshot",
@@ -458,7 +461,8 @@ for total_frames in progress_bar:
             total_shaped_rewards.append(episode_shaped_reward)
 
             if loss is not None:
-                PerformanceLogger.log_episode(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                PerformanceLogger.log_episode(output_directory=OUTPUT_DIRECTORY,
+                                              run_directory=RUN_DIRECTORY,
                                               max_frames=NUM_FRAMES,
                                               total_episodes=total_episodes + 1,
                                               total_frames=total_frames,
@@ -477,7 +481,8 @@ for total_frames in progress_bar:
 
             if total_episodes != 0 and MODEL_SAVE_RATE != -1 and total_episodes % MODEL_SAVE_RATE == 0:
                 # Save model
-                ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                ModelStorage.saveModel(output_directory=OUTPUT_DIRECTORY,
+                                       run_directory=RUN_DIRECTORY,
                                        total_frames=total_frames,
                                        total_episodes=total_episodes,
                                        total_original_rewards=total_original_rewards,
@@ -522,39 +527,45 @@ for total_frames in progress_bar:
                                        )
 
             if total_episodes != 0 and EPISODE_LOG_RATE != -1 and total_episodes % EPISODE_LOG_RATE == 0:
-                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
+                                                    run_directory=RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_original_rewards,
                                                     title="original rewards",
                                                     xlabel="episode",
                                                     ylabel="reward")
 
-                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
+                                                    run_directory=RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_shaped_rewards,
                                                     title="shaped rewards",
                                                     xlabel="episode",
                                                     ylabel="reward")
 
-                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
+                                                    run_directory=RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_losses,
                                                     title="losses",
                                                     xlabel="frame",
                                                     ylabel="loss")
 
-                # ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                # ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
+                #                                run_directory=RUN_DIRECTORY,
                 #                                total_frames=total_frames,
                 #                                env=env,
                 #                                title="screenshot",
                 #                                device=device)
 
-                ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                ScreenAnimator.save_screen_animation(output_directory=OUTPUT_DIRECTORY,
+                                                     run_directory=RUN_DIRECTORY,
                                                      total_episodes=total_episodes,
                                                      title="gif-screenshot")
 
                 TelegramLogger.log_episode(run_name=RUN_NAME,
-                                           output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                                           output_directory=OUTPUT_DIRECTORY,
+                                           run_directory=RUN_DIRECTORY,
                                            conf_directory=CONFIG_DIRECTORY,
                                            conf_file=TELEGRAM_CONFIG_FILE,
                                            max_frames=NUM_FRAMES,
@@ -582,7 +593,8 @@ for total_frames in progress_bar:
     episode_frames += 1
 
 TelegramLogger.log_results(run_name=RUN_NAME,
-                           output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+                           output_directory=OUTPUT_DIRECTORY,
+                           run_directory=RUN_DIRECTORY,
                            conf_directory=CONFIG_DIRECTORY,
                            conf_file=TELEGRAM_CONFIG_FILE)
 

@@ -148,7 +148,8 @@ for total_frames in progress_bar:
     screen = env.original_observation
 
     # Plot screen
-    ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
+    ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
+                                   run_directory=RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    env=env,
                                    name="gif-screenshot",
@@ -164,10 +165,11 @@ for total_frames in progress_bar:
         state = env.reset()
 
         if info["ale.lives"] == 0:
-            ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_TO_LOAD,
+            ScreenAnimator.save_screen_animation(output_directory=OUTPUT_DIRECTORY,
+                                                 run_directory=RUN_TO_LOAD,
                                                  total_episodes=0,
                                                  title="gif-screenshot"
-            )
+                                                 )
 
             print("Complete")
             sys.exit()

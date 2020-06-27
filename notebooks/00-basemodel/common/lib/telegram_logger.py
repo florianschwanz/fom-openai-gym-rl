@@ -7,7 +7,7 @@ import telegram_send
 
 class TelegramLogger:
 
-    def log_parameters(run_name, output_directory, conf_directory, conf_file, environment_id, batch_size,
+    def log_parameters(run_name, output_directory, run_directory, conf_directory, conf_file, environment_id, batch_size,
                        learning_rate, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax,
                        target_update_rate, model_save_rate, episode_log_rate,
                        replay_memory_size, num_frames,
@@ -90,7 +90,7 @@ class TelegramLogger:
     def build_reward_parameter(name, value):
         return "\n" + str(name) + "=" + str(value) if value != 0.0 else ""
 
-    def log_episode(run_name, output_directory, conf_directory, conf_file, max_frames, total_episodes, total_frames,
+    def log_episode(run_name, output_directory, run_directory, conf_directory, conf_file, max_frames, total_episodes, total_frames,
                     total_duration, total_original_rewards, total_shaped_rewards, episode_frames,
                     episode_original_reward, episode_shaped_reward, episode_loss, episode_duration):
         if conf_file == None:
@@ -110,7 +110,7 @@ class TelegramLogger:
                         + "\nloss " + str(round(episode_loss, 4))
 
         # Get animation path
-        list_of_files = glob.glob(output_directory + "/" + "*.gif")
+        list_of_files = glob.glob(output_directory + "/" + run_directory + "/*.gif")
         gif_path = max(list_of_files, key=os.path.getctime)
         # Get config path
         list_of_configs = glob.glob(conf_directory + "/" + conf_file)
