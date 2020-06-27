@@ -64,7 +64,7 @@ class ModelStorage:
             'total_original_rewards': total_original_rewards,
             'total_shaped_rewards': total_shaped_rewards,
             'total_losses': total_losses,
-            'model_state_dict': net.to("cpu").state_dict(),
+            'model_state_dict': net.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'replay_memory': memory,
             'loss': loss,
