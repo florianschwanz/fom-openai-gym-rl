@@ -22,7 +22,7 @@ export EPISODE_LOG_RATE=10
 export REPLAY_MEMORY_SIZE=100_000
 export NUM_FRAMES=100_000
 
-RANDOM_NUMBERS=$(awk -v n=10 -v seed="$RANDOM" 'BEGIN { srand(seed); for (i=0; i<n; ++i) printf("%.1f\n", rand()) }')
+RANDOM_NUMBERS=$(awk -v n=10 -v seed="$RANDOM" 'BEGIN { srand(seed); for (i=0; i<n; ++i) printf("%.2f\n", rand()) }')
 RAND1=$(echo $RANDOM_NUMBERS | awk '{ print $1 }')
 RAND2=$(echo $RANDOM_NUMBERS | awk '{ print $2 }')
 
