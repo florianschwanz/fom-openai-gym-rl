@@ -53,7 +53,7 @@ RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
 OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
 CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config/")
-TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
+TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', "telegram.config")
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
@@ -476,10 +476,10 @@ for total_frames in progress_bar:
                                               episode_duration=episode_duration)
 
             # Update the target network, copying all weights and biases from policy net into target net
-            if total_episodes != 0 and total_episodes + 1 % TARGET_UPDATE_RATE == 0:
+            if total_episodes != 0 and (total_episodes + 1) % TARGET_UPDATE_RATE == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
-            if total_episodes != 0 and MODEL_SAVE_RATE != -1 and total_episodes + 1 % MODEL_SAVE_RATE == 0:
+            if total_episodes != 0 and MODEL_SAVE_RATE != -1 and (total_episodes + 1) % MODEL_SAVE_RATE == 0:
                 # Save model
                 ModelStorage.saveModel(output_directory=OUTPUT_DIRECTORY,
                                        run_directory=RUN_DIRECTORY,
@@ -526,7 +526,7 @@ for total_frames in progress_bar:
                                        reward_potential_based=REWARD_POTENTIAL_BASED
                                        )
 
-            if total_episodes != 0 and EPISODE_LOG_RATE != -1 and total_episodes + 1 % EPISODE_LOG_RATE == 0:
+            if total_episodes != 0 and EPISODE_LOG_RATE != -1 and (total_episodes + 1) % EPISODE_LOG_RATE == 0:
                 PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
                                                     run_directory=RUN_DIRECTORY,
                                                     total_frames=total_frames,
