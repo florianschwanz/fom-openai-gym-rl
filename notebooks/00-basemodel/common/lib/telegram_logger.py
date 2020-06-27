@@ -96,6 +96,8 @@ class TelegramLogger:
         if conf_file == None:
             return
 
+        target_directory = output_directory + "/" + run_directory
+
         avg_original_reward_per_episode = np.mean(total_original_rewards[-50:])
         avg_shaped_reward_per_episode = np.mean(total_shaped_rewards[-50:])
 
@@ -110,7 +112,7 @@ class TelegramLogger:
                         + "\nloss " + str(round(episode_loss, 4))
 
         # Get animation path
-        list_of_files = glob.glob(output_directory + "/" + run_directory + "/*.gif")
+        list_of_files = glob.glob(target_directory + "/*.gif")
         gif_path = max(list_of_files, key=os.path.getctime)
         # Get config path
         list_of_configs = glob.glob(conf_directory + "/" + conf_file)
@@ -120,14 +122,16 @@ class TelegramLogger:
         with open(gif_path, "rb") as f:
             telegram_send.send(messages=[telegram_line], animations=[f], parse_mode="html", conf=config_path)
 
-    def log_results(run_name, output_directory, conf_directory, conf_file):
+    def log_results(run_name, output_directory, run_directory, conf_directory, conf_file):
+        target_directory = output_directory + "/" + run_directory
+
         # Get result paths
-        log_csv_path = max(glob.glob(output_directory + "/log.csv"), key=os.path.getctime)
-        log_txt_path = max(glob.glob(output_directory + "/log.txt"), key=os.path.getctime)
-        parameters_txt_path = max(glob.glob(output_directory + "/parameters.txt"), key=os.path.getctime)
-        losses_png_path = max(glob.glob(output_directory + "/losses*.png"), key=os.path.getctime)
-        original_rewards_png_path = max(glob.glob(output_directory + "/original_rewards*.png"), key=os.path.getctime)
-        shaped_rewards_png_path = max(glob.glob(output_directory + "/shaped_rewards*.png"), key=os.path.getctime)
+        log_csv_path = max(glob.glob(target_directory + "/log.csv"), key=os.path.getctime)
+        log_txt_path = max(glob.glob(target_directory + "/log.txt"), key=os.path.getctime)
+        parameters_txt_path = max(glob.glob(target_directory + "/parameters.txt"), key=os.path.getctime)
+        losses_png_path = max(glob.glob(target_directory + "/losses*.png"), key=os.path.getctime)
+        original_rewards_png_path = max(glob.glob(target_directory + "/original_rewards*.png"), key=os.path.getctime)
+        shaped_rewards_png_path = max(glob.glob(target_directory + "/shaped_rewards*.png"), key=os.path.getctime)
 
         # Get config path
         list_of_configs = glob.glob(conf_directory + "/" + conf_file)
