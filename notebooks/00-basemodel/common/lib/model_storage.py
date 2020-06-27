@@ -6,7 +6,7 @@ import torch
 
 class ModelStorage:
     # Maximum number of files we want to store
-    MAX_FILES = 3
+    MAX_FILES = 1
 
     def saveModel(output_directory,
                   run_directory,
