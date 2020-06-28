@@ -134,12 +134,12 @@ class TelegramLogger:
         original_rewards_png_path_glob = glob.glob(target_directory + "/original*.png")
         shaped_rewards_png_path_glob = glob.glob(target_directory + "/shaped*.png")
 
-        if len(log_csv_path_glob.count()) > 0 \
-                and len(log_txt_path_glob.count()) > 0 \
-                and len(parameters_txt_path_glob.count()) > 0 \
-                and len(losses_png_path_glob.count()) > 0 \
-                and len(original_rewards_png_path_glob.count()) > 0 \
-                and len(shaped_rewards_png_path_glob.count()) > 0:
+        if len(log_csv_path_glob) > 0 \
+                and len(log_txt_path_glob) > 0 \
+                and len(parameters_txt_path_glob) > 0 \
+                and len(losses_png_path_glob) > 0 \
+                and len(original_rewards_png_path_glob) > 0 \
+                and len(shaped_rewards_png_path_glob) > 0:
             # Get result paths
             log_csv_path = max(log_csv_path_glob, key=os.path.getctime)
             log_txt_path = max(log_txt_path_glob, key=os.path.getctime)
@@ -147,7 +147,7 @@ class TelegramLogger:
             losses_png_path = max(losses_png_path_glob, key=os.path.getctime)
             original_rewards_png_path = max(original_rewards_png_path_glob, key=os.path.getctime)
             shaped_rewards_png_path = max(shaped_rewards_png_path_glob, key=os.path.getctime)
-            finish_flag_png_path = target_directory + "../../../common/images/2560px-F1_chequered_flag.svg.png"
+            finish_flag_png_path = target_directory + "/../../../common/images/2560px-F1_chequered_flag.svg.png"
 
             # Get config path
             list_of_configs = glob.glob(conf_directory + "/" + conf_file)
