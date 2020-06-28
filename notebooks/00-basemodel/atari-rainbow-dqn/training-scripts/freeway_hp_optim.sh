@@ -20,7 +20,7 @@ export MODEL_SAVE_RATE=10
 export EPISODE_LOG_RATE=10
 
 export REPLAY_MEMORY_SIZE=100_000
-export NUM_FRAMES=100_000
+export NUM_FRAMES=250_000
 
 RANDOM_NUMBERS=$(awk -v n=10 -v seed="$RANDOM" 'BEGIN { srand(seed); for (i=0; i<n; ++i) printf("%.2f\n", rand()) }')
 RAND1=$(echo $RANDOM_NUMBERS | awk '{ print $1 }')

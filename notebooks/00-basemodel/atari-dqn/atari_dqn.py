@@ -46,8 +46,8 @@ from telegram_logger import TelegramLogger
 # Path to output to be loaded
 RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
-OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
-CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config/")
+OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output")
+CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config")
 TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 
 if RUN_TO_LOAD != None:

@@ -29,7 +29,7 @@ from screen_plotter import ScreenPlotter
 
 # Path to output to be loaded
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
-OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
+OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output")
 
 if RUN_TO_LOAD == None:
     raise Exception("RUN_TO_LOAD has not been specified")

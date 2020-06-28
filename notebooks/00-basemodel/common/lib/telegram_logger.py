@@ -163,8 +163,8 @@ class TelegramLogger:
                     open(original_rewards_png_path, "rb") as original_rewards_png, \
                     open(shaped_rewards_png_path, "rb") as shaped_rewards_png, \
                     open(finish_flag_png_path, "rb") as finish_flag_png:
-                telegram_send.send(messages=[telegram_line], animations=[log_csv, log_txt, parameters_txt, losses_png,
-                                                                         original_rewards_png, shaped_rewards_png,
-                                                                         finish_flag_png_path],
+                telegram_send.send(messages=[telegram_line],
+                                   files=[log_csv, log_txt, parameters_txt],
+                                   images=[losses_png, original_rewards_png, shaped_rewards_png, finish_flag_png],
                                    parse_mode="html",
                                    conf=config_path)
