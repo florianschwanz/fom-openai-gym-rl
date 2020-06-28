@@ -53,7 +53,7 @@ RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
 OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output")
 CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config")
-TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', "telegram.config")
+TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
@@ -461,6 +461,12 @@ for total_frames in progress_bar:
             total_original_rewards.append(episode_original_reward)
             total_shaped_rewards.append(episode_shaped_reward)
 
+            # Update max and min episode rewards
+            if max_episode_original_reward == None or episode_original_reward > max_episode_original_reward:
+                max_episode_original_reward = episode_original_reward
+            if min_episode_original_reward == None or episode_original_reward < min_episode_original_reward:
+                min_episode_original_reward = episode_original_reward
+
             if loss is not None:
                 PerformanceLogger.log_episode(output_directory=OUTPUT_DIRECTORY,
                                               run_directory=RUN_DIRECTORY,
@@ -480,7 +486,9 @@ for total_frames in progress_bar:
             if total_episodes != 0 and (total_episodes + 1) % TARGET_UPDATE_RATE == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
-            if total_episodes != 0 and MODEL_SAVE_RATE != -1 and (total_episodes + 1) % MODEL_SAVE_RATE == 0:
+            if total_episodes != 0 \
+                    and MODEL_SAVE_RATE != -1 \
+                    and (total_episodes + 1) % MODEL_SAVE_RATE == 0:
                 # Save model
                 ModelStorage.saveModel(output_directory=OUTPUT_DIRECTORY,
                                        run_directory=RUN_DIRECTORY,
@@ -556,6 +564,7 @@ for total_frames in progress_bar:
                 #                                run_directory=RUN_DIRECTORY,
                 #                                total_frames=total_frames,
                 #                                env=env,
+                #                                name="screenshot",
                 #                                title="screenshot",
                 #                                device=device)
 

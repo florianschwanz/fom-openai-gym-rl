@@ -158,8 +158,8 @@ else:
         os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(
         os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
-    REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.5))
-    REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 1.0))
+    REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
+    REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
 
     # Log parameters
@@ -445,7 +445,6 @@ for total_frames in progress_bar:
         state = env.reset()
 
         if info["ale.lives"] == 0:
-
             # Track episode time
             episode_end_time = time.time()
             episode_duration = episode_end_time - episode_start_time
@@ -480,7 +479,9 @@ for total_frames in progress_bar:
             if total_episodes != 0 and (total_episodes + 1) % TARGET_UPDATE_RATE == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
-            if total_episodes != 0 and (total_episodes + 1) % MODEL_SAVE_RATE == 0:
+            if total_episodes != 0 \
+                    and MODEL_SAVE_RATE != -1 \
+                    and (total_episodes + 1) % MODEL_SAVE_RATE == 0:
                 # Save model
                 ModelStorage.saveModel(output_directory=OUTPUT_DIRECTORY,
                                        run_directory=RUN_DIRECTORY,
@@ -528,7 +529,6 @@ for total_frames in progress_bar:
                                        )
 
             if total_episodes != 0 and EPISODE_LOG_RATE != -1 and (total_episodes + 1) % EPISODE_LOG_RATE == 0:
-
                 PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
                                                     run_directory=RUN_DIRECTORY,
                                                     total_frames=total_frames,
