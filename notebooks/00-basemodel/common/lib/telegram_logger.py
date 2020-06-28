@@ -90,7 +90,8 @@ class TelegramLogger:
     def build_reward_parameter(name, value):
         return "\n" + str(name) + "=" + str(value) if value != 0.0 else ""
 
-    def log_episode(run_name, output_directory, run_directory, conf_directory, conf_file, max_frames, total_episodes, total_frames,
+    def log_episode(run_name, output_directory, run_directory, conf_directory, conf_file, max_frames, total_episodes,
+                    total_frames,
                     total_duration, total_original_rewards, total_shaped_rewards, episode_frames,
                     episode_original_reward, episode_shaped_reward, episode_loss, episode_duration):
         if conf_file == None:
@@ -125,28 +126,45 @@ class TelegramLogger:
     def log_results(run_name, output_directory, run_directory, conf_directory, conf_file):
         target_directory = output_directory + "/" + run_directory
 
-        # Get result paths
-        log_csv_path = max(glob.glob(target_directory + "/log.csv"), key=os.path.getctime)
-        log_txt_path = max(glob.glob(target_directory + "/log.txt"), key=os.path.getctime)
-        parameters_txt_path = max(glob.glob(target_directory + "/parameters.txt"), key=os.path.getctime)
-        losses_png_path = max(glob.glob(target_directory + "/losses*.png"), key=os.path.getctime)
-        original_rewards_png_path = max(glob.glob(target_directory + "/original_rewards*.png"), key=os.path.getctime)
-        shaped_rewards_png_path = max(glob.glob(target_directory + "/shaped_rewards*.png"), key=os.path.getctime)
+        # Retrieve file globs
+        log_csv_path_glob = glob.glob(target_directory + "/log.csv")
+        log_txt_path_glob = glob.glob(target_directory + "/log.txt")
+        parameters_txt_path_glob = glob.glob(target_directory + "/parameters.txt")
+        losses_png_path_glob = glob.glob(target_directory + "/losses*.png")
+        original_rewards_png_path_glob = glob.glob(target_directory + "/original*.png")
+        shaped_rewards_png_path_glob = glob.glob(target_directory + "/shaped*.png")
 
-        # Get config path
-        list_of_configs = glob.glob(conf_directory + "/" + conf_file)
-        config_path = max(list_of_configs, key=os.path.getctime)
+        if len(log_csv_path_glob.count()) > 0 \
+                and len(log_txt_path_glob.count()) > 0 \
+                and len(parameters_txt_path_glob.count()) > 0 \
+                and len(losses_png_path_glob.count()) > 0 \
+                and len(original_rewards_png_path_glob.count()) > 0 \
+                and len(shaped_rewards_png_path_glob.count()) > 0:
+            # Get result paths
+            log_csv_path = max(log_csv_path_glob, key=os.path.getctime)
+            log_txt_path = max(log_txt_path_glob, key=os.path.getctime)
+            parameters_txt_path = max(parameters_txt_path_glob, key=os.path.getctime)
+            losses_png_path = max(losses_png_path_glob, key=os.path.getctime)
+            original_rewards_png_path = max(original_rewards_png_path_glob, key=os.path.getctime)
+            shaped_rewards_png_path = max(shaped_rewards_png_path_glob, key=os.path.getctime)
+            finish_flag_png_path = target_directory + "../../../common/images/2560px-F1_chequered_flag.svg.png"
 
-        telegram_line = "<b>run " + run_name + "</b> completed!"
+            # Get config path
+            list_of_configs = glob.glob(conf_directory + "/" + conf_file)
+            config_path = max(list_of_configs, key=os.path.getctime)
 
-        # Send line to telegram
-        with open(log_csv_path, "rb") as log_csv, \
-                open(log_txt_path, "rb") as log_txt, \
-                open(parameters_txt_path, "rb") as parameters_txt, \
-                open(losses_png_path, "rb") as losses_png, \
-                open(original_rewards_png_path, "rb") as original_rewards_png, \
-                open(shaped_rewards_png_path, "rb") as shaped_rewards_png:
-            telegram_send.send(messages=[telegram_line], animations=[log_csv, log_txt, parameters_txt, losses_png,
-                                                                     original_rewards_png, shaped_rewards_png],
-                               parse_mode="html",
-                               conf=config_path)
+            telegram_line = "<b>run " + run_name + "</b> completed!"
+
+            # Send line to telegram
+            with open(log_csv_path, "rb") as log_csv, \
+                    open(log_txt_path, "rb") as log_txt, \
+                    open(parameters_txt_path, "rb") as parameters_txt, \
+                    open(losses_png_path, "rb") as losses_png, \
+                    open(original_rewards_png_path, "rb") as original_rewards_png, \
+                    open(shaped_rewards_png_path, "rb") as shaped_rewards_png, \
+                    open(finish_flag_png_path, "rb") as finish_flag_png:
+                telegram_send.send(messages=[telegram_line], animations=[log_csv, log_txt, parameters_txt, losses_png,
+                                                                         original_rewards_png, shaped_rewards_png,
+                                                                         finish_flag_png_path],
+                                   parse_mode="html",
+                                   conf=config_path)
