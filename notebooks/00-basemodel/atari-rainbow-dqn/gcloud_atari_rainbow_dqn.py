@@ -497,7 +497,7 @@ for total_frames in progress_bar:
                                        total_original_rewards=total_original_rewards,
                                        total_shaped_rewards=total_shaped_rewards,
                                        total_losses=total_losses,
-                                       net=target_net,
+                                       net=target_net.to("cpu"),
                                        optimizer=optimizer,
                                        memory=memory,
                                        loss=loss,
@@ -534,6 +534,9 @@ for total_frames in progress_bar:
                                        reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                        reward_potential_based=REWARD_POTENTIAL_BASED
                                        )
+
+            # Move back target net to device
+            target_net.to(device)
 
             if total_episodes != 0 and EPISODE_LOG_RATE != -1 and (total_episodes + 1) % EPISODE_LOG_RATE == 0:
                 PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
