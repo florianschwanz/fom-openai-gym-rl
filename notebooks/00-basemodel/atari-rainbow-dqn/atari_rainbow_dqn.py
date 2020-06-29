@@ -51,7 +51,7 @@ TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 
 if RUN_TO_LOAD != None:
     # Get latest file from run
-    list_of_files = glob.glob(OUTPUT_DIRECTORY + RUN_TO_LOAD + "/*.model")
+    list_of_files = glob.glob(OUTPUT_DIRECTORY + "/" + RUN_TO_LOAD + "/*.model")
     MODEL_TO_LOAD = max(list_of_files, key=os.path.getctime)
 
     RUN_DIRECTORY = RUN_TO_LOAD
