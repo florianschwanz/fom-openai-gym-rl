@@ -1,8 +1,8 @@
 #! /bin/bash
-export RUN_NAME="pong_nors"
+export RUN_NAME="breakout_nors"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
-export ENVIRONMENT_ID="PongNoFrameskip-v4"
+export ENVIRONMENT_ID="BreakoutNoFrameskip-v4"
 export BATCH_SIZE=32
 export LEARNING_RATE=0.0001
 export GAMMA=0.99
