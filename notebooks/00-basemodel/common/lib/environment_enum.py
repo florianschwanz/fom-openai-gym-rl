@@ -10,7 +10,11 @@ class Environment(Enum):
     PONG_NO_FRAMESKIP_V4 = 'PongNoFrameskip-v4'
 
     BREAKOUT_V0 = 'Breakout-v0'
+    BREAKOUT_V4 = 'Breakout-v4'
+    BREAKOUT_DETERMINISTIC_V0 = 'BreakoutDeterministic-v0'
+    BREAKOUT_DETERMINISTIC_V4 = 'BreakoutDeterministic-v4'
     BREAKOUT_NO_FRAMESKIP_V0 = 'BreakoutNoFrameskip-v0'
+    BREAKOUT_NO_FRAMESKIP_V4 = 'BreakoutNoFrameskip-v4'
 
     SPACE_INVADERS_V0 = 'SpaceInvaders-v0'
     SPACE_INVADERS_NO_FRAMESKIP_V0 = 'SpaceInvadersNoFrameskip-v0'
