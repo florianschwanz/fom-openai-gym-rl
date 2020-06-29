@@ -291,25 +291,20 @@ env.reset()
 
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
-    # Initialize and load policy net and target net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
-        device)
+    # Initialize and load policy net
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA)
     policy_net.load_state_dict(MODEL_STATE_DICT)
+    policy_net.to(device)
     policy_net.eval()
-
-    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
-        device)
-    target_net.load_state_dict(MODEL_STATE_DICT)
-    target_net.eval()
 else:
-    # Initialize policy net and target net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
-        device)
+    # Initialize policy net
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA)
+    policy_net.to(device)
 
-    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
-        device)
-    target_net.load_state_dict(policy_net.state_dict())
-    target_net.eval()
+# Copy target net from policy net
+target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+target_net.load_state_dict(policy_net.state_dict())
+target_net.eval()
 
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
