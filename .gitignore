@@ -5,14 +5,14 @@
 /**/__pycache__
 /notebooks/00-basemodel/atari-dqn/fom-openai-gym-rl/
 /notebooks/00-basemodel/atari-dqn/output/*.log
-/notebooks/00-basemodel/atari-dqn/output/**/*.model
+/notebooks/00-basemodel/atari-dqn/output/**/*.pickle
 /notebooks/00-basemodel/atari-dqn/output/**/*.csv
 /notebooks/00-basemodel/atari-dqn/output/**/*.txt
 /notebooks/00-basemodel/atari-dqn/output/**/*.png
 /notebooks/00-basemodel/atari-dqn/output/**/*.gif
 /notebooks/00-basemodel/atari-dqn/output/latest
 /notebooks/00-basemodel/atari-rainbow-dqn/output/*.log
-/notebooks/00-basemodel/atari-rainbow-dqn/output/**/*.model
+/notebooks/00-basemodel/atari-rainbow-dqn/output/**/*.pickle
 /notebooks/00-basemodel/atari-rainbow-dqn/output/**/*.csv
 /notebooks/00-basemodel/atari-rainbow-dqn/output/**/*.txt
 /notebooks/00-basemodel/atari-rainbow-dqn/output/**/*.png
