@@ -414,13 +414,18 @@ for total_frames in progress_bar:
     if total_episodes != 0 and EPISODE_LOG_RATE != -1 \
             and (total_episodes + 1) % EPISODE_LOG_RATE == 0 \
             and total_frames % 2 == 0:
+        if shaped_reward != 0:
+            title = "frame " + str(total_frames) + " / s " + str(shaped_reward),
+        else:
+            title = "frame " + str(total_frames)
+
         # Plot screen for gif
         ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
                                        run_directory=RUN_DIRECTORY,
                                        total_frames=total_frames,
                                        env=env,
                                        name="gif-screenshot",
-                                       title="frame " + str(total_frames),
+                                       title=title,
                                        device=device,
                                        prune=False)
 
