@@ -5,8 +5,8 @@ import torch
 
 
 class ModelStorage:
-    MAX_FILES = 1
     # Maximum number of files we want to store
+    MAX_FILES = 2
 
     FILE_EXTENTION_NET = ".net.pickle"
     FILE_EXTENTION_OPTIMIZER = ".optimizer.pickle"
