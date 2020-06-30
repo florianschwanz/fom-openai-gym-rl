@@ -66,6 +66,7 @@ if RUN_TO_LOAD != None:
     NUM_ATOMS, \
     VMIN, \
     VMAX, \
+    REWARD_SHAPING_DROPOUT_RATE, \
     TARGET_UPDATE_RATE, \
     MODEL_SAVE_RATE, \
     EPISODE_LOG_RATE, \
@@ -118,6 +119,7 @@ else:
     NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
+    REWARD_SHAPING_DROPOUT_RATE = int(os.getenv('REWARD_SHAPING_DROPOUT_RATE', 0.0))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
     MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 1))
     EPISODE_LOG_RATE = int(os.getenv('EPISODE_LOG_RATE', 10))
@@ -160,6 +162,7 @@ else:
                                      num_atoms=NUM_ATOMS,
                                      vmin=VMIN,
                                      vmax=VMAX,
+                                     reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                      target_update_rate=TARGET_UPDATE_RATE,
                                      model_save_rate=MODEL_SAVE_RATE,
                                      episode_log_rate=EPISODE_LOG_RATE,
@@ -198,6 +201,7 @@ else:
                                   num_atoms=NUM_ATOMS,
                                   vmin=VMIN,
                                   vmax=VMAX,
+                                  reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                   target_update_rate=TARGET_UPDATE_RATE,
                                   model_save_rate=MODEL_SAVE_RATE,
                                   episode_log_rate=EPISODE_LOG_RATE,
@@ -364,24 +368,26 @@ for total_frames in progress_bar:
     shaped_reward = 0
     shaped_reward_max = 0
 
-    # Iterate over all reward shaping mechanisms
-    for reward_shaping in REWARD_SHAPINGS:
-        method = reward_shaping["method"]
-        additional_reward = reward_shaping["arguments"]["additional_reward"]
+    # Check if reward shaping should be applied
+    if REWARD_SHAPING_DROPOUT_RATE == 0.0 or random.random() > REWARD_SHAPING_DROPOUT_RATE:
+        # Iterate over all reward shaping mechanisms
+        for reward_shaping in REWARD_SHAPINGS:
+            method = reward_shaping["method"]
+            additional_reward = reward_shaping["arguments"]["additional_reward"]
 
-        if additional_reward != 0:
-            shaped_reward_max += additional_reward
-            shaped_reward += method(environment=ENVIRONMENT,
-                                    screen=screen,
-                                    reward=original_reward,
-                                    done=done,
-                                    info=info,
-                                    **reward_shaping["arguments"],
-                                    current_episode_reward=(
-                                            episode_original_reward + original_reward),
-                                    max_episode_reward=max_episode_original_reward,
-                                    min_episode_reward=min_episode_original_reward
-                                    )
+            if additional_reward != 0:
+                shaped_reward_max += additional_reward
+                shaped_reward += method(environment=ENVIRONMENT,
+                                        screen=screen,
+                                        reward=original_reward,
+                                        done=done,
+                                        info=info,
+                                        **reward_shaping["arguments"],
+                                        current_episode_reward=(
+                                                episode_original_reward + original_reward),
+                                        max_episode_reward=max_episode_original_reward,
+                                        min_episode_reward=min_episode_original_reward
+                                        )
 
     # Normalize shaped reward
     if shaped_reward_max != 0:
@@ -419,7 +425,10 @@ for total_frames in progress_bar:
                                          gamma=GAMMA,
                                          device=device)
 
-    if total_episodes != 0 and (total_episodes + 1) % EPISODE_LOG_RATE == 0 and total_frames % 2 == 0:
+    if total_episodes != 0 and EPISODE_LOG_RATE != -1 \
+            and (total_episodes + 1) % EPISODE_LOG_RATE == 0 \
+            and total_frames % 2 == 0:
+
         if shaped_reward != 0:
             title = "frame " + str(total_frames) + " / s " + str(shaped_reward),
         else:
@@ -507,6 +516,7 @@ for total_frames in progress_bar:
                                         num_atoms=NUM_ATOMS,
                                         vmin=VMIN,
                                         vmax=VMAX,
+                                        reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                         target_update_rate=TARGET_UPDATE_RATE,
                                         model_save_rate=MODEL_SAVE_RATE,
                                         episode_log_rate=EPISODE_LOG_RATE,

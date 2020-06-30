@@ -108,6 +108,7 @@ class ModelStorage:
                    num_atoms,
                    vmin,
                    vmax,
+                   reward_shaping_dropout_rate,
                    target_update_rate,
                    model_save_rate,
                    episode_log_rate,
@@ -127,6 +128,7 @@ class ModelStorage:
             'num_atoms': num_atoms,
             'vmin': vmin,
             'vmax': vmax,
+            'reward_shaping_dropout_rate': reward_shaping_dropout_rate,
             'target_update_rate': target_update_rate,
             'model_save_rate': model_save_rate,
             'episode_log_rate': episode_log_rate,
@@ -150,6 +152,7 @@ class ModelStorage:
                checkpoint['num_atoms'], \
                checkpoint['vmin'], \
                checkpoint['vmax'], \
+               checkpoint['reward_shaping_dropout_rate'], \
                checkpoint['target_update_rate'], \
                checkpoint['model_save_rate'], \
                checkpoint['episode_log_rate'], \

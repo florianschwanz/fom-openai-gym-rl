@@ -8,7 +8,7 @@ import telegram_send
 class TelegramLogger:
 
     def log_parameters(run_name, output_directory, run_directory, conf_directory, conf_file, environment_id, batch_size,
-                       learning_rate, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax,
+                       learning_rate, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax, reward_shaping_dropout_rate,
                        target_update_rate, model_save_rate, episode_log_rate,
                        replay_memory_size, num_frames,
                        reward_pong_player_racket_hits_ball,
@@ -42,6 +42,7 @@ class TelegramLogger:
                         + "\nnum atoms " + str(num_atoms) \
                         + "\nvmin " + str(vmin) \
                         + "\nvmax " + str(vmax) \
+                        + "\nreward_shaping_dropout_rate " + str(reward_shaping_dropout_rate) \
                         + "\ntarget update rate " + str(target_update_rate) \
                         + "\nsave model rate " + str(model_save_rate) \
                         + "\nepisode log rate " + str(episode_log_rate) \
