@@ -108,13 +108,26 @@ class PerformanceLogger:
         log_file.write(line + "\n")
         log_file.close()
 
+        csv_header = "total_frames," \
+              + "episode_duration," \
+              + "episode_frames," \
+              + "episode_original_reward," \
+              + "episode_shaped_reward," \
+              + "episode_loss"
+
         csv = str(total_frames) + "," \
               + str(episode_duration) + "," \
+              + str(episode_frames) + "," \
               + str(episode_original_reward) + "," \
-              + str(episode_loss) + "," \
               + str(episode_shaped_reward) + "," \
- \
-            # Write csv into file
+              + str(episode_loss)
+
+        if (not os.path.isfile(target_directory + "/log.csv")):
+            log_file = open(target_directory + "/log.csv", "a")
+            log_file.write(csv_header + "\n")
+            log_file.close()
+
+        # Write csv into file
         log_file = open(target_directory + "/log.csv", "a")
         log_file.write(csv + "\n")
         log_file.close()
