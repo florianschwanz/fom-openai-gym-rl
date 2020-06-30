@@ -132,8 +132,8 @@ class TelegramLogger:
         log_txt_path_glob = glob.glob(target_directory + "/log.txt")
         parameters_txt_path_glob = glob.glob(target_directory + "/parameters.txt")
         losses_png_path_glob = glob.glob(target_directory + "/*losses.png")
-        original_rewards_png_path_glob = glob.glob(target_directory + "/*original.png")
-        shaped_rewards_png_path_glob = glob.glob(target_directory + "/*shaped.png")
+        original_rewards_png_path_glob = glob.glob(target_directory + "/*original-rewards.png")
+        shaped_rewards_png_path_glob = glob.glob(target_directory + "/*shaped-rewards.png")
 
         if len(log_csv_path_glob) > 0 \
                 and len(log_txt_path_glob) > 0 \
