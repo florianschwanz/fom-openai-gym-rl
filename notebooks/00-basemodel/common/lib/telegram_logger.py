@@ -7,6 +7,8 @@ import telegram_send
 
 class TelegramLogger:
 
+    TELEGRAM_FILE_LIMIT_MB = 50
+
     def log_parameters(run_name, output_directory, run_directory, conf_directory, conf_file, environment_id, batch_size,
                        learning_rate, gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax, reward_shaping_dropout_rate,
                        target_update_rate, model_save_rate, episode_log_rate,
@@ -121,8 +123,11 @@ class TelegramLogger:
         config_path = max(list_of_configs, key=os.path.getctime)
 
         # Send line to telegram
-        with open(gif_path, "rb") as f:
-            telegram_send.send(messages=[telegram_line], animations=[f], parse_mode="html", conf=config_path)
+        if os.path.getsize(gif_path) /(1024*1024) < TelegramLogger.TELEGRAM_FILE_LIMIT_MB:
+            with open(gif_path, "rb") as f:
+                telegram_send.send(messages=[telegram_line], animations=[f], parse_mode="html", conf=config_path)
+        else:
+            telegram_send.send(messages=[telegram_line], parse_mode="html", conf=config_path)
 
     def log_results(run_name, output_directory, run_directory, conf_directory, conf_file):
         target_directory = output_directory + "/" + run_directory
