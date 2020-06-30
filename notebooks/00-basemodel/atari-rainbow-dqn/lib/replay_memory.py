@@ -202,6 +202,13 @@ class ReplayMemory(object):
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
 
+    def get_storage_chunks(self, n):
+        n = max(1, n)
+        for i in range(0, len(self._storage), n):
+            yield self._storage[i:i + n]
+
+    def append_storage_chunk(self, chunk):
+        return self._storage.extend(chunk)
 
 class PrioritizedReplayBuffer(ReplayMemory):
     def __init__(self, size, alpha):

@@ -12,14 +12,16 @@ class ScreenAnimator:
     def save_screen_animation(output_directory, run_directory, total_episodes, title, prune=True):
         target_directory = ScreenAnimator.prepare_directory(output_directory, run_directory)
 
-        list_of_screenshots = glob.glob(target_directory + "/gif-screenshot*.png")
+        list_of_screenshots = glob.glob(target_directory + "/*gif-screenshot*.png")
 
         # Render gif
         images = []
         # progress_bar_render = tqdm(sorted(list_of_screenshots), unit='frames', desc="Render gif")
         for filename in sorted(list_of_screenshots):
             images.append(imageio.imread(filename))
-        imageio.mimsave(target_directory + "/" + str(title) + "-episode-{:07d}".format(total_episodes) + ".gif", images)
+
+        if (len(images) > 0):
+            imageio.mimsave(target_directory + "/" + "episode-{:07d}".format(total_episodes) +  "." +  str(title) + ".gif", images)
 
         # Remove screenshots
         for filename in sorted(list_of_screenshots):

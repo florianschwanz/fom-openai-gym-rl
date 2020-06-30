@@ -9,7 +9,7 @@ import torch
 class PerformancePlotter:
 
     # Maximum number of files we want to store
-    MAX_FILES = 3
+    MAX_FILES = 1
 
     def display_values_plot(values, title, xlabel, ylabel):
         """
@@ -41,7 +41,7 @@ class PerformancePlotter:
 
         plt = PerformancePlotter.generate_plot(values, title, xlabel, ylabel)
 
-        plt.savefig(fname=target_directory + "/" + str(title).replace(" ", "-") + "-frame-{:07d}".format(total_frames) + ".png",
+        plt.savefig(fname=target_directory + "/" + "frame-{:07d}".format(total_frames) + "." + str(title).replace(" ", "-") + ".png",
                     format="png",
                     metadata={
                         "Title": str(title) + "-frame-{:07d}".format(total_frames),

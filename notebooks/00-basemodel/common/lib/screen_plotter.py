@@ -55,7 +55,7 @@ class ScreenPlotter:
 
         plt = ScreenPlotter.generate_plot(env, title, device)
 
-        plt.savefig(fname=target_directory + "/" + str(name) + "-frame-{:07d}".format(total_frames) + ".png",
+        plt.savefig(fname=target_directory + "/" +  "frame-{:07d}".format(total_frames) + "." + str(name) + ".png",
                     format="png",
                     metadata={
                         "Title": str(title) + "-frame-{:07d}".format(total_frames),
