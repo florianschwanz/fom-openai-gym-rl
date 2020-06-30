@@ -120,7 +120,7 @@ else:
     NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
-    REWARD_SHAPING_DROPOUT_RATE = int(os.getenv('REWARD_SHAPING_DROPOUT_RATE', 0.0))
+    REWARD_SHAPING_DROPOUT_RATE = float(os.getenv('REWARD_SHAPING_DROPOUT_RATE', 0.0))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
     MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 1))
     EPISODE_LOG_RATE = int(os.getenv('EPISODE_LOG_RATE', 10))
