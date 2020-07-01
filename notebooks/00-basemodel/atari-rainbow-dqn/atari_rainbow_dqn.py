@@ -615,6 +615,10 @@ for total_frames in progress_bar:
             episode_shaped_reward = 0
             episode_start_time = time.time()
 
+            # Make sure to break iteration even when restarted
+            if total_episodes >= NUM_FRAMES:
+                break
+
             # Increment counter
             total_episodes += 1
 
