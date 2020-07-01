@@ -1,8 +1,8 @@
 #! /bin/bash
-export RUN_NAME="breakout_rs_pos"
+export RUN_NAME="pong_rs_pos0.5_neg-0.5"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
-export ENVIRONMENT_ID="BreakoutNoFrameskip-v4"
+export ENVIRONMENT_ID="PongNoFrameskip-v4"
 export BATCH_SIZE=32
 export LEARNING_RATE=0.0001
 export GAMMA=0.99
@@ -25,7 +25,8 @@ export EPISODE_LOG_RATE=10
 export REPLAY_MEMORY_SIZE=100_000
 export NUM_FRAMES=3_000_000
 
-export REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR=0.5
+export REWARD_PONG_PLAYER_RACKET_COVERS_BALL=0.5
+export REWARD_PONG_OPPONENT_RACKET_HITS_BALL=-0.5
 export REWARD_POTENTIAL_BASED=0.0
 
 ./gcloud_atari_rainbow_dqn.py &
