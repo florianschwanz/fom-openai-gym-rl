@@ -65,6 +65,7 @@ if RUN_TO_LOAD != None:
     NUM_ATOMS, \
     VMIN, \
     VMAX, \
+    NORMALIZE_SHAPED_REWARD, \
     REWARD_SHAPING_DROPOUT_RATE, \
     TARGET_UPDATE_RATE, \
     MODEL_SAVE_RATE, \
@@ -120,6 +121,7 @@ else:
     NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
+    NORMALIZE_SHAPED_REWARD = os.getenv('NORMALIZE_SHAPED_REWARD', False) == "True"
     REWARD_SHAPING_DROPOUT_RATE = float(os.getenv('REWARD_SHAPING_DROPOUT_RATE', 0.0))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
     MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 1))
@@ -163,6 +165,7 @@ else:
                                      num_atoms=NUM_ATOMS,
                                      vmin=VMIN,
                                      vmax=VMAX,
+                                     normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
                                      reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                      target_update_rate=TARGET_UPDATE_RATE,
                                      model_save_rate=MODEL_SAVE_RATE,
@@ -202,6 +205,7 @@ else:
                                   num_atoms=NUM_ATOMS,
                                   vmin=VMIN,
                                   vmax=VMAX,
+                                  normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
                                   reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                   target_update_rate=TARGET_UPDATE_RATE,
                                   model_save_rate=MODEL_SAVE_RATE,
@@ -338,7 +342,7 @@ progress_bar = tqdm(iterable=range(NUM_FRAMES), unit='frames', initial=FINISHED_
 for total_frames in progress_bar:
     total_frames += FINISHED_FRAMES
 
-    # Select and perform an action
+    # Select action
     action = ActionSelector.select_action(state=state,
                                           n_actions=env.action_space.n,
                                           total_frames=total_frames,
@@ -384,7 +388,7 @@ for total_frames in progress_bar:
                                         )
 
     # Normalize shaped reward
-    if shaped_reward_max != 0:
+    if NORMALIZE_SHAPED_REWARD and shaped_reward_max != 0:
         shaped_reward /= shaped_reward_max
 
     # Track episode rewards
@@ -511,6 +515,7 @@ for total_frames in progress_bar:
                                         num_atoms=NUM_ATOMS,
                                         vmin=VMIN,
                                         vmax=VMAX,
+                                        normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
                                         reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                         target_update_rate=TARGET_UPDATE_RATE,
                                         model_save_rate=MODEL_SAVE_RATE,

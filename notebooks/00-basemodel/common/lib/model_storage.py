@@ -108,6 +108,7 @@ class ModelStorage:
                    num_atoms,
                    vmin,
                    vmax,
+                   normalize_shaped_reward,
                    reward_shaping_dropout_rate,
                    target_update_rate,
                    model_save_rate,
@@ -128,6 +129,7 @@ class ModelStorage:
             'num_atoms': num_atoms,
             'vmin': vmin,
             'vmax': vmax,
+            'normalize_shaped_reward': normalize_shaped_reward,
             'reward_shaping_dropout_rate': reward_shaping_dropout_rate,
             'target_update_rate': target_update_rate,
             'model_save_rate': model_save_rate,
@@ -152,6 +154,7 @@ class ModelStorage:
                checkpoint['num_atoms'], \
                checkpoint['vmin'], \
                checkpoint['vmax'], \
+               checkpoint['normalize_shaped_reward'], \
                checkpoint['reward_shaping_dropout_rate'], \
                checkpoint['target_update_rate'], \
                checkpoint['model_save_rate'], \

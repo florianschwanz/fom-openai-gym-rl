@@ -1,5 +1,5 @@
 #! /bin/bash
-export RUN_NAME="freeway_rs_vert"
+export RUN_NAME="freeway_rs_hori"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="FreewayNoFrameskip-v4"
@@ -25,8 +25,8 @@ export EPISODE_LOG_RATE=10
 export REPLAY_MEMORY_SIZE=100_000
 export NUM_FRAMES=250_000
 
-export REWARD_FREEWAY_DISTANCE_WALKED=0.5
-export REWARD_FREEWAY_DISTANCE_TO_CAR=0.0
+export REWARD_FREEWAY_DISTANCE_WALKED=0.0
+export REWARD_FREEWAY_DISTANCE_TO_CAR=0.1
 export REWARD_POTENTIAL_BASED=0.0
 
 ./gcloud_atari_rainbow_dqn.py &
