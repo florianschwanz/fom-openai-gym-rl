@@ -25,6 +25,10 @@ class ModelOptimizer():
         dist = dist.gather(1, action).squeeze(1)
         dist.data.clamp_(0.01, 0.99)
         loss = -(Variable(proj_dist) * dist.log()).sum(1)
+        #hier icm einbauen, noch netze übergeben
+        # forward_pred_err, inverse_pred_err = ICM(state1_batch, action_batch, state2_batch)
+        #eta übergebn
+        #i_reward = (1. / params['eta']) * forward_pred_err
         loss = loss.mean()
 
         optimizer.zero_grad()
@@ -67,3 +71,57 @@ def projection_distribution(next_state, rewards, dones, target_net, num_atoms, v
     proj_dist.view(-1).index_add_(0, (u + offset).view(-1), (next_dist * (b - l.float())).view(-1))
 
     return proj_dist
+#new
+def ICM(state1, action, state2, forward_scale=1., inverse_scale=1e4): #action is an integer [0:11]
+    """
+    Intrinsic Curiosity Module (ICM): Calculates prediction error for forward and inverse dynamics
+    
+    The ICM takes a state1, the action that was taken, and the resulting state2 as inputs
+    (from experience replay memory) and uses the forward and inverse models to calculate the prediction error
+    and train the encoder to only pay attention to details in the environment that are controll-able (i.e. it should
+    learn to ignore useless stochasticity in the environment and not encode that).
+    """
+    state1_hat = encoder(state1)
+    state2_hat = encoder(state2)
+    #Forward model prediction error
+    state2_hat_pred = forward_model(state1_hat.detach(), action.detach())
+    forward_pred_err = forward_scale * forward_loss(state2_hat_pred, \
+                        state2_hat.detach()).sum(dim=1).unsqueeze(dim=1)
+    #Inverse model prediction error
+    pred_action = inverse_model(state1_hat, state2_hat) #returns softmax over actions
+    inverse_pred_err = inverse_scale * inverse_loss(pred_action, \
+                                        action.detach().flatten()).unsqueeze(dim=1)
+    return forward_pred_err, inverse_pred_err
+    
+ 
+def minibatch_train(use_extrinsic=True):
+    state1_batch, action_batch, reward_batch, state2_batch = replay.get_batch() 
+    action_batch = action_batch.view(action_batch.shape[0],1)
+    reward_batch = reward_batch.view(reward_batch.shape[0],1)
+    #replay.get_batch returns tuple (state1, action, reward, state2) where each tensor has batch dimension
+    forward_pred_err, inverse_pred_err = ICM(state1_batch, action_batch, state2_batch) #internal curiosity module
+    i_reward = (1. / params['eta']) * forward_pred_err
+    reward = i_reward.detach()
+    if use_extrinsic:
+        reward += reward_batch 
+    qvals = Qmodel(state2_batch)
+    reward += params['gamma'] * torch.max(qvals)
+    reward_pred = Qmodel(state1_batch)
+    reward_target = reward_pred.clone()
+    indices = torch.stack( (torch.arange(action_batch.shape[0]), action_batch.squeeze()), dim=0)
+    indices = indices.tolist()
+    reward_target[indices] = reward.squeeze()
+    q_loss = 1e5 * qloss(F.normalize(reward_pred), F.normalize(reward_target.detach()))
+    return forward_pred_err, inverse_pred_err, q_loss
+
+def loss_fn(q_loss, inverse_loss, forward_loss):
+    """
+    Overall loss function to optimize for all 4 modules
+    
+    Loss function based on calculation in paper
+    """
+    loss_ = (1 - params['beta']) * inverse_loss
+    loss_ += params['beta'] * forward_loss
+    loss_ = loss_.sum() / loss_.flatten().shape[0]
+    loss = loss_ + params['lambda'] * q_loss
+    return loss

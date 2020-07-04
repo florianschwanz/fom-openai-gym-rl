@@ -1,8 +1,8 @@
 import math
 
-from argument_extractor import ArgumentExtractor
-from environment_enum import Environment
-from visual_component import VisualComponent
+from lib.argument_extractor import ArgumentExtractor
+from lib.environment_enum import Environment
+from lib.visual_component import VisualComponent
 
 
 class PongRewardShaper():

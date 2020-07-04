@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import torch
 
 
 ######################################################################
@@ -103,3 +104,53 @@ class DeepQNetwork(nn.Module):
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         return self.head(x.view(x.size(0), -1))
+
+class Phi(nn.Module): # (raw state) -> low dim state , encoder
+    def __init__(self):
+        super(Phi, self).__init__()
+        #in_channels, out_channels, kernel_size, stride=1, padding=0
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=(3,3), stride=2, padding=1)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=(3,3), stride=2, padding=1)
+        self.conv3 = nn.Conv2d(32, 32, kernel_size=(3,3), stride=2, padding=1)
+        self.conv4 = nn.Conv2d(32, 32, kernel_size=(3,3), stride=2, padding=1)
+
+    def forward(self,x):
+        x = F.normalize(x)
+        y = F.elu(self.conv1(x))
+        y = F.elu(self.conv2(y))
+        y = F.elu(self.conv3(y))
+        y = F.elu(self.conv4(y)) #size [1, 32, 3, 3] batch, channels, 3 x 3
+        y =y.flatten(start_dim=1) #size N, 384
+        return y
+
+class Gnet(nn.Module): #Inverse model: (phi_state1, phi_state2) -> action
+    def __init__(self):
+        super(Gnet, self).__init__()
+        #in_channels, out_channels, kernel_size, stride=1, padding=0
+        self.linear1 = nn.Linear(768,256) # Anpassung notendig!
+        self.linear2 = nn.Linear(256,4)  # Action number dynamisch berücksichtigen
+
+    def forward(self, state1,state2):
+        x = torch.cat( (state1, state2) ,dim=1)
+        y = F.relu(self.linear1(x))
+        y = self.linear2(y)
+        y = F.softmax(y,dim=1)
+        return y
+
+class Fnet(nn.Module):
+    def __init__(self):
+        super(Fnet, self).__init__()
+        #in_channels, out_channels, kernel_size, stride=1, padding=0
+        self.linear1 = nn.Linear(388,256) # Anpassung notendig! Action number dynamisch berücksichtigen
+        self.linear2 = nn.Linear(256,384) # Anpassung notendig! Action number dynamisch berücksichtigen
+
+    def forward(self,state,action):
+        action_ = torch.zeros(action.shape[0],4) # Anpassung notendig!
+        indices = torch.stack((torch.arange(action.shape[0]), action.squeeze().cpu()), dim=0)
+    
+        indices = indices.tolist()
+        action_[indices] = 1.
+        x = torch.cat( (state.cpu(),action_) ,dim=1).cuda()
+        y = F.relu(self.linear1(x))
+        y = self.linear2(y)
+        return y

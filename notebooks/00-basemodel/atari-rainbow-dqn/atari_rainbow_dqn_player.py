@@ -29,7 +29,7 @@ from screen_plotter import ScreenPlotter
 
 # Path to output to be loaded
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
-OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output")
+OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
 
 if RUN_TO_LOAD == None:
     raise Exception("RUN_TO_LOAD has not been specified")
@@ -62,7 +62,6 @@ VMIN, \
 VMAX, \
 TARGET_UPDATE_RATE, \
 MODEL_SAVE_RATE, \
-EPISODE_LOG_RATE, \
 REPLAY_MEMORY_SIZE, \
 NUM_FRAMES, \
 REWARD_PONG_PLAYER_RACKET_HITS_BALL, \
@@ -78,8 +77,7 @@ REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL, \
 REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
 REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
 REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
-REWARD_FREEWAY_DISTANCE_WALKED, \
-REWARD_FREEWAY_DISTANCE_TO_CAR, \
+REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION, \
 REWARD_POTENTIAL_BASED \
     = ModelStorage.loadModel(MODEL_TO_LOAD)
 
@@ -148,12 +146,10 @@ for total_frames in progress_bar:
     screen = env.original_observation
 
     # Plot screen
-    ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
-                                   run_directory=RUN_DIRECTORY,
+    ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                    total_frames=total_frames,
                                    env=env,
-                                   name="gif-screenshot",
-                                   title="frame " + str(total_frames),
+                                   title="gif-screenshot",
                                    device=device,
                                    prune=False)
 
@@ -165,11 +161,10 @@ for total_frames in progress_bar:
         state = env.reset()
 
         if info["ale.lives"] == 0:
-            ScreenAnimator.save_screen_animation(output_directory=OUTPUT_DIRECTORY,
-                                                 run_directory=RUN_TO_LOAD,
+            ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_TO_LOAD,
                                                  total_episodes=0,
                                                  title="gif-screenshot"
-                                                 )
+            )
 
             print("Complete")
             sys.exit()

@@ -53,11 +53,3 @@ class ReplayMemory(object):
 
     def __len__(self):
         return len(self.memory)
-
-    def get_storage_chunks(self, n):
-        n = max(1, n)
-        for i in range(0, len(self.memory), n):
-            yield self.memory[i:i + n]
-
-    def append_storage_chunk(self, chunk):
-        return self.memory.extend(chunk)

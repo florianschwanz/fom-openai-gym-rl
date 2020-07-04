@@ -51,18 +51,28 @@ from telegram_logger import TelegramLogger
 # Path to output to be loaded
 RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
-OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output")
-CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config")
-TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
+OUTPUT_DIRECTORY = os.getenv('OUTPUT_DIRECTORY', "./output/")
+CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config/")
 
 if RUN_TO_LOAD != None:
+    # Get latest file from run
+    list_of_files = glob.glob(OUTPUT_DIRECTORY + RUN_TO_LOAD + "/*.model")
+    MODEL_TO_LOAD = max(list_of_files, key=os.path.getctime)
+
     RUN_DIRECTORY = RUN_TO_LOAD
 
-    NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD)
-    OPTIMIZER_STATE_DICT = ModelStorage.loadOptimizer(OUTPUT_DIRECTORY, RUN_TO_LOAD)
-    REPLAY_MEMORY_CHUNKS = ModelStorage.loadMemoryChunks(OUTPUT_DIRECTORY, RUN_TO_LOAD)
-    ENVIRONMENT, ENVIRONMENT_WRAPPERS = ModelStorage.loadEnvironment(OUTPUT_DIRECTORY, RUN_TO_LOAD)
-
+    FINISHED_FRAMES, \
+    FINISHED_EPISODES, \
+    TOTAL_ORIGINAL_REWARDS, \
+    TOTAL_SHAPED_REWARDS, \
+    TOTAL_LOSSES, \
+    MODEL_STATE_DICT, \
+    OPTIMIZER_STATE_DICT, \
+    REPLAY_MEMORY, \
+    LOSS, \
+ \
+    ENVIRONMENT, \
+    ENVIRONMENT_WRAPPERS, \
     BATCH_SIZE, \
     LEARNING_RATE, \
     GAMMA, \
@@ -72,14 +82,10 @@ if RUN_TO_LOAD != None:
     NUM_ATOMS, \
     VMIN, \
     VMAX, \
-    NORMALIZE_SHAPED_REWARD, \
-    REWARD_SHAPING_DROPOUT_RATE, \
     TARGET_UPDATE_RATE, \
     MODEL_SAVE_RATE, \
-    EPISODE_LOG_RATE, \
     REPLAY_MEMORY_SIZE, \
-    NUM_FRAMES = ModelStorage.loadConfig(OUTPUT_DIRECTORY, RUN_TO_LOAD)
-
+    NUM_FRAMES, \
     REWARD_PONG_PLAYER_RACKET_HITS_BALL, \
     REWARD_PONG_PLAYER_RACKET_COVERS_BALL, \
     REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
@@ -93,19 +99,21 @@ if RUN_TO_LOAD != None:
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
-    REWARD_FREEWAY_DISTANCE_WALKED, \
-    REWARD_FREEWAY_DISTANCE_TO_CAR, \
-    REWARD_POTENTIAL_BASED = ModelStorage.loadRewards(OUTPUT_DIRECTORY, RUN_TO_LOAD)
-
-    FINISHED_FRAMES, \
-    FINISHED_EPISODES, \
-    TOTAL_ORIGINAL_REWARDS, \
-    TOTAL_SHAPED_REWARDS, \
-    TOTAL_LOSSES = ModelStorage.loadStats(OUTPUT_DIRECTORY, RUN_TO_LOAD)
+    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION, \
+    REWARD_POTENTIAL_BASED \
+        = ModelStorage.loadModel(MODEL_TO_LOAD)
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 
-    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.BREAKOUT_NO_FRAMESKIP_V4.value)
+    # Only use defined parameters if there is no previous output being loaded
+    FINISHED_FRAMES = 0
+    FINISHED_EPISODES = 0
+    TOTAL_ORIGINAL_REWARDS = []
+    TOTAL_SHAPED_REWARDS = []
+    TOTAL_LOSSES = []
+
+    # Define setup
+    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.BREAKOUT_NO_FRAMESKIP_V0.value)
     ENVIRONMENT = Environment(ENVIRONMENT_ID)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
@@ -114,11 +122,8 @@ else:
         EnvironmentWrapper.EPISODIC_LIFE,
         EnvironmentWrapper.FIRE_RESET,
         EnvironmentWrapper.WARP_FRAME,
-        EnvironmentWrapper.CLIP_REWARD,
-        EnvironmentWrapper.FRAME_STACK,
         EnvironmentWrapper.IMAGE_TO_PYTORCH,
     ]
-
     BATCH_SIZE = int(os.getenv('BATCH_SIZE', 32))
     LEARNING_RATE = float(os.getenv('LEARNING_RATE', 0.0001))
     GAMMA = float(os.getenv('GAMMA', 0.99))
@@ -128,55 +133,48 @@ else:
     NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
-    NORMALIZE_SHAPED_REWARD = os.getenv('NORMALIZE_SHAPED_REWARD', False) == "True"
-    REWARD_SHAPING_DROPOUT_RATE = float(os.getenv('REWARD_SHAPING_DROPOUT_RATE', 0.0))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
-    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 1))
-    EPISODE_LOG_RATE = int(os.getenv('EPISODE_LOG_RATE', 10))
+    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 10))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
 
     REWARD_PONG_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_HITS_BALL', 0.0))
     REWARD_PONG_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_PONG_PLAYER_RACKET_COVERS_BALL', 0.0))
-    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
-    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
     REWARD_PONG_OPPONENT_RACKET_HITS_BALL = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_HITS_BALL', 0.0))
     REWARD_PONG_OPPONENT_RACKET_COVERS_BALL = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_COVERS_BALL', 0.0))
-    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
-    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC = float(os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))
-    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
-    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
-    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
-    REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
-    REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(
+        os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
+    REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(
+        os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(
+        os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
+    REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION = float(os.getenv('REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION', 0.0))
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
 
-    FINISHED_FRAMES = 0
-    FINISHED_EPISODES = 0
-    TOTAL_ORIGINAL_REWARDS = []
-    TOTAL_SHAPED_REWARDS = []
-    TOTAL_LOSSES = []
-
     # Log parameters
-    PerformanceLogger.log_parameters(output_directory=OUTPUT_DIRECTORY,
-                                     run_directory=RUN_DIRECTORY,
+    PerformanceLogger.log_parameters(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                      environment_id=ENVIRONMENT_ID,
                                      batch_size=BATCH_SIZE,
                                      learning_rate=LEARNING_RATE,
                                      gamma=GAMMA,
                                      eps_start=EPS_START,
                                      eps_end=EPS_END,
-                                     eps_decay=EPS_DECAY,
+                                     eps_decay=EPS_END,
                                      num_atoms=NUM_ATOMS,
                                      vmin=VMIN,
                                      vmax=VMAX,
-                                     normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
-                                     reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                      target_update_rate=TARGET_UPDATE_RATE,
                                      model_save_rate=MODEL_SAVE_RATE,
-                                     episode_log_rate=EPISODE_LOG_RATE,
                                      replay_memory_size=REPLAY_MEMORY_SIZE,
                                      num_frames=NUM_FRAMES,
                                      reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
@@ -192,31 +190,25 @@ else:
                                      reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                      reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                      reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                     reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
-                                     reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
+                                     reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
                                      reward_potential_based=REWARD_POTENTIAL_BASED
                                      )
 
     TelegramLogger.log_parameters(run_name=RUN_NAME,
-                                  output_directory=OUTPUT_DIRECTORY,
-                                  run_directory=RUN_DIRECTORY,
+                                  output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                   conf_directory=CONFIG_DIRECTORY,
-                                  conf_file=TELEGRAM_CONFIG_FILE,
                                   environment_id=ENVIRONMENT_ID,
                                   batch_size=BATCH_SIZE,
                                   learning_rate=LEARNING_RATE,
                                   gamma=GAMMA,
                                   eps_start=EPS_START,
                                   eps_end=EPS_END,
-                                  eps_decay=EPS_DECAY,
+                                  eps_decay=EPS_END,
                                   num_atoms=NUM_ATOMS,
                                   vmin=VMIN,
                                   vmax=VMAX,
-                                  normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
-                                  reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                   target_update_rate=TARGET_UPDATE_RATE,
                                   model_save_rate=MODEL_SAVE_RATE,
-                                  episode_log_rate=EPISODE_LOG_RATE,
                                   replay_memory_size=REPLAY_MEMORY_SIZE,
                                   num_frames=NUM_FRAMES,
                                   reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
@@ -232,8 +224,7 @@ else:
                                   reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                   reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                   reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                  reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
-                                  reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
+                                  reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
                                   reward_potential_based=REWARD_POTENTIAL_BASED
                                   )
 
@@ -265,10 +256,8 @@ REWARD_SHAPINGS = [
      "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
     {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
      "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
-    {"method": FreewayRewardShaper().reward_distance_walked,
-     "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_WALKED}},
-    {"method": FreewayRewardShaper().reward_distance_to_car,
-     "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_TO_CAR}},
+    {"method": FreewayRewardShaper().reward_chicken_vertical_position,
+     "arguments": {"additional_reward": REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION}},
     {"method": PotentialBasedRewardShaper().reward,
      "arguments": {"additional_reward": REWARD_POTENTIAL_BASED}},
 ]
@@ -292,20 +281,25 @@ env.reset()
 
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
-    # Initialize and load policy net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA)
-    policy_net.load_state_dict(NET_STATE_DICT)
-    policy_net.to(device)
+    # Initialize and load policy net and target net
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
+    policy_net.load_state_dict(MODEL_STATE_DICT)
     policy_net.eval()
-else:
-    # Initialize policy net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA)
-    policy_net.to(device)
 
-# Copy target net from policy net
-target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
-target_net.load_state_dict(policy_net.state_dict())
-target_net.eval()
+    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
+    target_net.load_state_dict(MODEL_STATE_DICT)
+    target_net.eval()
+else:
+    # Initialize policy net and target net
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
+
+    target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(
+        device)
+    target_net.load_state_dict(policy_net.state_dict())
+    target_net.eval()
 
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
@@ -314,9 +308,7 @@ if RUN_TO_LOAD != None:
     optimizer.load_state_dict(OPTIMIZER_STATE_DICT)
 
     # Load memory
-    memory = ReplayMemory(REPLAY_MEMORY_SIZE)
-    for chunk in REPLAY_MEMORY_CHUNKS:
-        memory.append_storage_chunk(chunk)
+    memory = REPLAY_MEMORY
 else:
     # Initialize optimizer
     optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
@@ -364,52 +356,42 @@ for total_frames in progress_bar:
                                           USE_CUDA=USE_CUDA)
 
     # Perform action
-    observation, original_reward, done, info = env.step(action)
+    observation, reward, done, info = env.step(action)
+
+    # Shape reward
+    original_reward = reward
+    shaped_reward = reward
 
     # Retrieve current screen
     screen = env.original_observation
 
-    # Track potentially max value of shaped reward
-    shaped_reward = 0
-    shaped_reward_max = 0
+    # Iterate over all reward shaping mechanisms
+    for reward_shaping in REWARD_SHAPINGS:
+        if reward_shaping["arguments"]["additional_reward"] != 0:
+            shaped_reward += reward_shaping["method"](environment=ENVIRONMENT,
+                                                      screen=screen,
+                                                      reward=reward,
+                                                      done=done,
+                                                      info=info,
+                                                      **reward_shaping["arguments"],
+                                                      current_episode_reward=(
+                                                              episode_original_reward + original_reward),
+                                                      max_episode_reward=max_episode_original_reward,
+                                                      min_episode_reward=min_episode_original_reward
+                                                      )
 
-    # Check if reward shaping should be applied
-    if REWARD_SHAPING_DROPOUT_RATE == 0.0 or random.random() > REWARD_SHAPING_DROPOUT_RATE:
-        # Iterate over all reward shaping mechanisms
-        for reward_shaping in REWARD_SHAPINGS:
-            method = reward_shaping["method"]
-            additional_reward = reward_shaping["arguments"]["additional_reward"]
+    # Use shaped reward for further processing
+    reward = shaped_reward
 
-            if additional_reward != 0:
-                shaped_reward_max += additional_reward
-                shaped_reward += method(environment=ENVIRONMENT,
-                                        screen=screen,
-                                        reward=original_reward,
-                                        done=done,
-                                        info=info,
-                                        **reward_shaping["arguments"],
-                                        current_episode_reward=(
-                                                episode_original_reward + original_reward),
-                                        max_episode_reward=max_episode_original_reward,
-                                        min_episode_reward=min_episode_original_reward
-                                        )
-
-    # Normalize shaped reward
-    if NORMALIZE_SHAPED_REWARD and shaped_reward_max != 0:
-        shaped_reward /= shaped_reward_max
-
-    # Track episode rewards
+    # Add reward to episode reward
     episode_original_reward += original_reward
     episode_shaped_reward += shaped_reward
-
-    # Add shaped reward to original reward
-    total_reward = original_reward + shaped_reward
 
     # Update next state
     next_state = observation
 
     # Store the transition in memory
-    memory.push(state, action, total_reward, next_state, done)
+    memory.push(state, action, reward, next_state, done)
 
     # Move to the next state
     state = next_state
@@ -428,22 +410,12 @@ for total_frames in progress_bar:
     # Add loss to total loss
     total_losses.append(loss)
 
-    if total_episodes != 0 and EPISODE_LOG_RATE != -1 \
-            and (total_episodes + 1) % EPISODE_LOG_RATE == 0 \
-            and total_frames % 2 == 0:
-
-        if shaped_reward != 0:
-            title = "frame " + str(total_frames) + " / s " + str(round(shaped_reward, 2)),
-        else:
-            title = "frame " + str(total_frames)
-
+    if total_episodes != 0 and total_episodes % MODEL_SAVE_RATE == 0 and total_frames % 2 == 0:
         # Plot screen for gif
-        ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
-                                       run_directory=RUN_DIRECTORY,
+        ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
                                        env=env,
-                                       name="gif-screenshot",
-                                       title=title,
+                                       title="gif-screenshot",
                                        device=device,
                                        prune=False)
 
@@ -461,15 +433,8 @@ for total_frames in progress_bar:
             total_original_rewards.append(episode_original_reward)
             total_shaped_rewards.append(episode_shaped_reward)
 
-            # Update max and min episode rewards
-            if max_episode_original_reward == None or episode_original_reward > max_episode_original_reward:
-                max_episode_original_reward = episode_original_reward
-            if min_episode_original_reward == None or episode_original_reward < min_episode_original_reward:
-                min_episode_original_reward = episode_original_reward
-
             if loss is not None:
-                PerformanceLogger.log_episode(output_directory=OUTPUT_DIRECTORY,
-                                              run_directory=RUN_DIRECTORY,
+                PerformanceLogger.log_episode(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                               max_frames=NUM_FRAMES,
                                               total_episodes=total_episodes + 1,
                                               total_frames=total_frames,
@@ -483,127 +448,87 @@ for total_frames in progress_bar:
                                               episode_duration=episode_duration)
 
             # Update the target network, copying all weights and biases from policy net into target net
-            if total_episodes != 0 and (total_episodes + 1) % TARGET_UPDATE_RATE == 0:
+            if total_episodes != 0 and total_episodes % TARGET_UPDATE_RATE == 0:
                 target_net.load_state_dict(policy_net.state_dict())
 
-            if total_episodes != 0 \
-                    and MODEL_SAVE_RATE != -1 \
-                    and (total_episodes + 1) % MODEL_SAVE_RATE == 0:
-                ModelStorage.saveNet(output_directory=OUTPUT_DIRECTORY,
-                                     run_directory=RUN_DIRECTORY,
-                                     total_frames=total_frames,
-                                     net=target_net.to("cpu"))
-
-                ModelStorage.saveOptimizer(output_directory=OUTPUT_DIRECTORY,
-                                           run_directory=RUN_DIRECTORY,
-                                           total_frames=total_frames,
-                                           optimizer=optimizer)
-
-                ModelStorage.saveMemoryChunks(output_directory=OUTPUT_DIRECTORY,
-                                              run_directory=RUN_DIRECTORY,
-                                              total_frames=total_frames,
-                                              memory_chunks=memory.get_storage_chunks(int(REPLAY_MEMORY_SIZE / 10)))
-
-                ModelStorage.saveEnvironment(output_directory=OUTPUT_DIRECTORY,
-                                             run_directory=RUN_DIRECTORY,
-                                             total_frames=total_frames,
-                                             environment=ENVIRONMENT,
-                                             environment_wrappers=ENVIRONMENT_WRAPPERS)
-
-                ModelStorage.saveConfig(output_directory=OUTPUT_DIRECTORY,
-                                        run_directory=RUN_DIRECTORY,
-                                        total_frames=total_frames,
-                                        batch_size=BATCH_SIZE,
-                                        learning_rate=LEARNING_RATE,
-                                        gamma=GAMMA,
-                                        eps_start=EPS_START,
-                                        eps_end=EPS_END,
-                                        eps_decay=EPS_DECAY,
-                                        num_atoms=NUM_ATOMS,
-                                        vmin=VMIN,
-                                        vmax=VMAX,
-                                        normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
-                                        reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
-                                        target_update_rate=TARGET_UPDATE_RATE,
-                                        model_save_rate=MODEL_SAVE_RATE,
-                                        episode_log_rate=EPISODE_LOG_RATE,
-                                        replay_memory_size=REPLAY_MEMORY_SIZE,
-                                        num_frames=NUM_FRAMES)
-
-                ModelStorage.saveRewards(output_directory=OUTPUT_DIRECTORY,
-                                         run_directory=RUN_DIRECTORY,
-                                         total_frames=total_frames,
-                                         reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
-                                         reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
-                                         reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                         reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                         reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
-                                         reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
-                                         reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
-                                         reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                         reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
-                                         reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
-                                         reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                         reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                         reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                         reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
-                                         reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
-                                         reward_potential_based=REWARD_POTENTIAL_BASED)
-
-                ModelStorage.saveStats(output_directory=OUTPUT_DIRECTORY,
-                                       run_directory=RUN_DIRECTORY,
+            if total_episodes != 0 and total_episodes % MODEL_SAVE_RATE == 0:
+                # Save model
+                ModelStorage.saveModel(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                        total_frames=total_frames,
                                        total_episodes=total_episodes,
                                        total_original_rewards=total_original_rewards,
                                        total_shaped_rewards=total_shaped_rewards,
-                                       total_losses=total_losses)
+                                       total_losses=total_losses,
+                                       net=target_net,
+                                       optimizer=optimizer,
+                                       memory=memory,
+                                       loss=loss,
+                                       environment=ENVIRONMENT,
+                                       environment_wrappers=ENVIRONMENT_WRAPPERS,
+                                       batch_size=BATCH_SIZE,
+                                       learning_rate=LEARNING_RATE,
+                                       gamma=GAMMA,
+                                       eps_start=EPS_START,
+                                       eps_end=EPS_END,
+                                       eps_decay=EPS_DECAY,
+                                       num_atoms=NUM_ATOMS,
+                                       vmin=VMIN,
+                                       vmax=VMAX,
+                                       target_update_rate=TARGET_UPDATE_RATE,
+                                       model_save_rate=MODEL_SAVE_RATE,
+                                       replay_memory_size=REPLAY_MEMORY_SIZE,
+                                       num_frames=NUM_FRAMES,
+                                       reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                       reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                       reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                       reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                       reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                       reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                       reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                       reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                       reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                       reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                       reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                       reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                       reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                       reward_freeway_chicken_vertical_position=REWARD_FREEWAY_CHICKEN_VERTICAL_POSITION,
+                                       reward_potential_based=REWARD_POTENTIAL_BASED
+                                       )
 
-            # Move back target net to device
-            target_net.to(device)
-
-            if total_episodes != 0 and EPISODE_LOG_RATE != -1 and (total_episodes + 1) % EPISODE_LOG_RATE == 0:
-                PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
-                                                    run_directory=RUN_DIRECTORY,
+                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_original_rewards,
                                                     title="original rewards",
                                                     xlabel="episode",
                                                     ylabel="reward")
 
-                PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
-                                                    run_directory=RUN_DIRECTORY,
+                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_shaped_rewards,
                                                     title="shaped rewards",
                                                     xlabel="episode",
                                                     ylabel="reward")
 
-                PerformancePlotter.save_values_plot(output_directory=OUTPUT_DIRECTORY,
-                                                    run_directory=RUN_DIRECTORY,
+                PerformancePlotter.save_values_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                     total_frames=total_frames,
                                                     values=total_losses,
                                                     title="losses",
                                                     xlabel="frame",
                                                     ylabel="loss")
 
-                # ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
-                #                                run_directory=RUN_DIRECTORY,
+                # ScreenPlotter.save_screen_plot(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                 #                                total_frames=total_frames,
                 #                                env=env,
-                #                                name="screenshot",
                 #                                title="screenshot",
                 #                                device=device)
 
-                ScreenAnimator.save_screen_animation(output_directory=OUTPUT_DIRECTORY,
-                                                     run_directory=RUN_DIRECTORY,
+                ScreenAnimator.save_screen_animation(directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                                      total_episodes=total_episodes,
                                                      title="gif-screenshot")
 
                 TelegramLogger.log_episode(run_name=RUN_NAME,
-                                           output_directory=OUTPUT_DIRECTORY,
-                                           run_directory=RUN_DIRECTORY,
+                                           output_directory=OUTPUT_DIRECTORY + RUN_DIRECTORY,
                                            conf_directory=CONFIG_DIRECTORY,
-                                           conf_file=TELEGRAM_CONFIG_FILE,
                                            max_frames=NUM_FRAMES,
                                            total_episodes=total_episodes + 1,
                                            total_frames=total_frames,
@@ -622,20 +547,10 @@ for total_frames in progress_bar:
             episode_shaped_reward = 0
             episode_start_time = time.time()
 
-            # Make sure to break iteration even when restarted
-            if total_episodes >= NUM_FRAMES:
-                break
-
             # Increment counter
             total_episodes += 1
 
     # Increment counter
     episode_frames += 1
-
-TelegramLogger.log_results(run_name=RUN_NAME,
-                           output_directory=OUTPUT_DIRECTORY,
-                           run_directory=RUN_DIRECTORY,
-                           conf_directory=CONFIG_DIRECTORY,
-                           conf_file=TELEGRAM_CONFIG_FILE)
 
 print('Complete')

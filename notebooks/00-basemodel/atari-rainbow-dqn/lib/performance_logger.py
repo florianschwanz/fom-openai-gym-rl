@@ -24,6 +24,8 @@ class PerformanceLogger:
                        reward_freeway_chicken_vertical_position,
                        reward_potential_based):
         # Make path if not yet exists
+        directory=directory.replace("/","\\")
+
         if not os.path.exists(directory):
             os.mkdir(directory)
 
