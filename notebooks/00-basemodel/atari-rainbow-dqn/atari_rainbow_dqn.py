@@ -6,7 +6,6 @@ import uuid
 from datetime import datetime
 
 import torch
-import torch.autograd as autograd
 import torch.optim as optim
 from tqdm import tqdm
 
@@ -30,6 +29,7 @@ from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
 from freeway_reward_shaper import FreewayRewardShaper
 from model_optimizer import ModelOptimizer
+from model_optimizer_curiosity import ModelOptimizerCuriosity
 from model_storage import ModelStorage
 from performance_logger import PerformanceLogger
 from performance_plotter import PerformancePlotter
@@ -41,6 +41,10 @@ from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
 from telegram_logger import TelegramLogger
 
+from curiosity_net import Phi
+from curiosity_net import Gnet
+from curiosity_net import Fnet
+
 # Path to output to be loaded
 RUN_NAME = os.getenv('RUN_NAME', str(uuid.uuid4()))
 RUN_TO_LOAD = os.getenv('RUN_TO_LOAD', None)
@@ -51,7 +55,11 @@ TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 if RUN_TO_LOAD != None:
     RUN_DIRECTORY = RUN_TO_LOAD
 
-    NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD)
+    TARGET_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "target")
+    ENCODER_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "encoder")
+    FORWARD_MODEL_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "forward_model")
+    INVERSE_MODEL_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "inverse_model")
+
     OPTIMIZER_STATE_DICT = ModelStorage.loadOptimizer(OUTPUT_DIRECTORY, RUN_TO_LOAD)
     REPLAY_MEMORY_CHUNKS = ModelStorage.loadMemoryChunks(OUTPUT_DIRECTORY, RUN_TO_LOAD)
     ENVIRONMENT, ENVIRONMENT_WRAPPERS = ModelStorage.loadEnvironment(OUTPUT_DIRECTORY, RUN_TO_LOAD)
@@ -65,6 +73,11 @@ if RUN_TO_LOAD != None:
     NUM_ATOMS, \
     VMIN, \
     VMAX, \
+ \
+    ETA, \
+    BETA, \
+    LAMBDA1, \
+ \
     NORMALIZE_SHAPED_REWARD, \
     REWARD_SHAPING_DROPOUT_RATE, \
     TARGET_UPDATE_RATE, \
@@ -121,10 +134,15 @@ else:
     NUM_ATOMS = int(os.getenv('NUM_ATOMS', 51))
     VMIN = int(os.getenv('VMIN', -10))
     VMAX = int(os.getenv('VMAX', 10))
+
+    ETA = float(os.getenv('eta', 0.0))
+    BETA = float(os.getenv('beta', 0.0))
+    LAMBDA1 = float(os.getenv('lambda', 0.0))
+
     NORMALIZE_SHAPED_REWARD = os.getenv('NORMALIZE_SHAPED_REWARD', False) == "True"
     REWARD_SHAPING_DROPOUT_RATE = float(os.getenv('REWARD_SHAPING_DROPOUT_RATE', 0.0))
     TARGET_UPDATE_RATE = int(os.getenv('TARGET_UPDATE_RATE', 10))
-    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 1))
+    MODEL_SAVE_RATE = int(os.getenv('MODEL_SAVE_RATE', 10))
     EPISODE_LOG_RATE = int(os.getenv('EPISODE_LOG_RATE', 10))
     REPLAY_MEMORY_SIZE = int(os.getenv('REPLAY_MEMORY', 100_000))
     NUM_FRAMES = int(os.getenv('NUM_FRAMES', 1_000_000))
@@ -165,6 +183,9 @@ else:
                                      num_atoms=NUM_ATOMS,
                                      vmin=VMIN,
                                      vmax=VMAX,
+                                     eta=ETA,
+                                     beta=BETA,
+                                     lambda1=LAMBDA1,
                                      normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
                                      reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                      target_update_rate=TARGET_UPDATE_RATE,
@@ -205,6 +226,9 @@ else:
                                   num_atoms=NUM_ATOMS,
                                   vmin=VMIN,
                                   vmax=VMAX,
+                                  eta=ETA,
+                                  beta=BETA,
+                                  lambda1=LAMBDA1,
                                   normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
                                   reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                   target_update_rate=TARGET_UPDATE_RATE,
@@ -274,10 +298,6 @@ torch.manual_seed(manualSeed)
 # Set up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-USE_CUDA = torch.cuda.is_available()
-Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda(True) if USE_CUDA else autograd.Variable(
-    *args, **kwargs)
-
 # Initialize environment
 env = EnvironmentBuilder.make_environment_with_wrappers(ENVIRONMENT.value, ENVIRONMENT_WRAPPERS)
 # Reset environment
@@ -286,33 +306,59 @@ env.reset()
 # Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
     # Initialize and load policy net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA)
-    policy_net.load_state_dict(NET_STATE_DICT)
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX)
+    policy_net.load_state_dict(TARGET_NET_STATE_DICT)
     policy_net.to(device)
     policy_net.eval()
+
+    # Initialize and load nets for curiosity approach
+    encoder = Phi(env.observation_space.shape).to(device)
+    encoder.load_state_dict(ENCODER_NET_STATE_DICT)
+    encoder.to(device)
+    encoder.eval()
+    forward_model = Fnet(env.action_space.n).to(device)
+    forward_model.load_state_dict(FORWARD_MODEL_NET_STATE_DICT)
+    forward_model.to(device)
+    forward_model.eval()
+    inverse_model = Gnet().to(device)
+    inverse_model.load_state_dict(INVERSE_MODEL_NET_STATE_DICT)
+    inverse_model.to(device)
+    inverse_model.eval()
 else:
     # Initialize policy net
-    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA)
+    policy_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX)
     policy_net.to(device)
 
+    # Initialize nets for curiosity approach
+    encoder = Phi(env.observation_space.shape).to(device)
+    forward_model = Fnet(env.action_space.n).to(device)
+    inverse_model = Gnet().to(device)
+
 # Copy target net from policy net
-target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX, USE_CUDA).to(device)
+target_net = RainbowCnnDQN(env.observation_space.shape, env.action_space.n, NUM_ATOMS, VMIN, VMAX).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 target_net.eval()
 
-# Only use defined parameters if there is no previous output being loaded
+# Check if curiosity driven exploration should be used
+if ETA == 0 and BETA == 0 and LAMBDA1 == 0:
+    # Define optimizer parameters
+    optimizer_parameters = policy_net.parameters()
+else:
+    # Define optimizer parameters
+    optimizer_parameters = policy_net.parameters() + encoder.parameters() + forward_model.parameters() + inverse_model.parameters()
+
 if RUN_TO_LOAD != None:
     # Initialize and load optimizer
-    optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(params=optimizer_parameters, lr=LEARNING_RATE)
     optimizer.load_state_dict(OPTIMIZER_STATE_DICT)
 
-    # Load memory
+    # Load replay memory
     memory = ReplayMemory(REPLAY_MEMORY_SIZE)
     for chunk in REPLAY_MEMORY_CHUNKS:
         memory.append_storage_chunk(chunk)
 else:
     # Initialize optimizer
-    optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(params=optimizer_parameters, lr=LEARNING_RATE)
     # Initialize replay memory
     memory = ReplayMemory(REPLAY_MEMORY_SIZE)
 
@@ -353,8 +399,7 @@ for total_frames in progress_bar:
                                           vmin=VMIN,
                                           vmax=VMAX,
                                           num_atoms=NUM_ATOMS,
-                                          device=device,
-                                          USE_CUDA=USE_CUDA)
+                                          device=device)
 
     # Perform action
     observation, original_reward, done, info = env.step(action)
@@ -407,16 +452,42 @@ for total_frames in progress_bar:
     # Move to the next state
     state = next_state
 
-    # Perform one step of the optimization (on the target network)
-    loss = ModelOptimizer.compute_td_loss(policy_net=policy_net,
-                                          target_net=target_net,
-                                          optimizer=optimizer,
-                                          memory=memory,
-                                          batch_size=BATCH_SIZE,
-                                          num_atoms=NUM_ATOMS,
-                                          vmin=VMIN,
-                                          vmax=VMAX,
-                                          USE_CUDA=USE_CUDA)
+    # Check if curiosity driven exploration should be used
+    if ETA == 0 and BETA == 0 and LAMBDA1 == 0:
+        # Perform one step of the optimization (on the target network)
+        loss = ModelOptimizer.compute_td_loss(policy_net=policy_net,
+                                              target_net=target_net,
+                                              optimizer=optimizer,
+                                              memory=memory,
+                                              batch_size=BATCH_SIZE,
+                                              gamma=GAMMA,
+                                              num_atoms=NUM_ATOMS,
+                                              vmin=VMIN,
+                                              vmax=VMAX)
+    else:
+        forward_loss = torch.nn.MSELoss(reduction='none')
+        inverse_loss = torch.nn.CrossEntropyLoss(reduction='none')
+
+        # Perform one step of the optimization (on the target network)
+        loss = ModelOptimizerCuriosity.compute_td_loss(policy_net=policy_net,
+                                                       target_net=target_net,
+                                                       optimizer=optimizer,
+                                                       memory=memory,
+                                                       batch_size=BATCH_SIZE,
+                                                       gamma=GAMMA,
+                                                       num_atoms=NUM_ATOMS,
+                                                       vmin=VMIN,
+                                                       vmax=VMAX,
+                                                       all_model_params=optimizer,
+                                                       n_actions=env.action_space.n,
+                                                       eta=ETA,
+                                                       beta=BETA,
+                                                       lambda1=LAMBDA1,
+                                                       inverse_loss=inverse_loss,
+                                                       forward_loss=forward_loss,
+                                                       encoder=encoder,
+                                                       forward_model=forward_model,
+                                                       inverse_model=inverse_model)
 
     # Add loss to total loss
     total_losses.append(loss)
@@ -485,7 +556,26 @@ for total_frames in progress_bar:
                 ModelStorage.saveNet(output_directory=OUTPUT_DIRECTORY,
                                      run_directory=RUN_DIRECTORY,
                                      total_frames=total_frames,
-                                     net=target_net.to("cpu"))
+                                     net=target_net.to("cpu"),
+                                     name="target")
+
+                ModelStorage.saveNet(output_directory=OUTPUT_DIRECTORY,
+                                     run_directory=RUN_DIRECTORY,
+                                     total_frames=total_frames,
+                                     net=encoder.to("cpu"),
+                                     name="encoder")
+
+                ModelStorage.saveNet(output_directory=OUTPUT_DIRECTORY,
+                                     run_directory=RUN_DIRECTORY,
+                                     total_frames=total_frames,
+                                     net=forward_model.to("cpu"),
+                                     name="forward_model")
+
+                ModelStorage.saveNet(output_directory=OUTPUT_DIRECTORY,
+                                     run_directory=RUN_DIRECTORY,
+                                     total_frames=total_frames,
+                                     net=inverse_model.to("cpu"),
+                                     name="inverse_model")
 
                 ModelStorage.saveOptimizer(output_directory=OUTPUT_DIRECTORY,
                                            run_directory=RUN_DIRECTORY,
@@ -515,6 +605,9 @@ for total_frames in progress_bar:
                                         num_atoms=NUM_ATOMS,
                                         vmin=VMIN,
                                         vmax=VMAX,
+                                        eta=ETA,
+                                        beta=BETA,
+                                        lambda1=LAMBDA1,
                                         normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
                                         reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
                                         target_update_rate=TARGET_UPDATE_RATE,

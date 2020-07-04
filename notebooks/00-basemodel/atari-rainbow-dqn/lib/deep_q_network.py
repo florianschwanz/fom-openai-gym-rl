@@ -6,7 +6,7 @@ from layers import NoisyLinear
 
 
 class RainbowCnnDQN(nn.Module):
-    def __init__(self, input_shape, num_actions, num_atoms, Vmin, Vmax, USE_CUDA):
+    def __init__(self, input_shape, num_actions, num_atoms, Vmin, Vmax):
         super(RainbowCnnDQN, self).__init__()
 
         self.input_shape = input_shape
@@ -14,7 +14,8 @@ class RainbowCnnDQN(nn.Module):
         self.num_atoms = num_atoms
         self.Vmin = Vmin
         self.Vmax = Vmax
-        self.USE_CUDA = USE_CUDA
+
+        self.use_cuda = torch.cuda.is_available()
 
         self.features = nn.Sequential(
             nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
@@ -25,11 +26,11 @@ class RainbowCnnDQN(nn.Module):
             nn.ReLU()
         )
 
-        self.noisy_value1 = NoisyLinear(self.feature_size(), 512, use_cuda=self.USE_CUDA)
-        self.noisy_value2 = NoisyLinear(512, self.num_atoms, use_cuda=self.USE_CUDA)
+        self.noisy_value1 = NoisyLinear(self.feature_size(), 512, use_cuda=self.use_cuda)
+        self.noisy_value2 = NoisyLinear(512, self.num_atoms, use_cuda=self.use_cuda)
 
-        self.noisy_advantage1 = NoisyLinear(self.feature_size(), 512, use_cuda=self.USE_CUDA)
-        self.noisy_advantage2 = NoisyLinear(512, self.num_atoms * self.num_actions, use_cuda=self.USE_CUDA)
+        self.noisy_advantage1 = NoisyLinear(self.feature_size(), 512, use_cuda=self.use_cuda)
+        self.noisy_advantage2 = NoisyLinear(512, self.num_atoms * self.num_actions, use_cuda=self.use_cuda)
 
     def forward(self, x):
         batch_size = x.size(0)

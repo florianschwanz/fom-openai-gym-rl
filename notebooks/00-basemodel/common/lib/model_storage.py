@@ -16,8 +16,8 @@ class ModelStorage:
     FILE_EXTENTION_REWARDS = ".rewards.pickle"
     FILE_EXTENTION_STATS = ".stats.pickle"
 
-    def saveNet(output_directory, run_directory, total_frames, net):
-        file_extension = ModelStorage.FILE_EXTENTION_NET
+    def saveNet(output_directory, run_directory, total_frames, net, name):
+        file_extension = "." + name + ModelStorage.FILE_EXTENTION_NET
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
 
         torch.save({
@@ -26,8 +26,8 @@ class ModelStorage:
 
         ModelStorage.prune_storage(target_directory, file_extension)
 
-    def loadNet(output_directory, run_directory):
-        file_extension = ModelStorage.FILE_EXTENTION_NET
+    def loadNet(output_directory, run_directory, name):
+        file_extension = "." + name + ModelStorage.FILE_EXTENTION_NET
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
@@ -108,6 +108,9 @@ class ModelStorage:
                    num_atoms,
                    vmin,
                    vmax,
+                   eta,
+                   beta,
+                   lambda1,
                    normalize_shaped_reward,
                    reward_shaping_dropout_rate,
                    target_update_rate,
@@ -129,6 +132,9 @@ class ModelStorage:
             'num_atoms': num_atoms,
             'vmin': vmin,
             'vmax': vmax,
+            'eta': eta,
+            'beta': beta,
+            'lambda1': lambda1,
             'normalize_shaped_reward': normalize_shaped_reward,
             'reward_shaping_dropout_rate': reward_shaping_dropout_rate,
             'target_update_rate': target_update_rate,
@@ -154,6 +160,9 @@ class ModelStorage:
                checkpoint['num_atoms'], \
                checkpoint['vmin'], \
                checkpoint['vmax'], \
+               checkpoint['eta'], \
+               checkpoint['beta'], \
+               checkpoint['lambda1'], \
                checkpoint['normalize_shaped_reward'], \
                checkpoint['reward_shaping_dropout_rate'], \
                checkpoint['target_update_rate'], \

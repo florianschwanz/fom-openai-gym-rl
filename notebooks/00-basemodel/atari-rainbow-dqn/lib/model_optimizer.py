@@ -5,9 +5,9 @@ import torch.autograd as autograd
 
 class ModelOptimizer():
 
-    def compute_td_loss(policy_net, target_net, optimizer, memory, batch_size, num_atoms, vmin, vmax, USE_CUDA):
+    def compute_td_loss(policy_net, target_net, optimizer, memory, batch_size, gamma, num_atoms, vmin, vmax):
         Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if \
-            USE_CUDA else autograd.Variable(*args, **kwargs)
+            torch.cuda.is_available() else autograd.Variable(*args, **kwargs)
 
         state, action, reward, next_state, done = memory.sample(batch_size)
 
@@ -17,7 +17,7 @@ class ModelOptimizer():
         reward = torch.FloatTensor(reward)
         done = torch.FloatTensor(np.float32(done))
 
-        proj_dist = projection_distribution(next_state, reward, done, target_net, num_atoms, vmin, vmax)
+        proj_dist = projection_distribution(next_state, reward, done, target_net, gamma, num_atoms, vmin, vmax)
 
         dist = policy_net(state)
 
@@ -37,7 +37,7 @@ class ModelOptimizer():
         return loss
 
 
-def projection_distribution(next_state, rewards, dones, target_net, num_atoms, vmin, vmax):
+def projection_distribution(next_state, rewards, dones, target_net, gamma, num_atoms, vmin, vmax):
     batch_size = next_state.size(0)
 
     delta_z = float(vmax - vmin) / (num_atoms - 1)
@@ -53,7 +53,7 @@ def projection_distribution(next_state, rewards, dones, target_net, num_atoms, v
     dones = dones.unsqueeze(1).expand_as(next_dist)
     support = support.unsqueeze(0).expand_as(next_dist)
 
-    Tz = rewards + (1 - dones) * 0.99 * support
+    Tz = rewards + (1 - dones) * gamma * support
     Tz = Tz.clamp(min=vmin, max=vmax)
     b = (Tz - vmin) / delta_z
     l = b.floor().long()

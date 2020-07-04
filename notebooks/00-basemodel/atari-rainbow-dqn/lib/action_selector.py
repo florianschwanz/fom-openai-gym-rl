@@ -11,7 +11,7 @@ steps_done = 0
 class ActionSelector:
 
     def select_action(state, n_actions, total_frames, policy_net, epsilon_end, epsilon_start, epsilon_decay,
-                      vmin, vmax, num_atoms, device, USE_CUDA):
+                      vmin, vmax, num_atoms, device):
         """
         Selects an action based on the current state
         :param state: state of the environment
@@ -35,7 +35,7 @@ class ActionSelector:
             # Select action based on policy net
             with torch.no_grad():
                 Variable = lambda *args, **kwargs: autograd.Variable(*args, **kwargs).cuda() if \
-                    USE_CUDA else autograd.Variable(*args, **kwargs)
+                    torch.cuda.is_available() else autograd.Variable(*args, **kwargs)
 
                 with torch.no_grad():
                     state = Variable(torch.FloatTensor(np.float32(state)).unsqueeze(0))
