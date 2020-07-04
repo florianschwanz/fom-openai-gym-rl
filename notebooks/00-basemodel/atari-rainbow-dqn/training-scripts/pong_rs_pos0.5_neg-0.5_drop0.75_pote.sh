@@ -15,6 +15,10 @@ export NUM_ATOMS=51
 export VMIN=-10
 export VMAX=10
 
+export ETA=0.0
+export BETA=0.0
+export LAMBDA1=0.0
+
 export NORMALIZE_SHAPED_REWARD=False
 export REWARD_SHAPING_DROPOUT_RATE=0.75
 

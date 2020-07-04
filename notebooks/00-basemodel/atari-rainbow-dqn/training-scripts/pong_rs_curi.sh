@@ -1,8 +1,8 @@
 #! /bin/bash
-export RUN_NAME="freeway_rs_hori0.1_vert0.1_drop0.75_pote"
+export RUN_NAME="pong_rs_curi"
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
-export ENVIRONMENT_ID="FreewayNoFrameskip-v4"
+export ENVIRONMENT_ID="PongNoFrameskip-v4"
 export BATCH_SIZE=32
 export LEARNING_RATE=0.0001
 export GAMMA=0.99
@@ -15,22 +15,18 @@ export NUM_ATOMS=51
 export VMIN=-10
 export VMAX=10
 
-export ETA=0.0
-export BETA=0.0
-export LAMBDA1=0.0
+export ETA=1.0
+export BETA=0.2
+export LAMBDA1=0.1
 
 export NORMALIZE_SHAPED_REWARD=False
-export REWARD_SHAPING_DROPOUT_RATE=0.75
+export REWARD_SHAPING_DROPOUT_RATE=0.0
 
 export TARGET_UPDATE_RATE=10
 export MODEL_SAVE_RATE=10
 export EPISODE_LOG_RATE=10
 
 export REPLAY_MEMORY_SIZE=100_000
-export NUM_FRAMES=250_000
-
-export REWARD_FREEWAY_DISTANCE_WALKED=0.1
-export REWARD_FREEWAY_DISTANCE_TO_CAR=0.1
-export REWARD_POTENTIAL_BASED=2.0
+export NUM_FRAMES=3_000_000
 
 ./gcloud_atari_rainbow_dqn.py &
