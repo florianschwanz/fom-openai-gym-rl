@@ -11,15 +11,18 @@ import torch.optim as optim
 from tqdm import tqdm
 
 # Make library available in path
-lib_path = os.path.join(os.getcwd(), 'lib')
-if not (lib_path in sys.path):
-    sys.path.insert(0, lib_path)
-common_lib_path = os.path.join(os.getcwd(), '..', 'common', 'lib')
-if not (common_lib_path in sys.path):
-    sys.path.insert(0, common_lib_path)
-common_reward_shaper_path = os.path.join(os.getcwd(), '..', 'common', 'reward_shaper')
-if not (common_reward_shaper_path in sys.path):
-    sys.path.insert(0, common_reward_shaper_path)
+library_paths = [
+    os.path.join(os.getcwd(), 'lib'),
+    os.path.join(os.getcwd(), '..', 'common', 'environment'),
+    os.path.join(os.getcwd(), '..', 'common', 'log'),
+    os.path.join(os.getcwd(), '..', 'common', 'persistence'),
+    os.path.join(os.getcwd(), '..', 'common', 'plot'),
+    os.path.join(os.getcwd(), '..', 'common', 'reward_shaper'),
+]
+
+for p in library_paths:
+    if not (p in sys.path):
+        sys.path.insert(0, p)
 
 # Import library classes
 from action_selector import ActionSelector

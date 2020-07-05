@@ -1,0 +1,223 @@
+import os
+
+from console_logger import ConsoleLogger
+from file_logger import FileLogger
+from telegram_logger import TelegramLogger
+
+
+class LoggerFacade:
+
+    def log_parameters(run_name, output_directory, run_directory, conf_directory, conf_file, environment_id, batch_size, learning_rate,
+                       gamma, eps_start, eps_end, eps_decay, num_atoms, vmin, vmax, eta, beta, lambda1, normalize_shaped_reward,
+                       reward_shaping_dropout_rate, target_update_rate, model_save_rate, episode_log_rate,
+                       replay_memory_size, num_frames,
+                       reward_pong_player_racket_hits_ball,
+                       reward_pong_player_racket_covers_ball,
+                       reward_pong_player_racket_close_to_ball_linear,
+                       reward_pong_player_racket_close_to_ball_quadratic,
+                       reward_pong_opponent_racket_hits_ball,
+                       reward_pong_opponent_racket_covers_ball,
+                       reward_pong_opponent_racket_close_to_ball_linear,
+                       reward_pong_opponent_racket_close_to_ball_quadratic,
+                       reward_breakout_player_racket_hits_ball,
+                       reward_breakout_player_racket_covers_ball,
+                       reward_breakout_player_racket_close_to_ball_linear,
+                       reward_breakout_player_racket_close_to_ball_quadratic,
+                       reward_spaceinvaders_player_avoids_line_of_fire,
+                       reward_freeway_distance_walked,
+                       reward_freeway_distance_to_car,
+                       reward_potential_based):
+
+        ConsoleLogger.log_parameters(output_directory=output_directory,
+                                     run_directory=run_directory,
+                                     environment_id=environment_id,
+                                     batch_size=batch_size,
+                                     learning_rate=learning_rate,
+                                     gamma=gamma,
+                                     eps_start=eps_start,
+                                     eps_end=eps_end,
+                                     eps_decay=eps_decay,
+                                     num_atoms=num_atoms,
+                                     vmin=vmin,
+                                     vmax=vmax,
+                                     eta=eta,
+                                     beta=beta,
+                                     lambda1=lambda1,
+                                     normalize_shaped_reward=normalize_shaped_reward,
+                                     reward_shaping_dropout_rate=reward_shaping_dropout_rate,
+                                     target_update_rate=target_update_rate,
+                                     model_save_rate=model_save_rate,
+                                     episode_log_rate=episode_log_rate,
+                                     replay_memory_size=replay_memory_size,
+                                     num_frames=num_frames,
+                                     reward_pong_player_racket_hits_ball=reward_pong_player_racket_hits_ball,
+                                     reward_pong_player_racket_covers_ball=reward_pong_player_racket_covers_ball,
+                                     reward_pong_player_racket_close_to_ball_linear=reward_pong_player_racket_close_to_ball_linear,
+                                     reward_pong_player_racket_close_to_ball_quadratic=reward_pong_player_racket_close_to_ball_quadratic,
+                                     reward_pong_opponent_racket_hits_ball=reward_pong_opponent_racket_hits_ball,
+                                     reward_pong_opponent_racket_covers_ball=reward_pong_opponent_racket_covers_ball,
+                                     reward_pong_opponent_racket_close_to_ball_linear=reward_pong_opponent_racket_close_to_ball_linear,
+                                     reward_pong_opponent_racket_close_to_ball_quadratic=reward_pong_opponent_racket_close_to_ball_quadratic,
+                                     reward_breakout_player_racket_hits_ball=reward_breakout_player_racket_hits_ball,
+                                     reward_breakout_player_racket_covers_ball=reward_breakout_player_racket_covers_ball,
+                                     reward_breakout_player_racket_close_to_ball_linear=reward_breakout_player_racket_close_to_ball_linear,
+                                     reward_breakout_player_racket_close_to_ball_quadratic=reward_breakout_player_racket_close_to_ball_quadratic,
+                                     reward_spaceinvaders_player_avoids_line_of_fire=reward_spaceinvaders_player_avoids_line_of_fire,
+                                     reward_freeway_distance_walked=reward_freeway_distance_walked,
+                                     reward_freeway_distance_to_car=reward_freeway_distance_to_car,
+                                     reward_potential_based=reward_potential_based)
+
+        FileLogger.log_parameters(output_directory=output_directory,
+                                  run_directory=run_directory,
+                                  environment_id=environment_id,
+                                  batch_size=batch_size,
+                                  learning_rate=learning_rate,
+                                  gamma=gamma,
+                                  eps_start=eps_start,
+                                  eps_end=eps_end,
+                                  eps_decay=eps_decay,
+                                  num_atoms=num_atoms,
+                                  vmin=vmin,
+                                  vmax=vmax,
+                                  eta=eta,
+                                  beta=beta,
+                                  lambda1=lambda1,
+                                  normalize_shaped_reward=normalize_shaped_reward,
+                                  reward_shaping_dropout_rate=reward_shaping_dropout_rate,
+                                  target_update_rate=target_update_rate,
+                                  model_save_rate=model_save_rate,
+                                  episode_log_rate=episode_log_rate,
+                                  replay_memory_size=replay_memory_size,
+                                  num_frames=num_frames,
+                                  reward_pong_player_racket_hits_ball=reward_pong_player_racket_hits_ball,
+                                  reward_pong_player_racket_covers_ball=reward_pong_player_racket_covers_ball,
+                                  reward_pong_player_racket_close_to_ball_linear=reward_pong_player_racket_close_to_ball_linear,
+                                  reward_pong_player_racket_close_to_ball_quadratic=reward_pong_player_racket_close_to_ball_quadratic,
+                                  reward_pong_opponent_racket_hits_ball=reward_pong_opponent_racket_hits_ball,
+                                  reward_pong_opponent_racket_covers_ball=reward_pong_opponent_racket_covers_ball,
+                                  reward_pong_opponent_racket_close_to_ball_linear=reward_pong_opponent_racket_close_to_ball_linear,
+                                  reward_pong_opponent_racket_close_to_ball_quadratic=reward_pong_opponent_racket_close_to_ball_quadratic,
+                                  reward_breakout_player_racket_hits_ball=reward_breakout_player_racket_hits_ball,
+                                  reward_breakout_player_racket_covers_ball=reward_breakout_player_racket_covers_ball,
+                                  reward_breakout_player_racket_close_to_ball_linear=reward_breakout_player_racket_close_to_ball_linear,
+                                  reward_breakout_player_racket_close_to_ball_quadratic=reward_breakout_player_racket_close_to_ball_quadratic,
+                                  reward_spaceinvaders_player_avoids_line_of_fire=reward_spaceinvaders_player_avoids_line_of_fire,
+                                  reward_freeway_distance_walked=reward_freeway_distance_walked,
+                                  reward_freeway_distance_to_car=reward_freeway_distance_to_car,
+                                  reward_potential_based=reward_potential_based)
+
+        TelegramLogger.log_parameters(run_name=run_name,
+                                      output_directory=output_directory,
+                                      run_directory=run_directory,
+                                      conf_directory=conf_directory,
+                                      conf_file=conf_file,
+                                      environment_id=environment_id,
+                                      batch_size=batch_size,
+                                      learning_rate=learning_rate,
+                                      gamma=gamma,
+                                      eps_start=eps_start,
+                                      eps_end=eps_end,
+                                      eps_decay=eps_decay,
+                                      num_atoms=num_atoms,
+                                      vmin=vmin,
+                                      vmax=vmax,
+                                      eta=eta,
+                                      beta=beta,
+                                      lambda1=lambda1,
+                                      normalize_shaped_reward=normalize_shaped_reward,
+                                      reward_shaping_dropout_rate=reward_shaping_dropout_rate,
+                                      target_update_rate=target_update_rate,
+                                      model_save_rate=model_save_rate,
+                                      episode_log_rate=episode_log_rate,
+                                      replay_memory_size=replay_memory_size,
+                                      num_frames=num_frames,
+                                      reward_pong_player_racket_hits_ball=reward_pong_player_racket_hits_ball,
+                                      reward_pong_player_racket_covers_ball=reward_pong_player_racket_covers_ball,
+                                      reward_pong_player_racket_close_to_ball_linear=reward_pong_player_racket_close_to_ball_linear,
+                                      reward_pong_player_racket_close_to_ball_quadratic=reward_pong_player_racket_close_to_ball_quadratic,
+                                      reward_pong_opponent_racket_hits_ball=reward_pong_opponent_racket_hits_ball,
+                                      reward_pong_opponent_racket_covers_ball=reward_pong_opponent_racket_covers_ball,
+                                      reward_pong_opponent_racket_close_to_ball_linear=reward_pong_opponent_racket_close_to_ball_linear,
+                                      reward_pong_opponent_racket_close_to_ball_quadratic=reward_pong_opponent_racket_close_to_ball_quadratic,
+                                      reward_breakout_player_racket_hits_ball=reward_breakout_player_racket_hits_ball,
+                                      reward_breakout_player_racket_covers_ball=reward_breakout_player_racket_covers_ball,
+                                      reward_breakout_player_racket_close_to_ball_linear=reward_breakout_player_racket_close_to_ball_linear,
+                                      reward_breakout_player_racket_close_to_ball_quadratic=reward_breakout_player_racket_close_to_ball_quadratic,
+                                      reward_spaceinvaders_player_avoids_line_of_fire=reward_spaceinvaders_player_avoids_line_of_fire,
+                                      reward_freeway_distance_walked=reward_freeway_distance_walked,
+                                      reward_freeway_distance_to_car=reward_freeway_distance_to_car,
+                                      reward_potential_based=reward_potential_based)
+
+    def log_episode(run_name, output_directory, run_directory, conf_directory, conf_file, max_frames, total_episodes, total_frames,
+                    total_duration,
+                    total_original_rewards,
+                    total_shaped_rewards, episode_frames, episode_original_reward,
+                    episode_shaped_reward, episode_loss, episode_duration):
+        ConsoleLogger.log_episode(output_directory=output_directory,
+                                  run_directory=run_directory,
+                                  max_frames=max_frames,
+                                  total_episodes=total_episodes + 1,
+                                  total_frames=total_frames,
+                                  total_duration=total_duration,
+                                  total_original_rewards=total_original_rewards,
+                                  total_shaped_rewards=total_shaped_rewards,
+                                  episode_frames=episode_frames + 1,
+                                  episode_original_reward=episode_original_reward,
+                                  episode_shaped_reward=episode_shaped_reward,
+                                  episode_loss=episode_loss,
+                                  episode_duration=episode_duration)
+
+        FileLogger.log_episode(output_directory=output_directory,
+                               run_directory=run_directory,
+                               max_frames=max_frames,
+                               total_episodes=total_episodes + 1,
+                               total_frames=total_frames,
+                               total_duration=total_duration,
+                               total_original_rewards=total_original_rewards,
+                               total_shaped_rewards=total_shaped_rewards,
+                               episode_frames=episode_frames + 1,
+                               episode_original_reward=episode_original_reward,
+                               episode_shaped_reward=episode_shaped_reward,
+                               episode_loss=episode_loss,
+                               episode_duration=episode_duration)
+
+        TelegramLogger.log_episode(run_name=run_name,
+                                   output_directory=output_directory,
+                                   run_directory=run_directory,
+                                   conf_directory=conf_directory,
+                                   conf_file=conf_file,
+                                   max_frames=max_frames,
+                                   total_episodes=total_episodes + 1,
+                                   total_frames=total_frames,
+                                   total_duration=total_duration,
+                                   total_original_rewards=total_original_rewards,
+                                   total_shaped_rewards=total_shaped_rewards,
+                                   episode_frames=episode_frames + 1,
+                                   episode_original_reward=episode_original_reward,
+                                   episode_shaped_reward=episode_shaped_reward,
+                                   episode_loss=episode_loss,
+                                   episode_duration=episode_duration)
+
+    def log_results(run_name, output_directory, run_directory, conf_directory, conf_file):
+        TelegramLogger.log_results(run_name=run_name,
+                                   output_directory=output_directory,
+                                   run_directory=run_directory,
+                                   conf_directory=conf_directory,
+                                   conf_file=conf_file)
+
+    def prepare_directory(output_directory, run_directory):
+        target_directory = output_directory + "/" + run_directory
+        symlink_directory = "latest"
+
+        # Make path if not yet exists
+        if not os.path.exists(output_directory):
+            os.mkdir(output_directory)
+        if not os.path.exists(target_directory):
+            os.mkdir(target_directory)
+
+        # Create symlink
+        if os.path.islink(output_directory + "/" + symlink_directory):
+            os.unlink(output_directory + "/" + symlink_directory)
+        os.symlink(run_directory, output_directory + "/" + symlink_directory)
+
+        return target_directory

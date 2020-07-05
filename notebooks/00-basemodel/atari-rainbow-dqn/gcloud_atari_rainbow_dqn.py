@@ -17,15 +17,18 @@ log_file = open("./output/training.log", "w")
 sys.stdout = log_file
 
 # Make library available in path
-lib_path = os.path.join(os.getcwd(), 'lib')
-if not (lib_path in sys.path):
-    sys.path.insert(0, lib_path)
-common_lib_path = os.path.join(os.getcwd(), '..', 'common', 'lib')
-if not (common_lib_path in sys.path):
-    sys.path.insert(0, common_lib_path)
-common_reward_shaper_path = os.path.join(os.getcwd(), '..', 'common', 'reward_shaper')
-if not (common_reward_shaper_path in sys.path):
-    sys.path.insert(0, common_reward_shaper_path)
+library_paths = [
+    os.path.join(os.getcwd(), 'lib'),
+    os.path.join(os.getcwd(), '..', 'common', 'environment'),
+    os.path.join(os.getcwd(), '..', 'common', 'log'),
+    os.path.join(os.getcwd(), '..', 'common', 'persistence'),
+    os.path.join(os.getcwd(), '..', 'common', 'plot'),
+    os.path.join(os.getcwd(), '..', 'common', 'reward_shaper'),
+]
+
+for p in library_paths:
+    if not (p in sys.path):
+        sys.path.insert(0, p)
 
 # Import library classes
 from action_selector import ActionSelector
@@ -35,10 +38,10 @@ from environment_builder import EnvironmentBuilder
 from environment_builder import EnvironmentWrapper
 from environment_enum import Environment
 from freeway_reward_shaper import FreewayRewardShaper
+from logger_facade import LoggerFacade
 from model_optimizer import ModelOptimizer
 from model_optimizer_curiosity import ModelOptimizerCuriosity
 from model_storage import ModelStorage
-from performance_logger import PerformanceLogger
 from performance_plotter import PerformancePlotter
 from pong_reward_shaper import PongRewardShaper
 from potential_based_reward_shaper import PotentialBasedRewardShaper
@@ -46,7 +49,6 @@ from replay_memory import ReplayMemory
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
-from telegram_logger import TelegramLogger
 
 from curiosity_net import Phi
 from curiosity_net import Gnet
@@ -180,88 +182,47 @@ else:
     TOTAL_LOSSES = []
 
     # Log parameters
-    PerformanceLogger.log_parameters(output_directory=OUTPUT_DIRECTORY,
-                                     run_directory=RUN_DIRECTORY,
-                                     environment_id=ENVIRONMENT_ID,
-                                     batch_size=BATCH_SIZE,
-                                     learning_rate=LEARNING_RATE,
-                                     gamma=GAMMA,
-                                     eps_start=EPS_START,
-                                     eps_end=EPS_END,
-                                     eps_decay=EPS_DECAY,
-                                     num_atoms=NUM_ATOMS,
-                                     vmin=VMIN,
-                                     vmax=VMAX,
-                                     eta=ETA,
-                                     beta=BETA,
-                                     lambda1=LAMBDA1,
-                                     normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
-                                     reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
-                                     target_update_rate=TARGET_UPDATE_RATE,
-                                     model_save_rate=MODEL_SAVE_RATE,
-                                     episode_log_rate=EPISODE_LOG_RATE,
-                                     replay_memory_size=REPLAY_MEMORY_SIZE,
-                                     num_frames=NUM_FRAMES,
-                                     reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
-                                     reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
-                                     reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                     reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                     reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
-                                     reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
-                                     reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
-                                     reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                     reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
-                                     reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
-                                     reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                     reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                     reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                     reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
-                                     reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
-                                     reward_potential_based=REWARD_POTENTIAL_BASED
-                                     )
-
-    TelegramLogger.log_parameters(run_name=RUN_NAME,
-                                  output_directory=OUTPUT_DIRECTORY,
-                                  run_directory=RUN_DIRECTORY,
-                                  conf_directory=CONFIG_DIRECTORY,
-                                  conf_file=TELEGRAM_CONFIG_FILE,
-                                  environment_id=ENVIRONMENT_ID,
-                                  batch_size=BATCH_SIZE,
-                                  learning_rate=LEARNING_RATE,
-                                  gamma=GAMMA,
-                                  eps_start=EPS_START,
-                                  eps_end=EPS_END,
-                                  eps_decay=EPS_DECAY,
-                                  num_atoms=NUM_ATOMS,
-                                  vmin=VMIN,
-                                  vmax=VMAX,
-                                  eta=ETA,
-                                  beta=BETA,
-                                  lambda1=LAMBDA1,
-                                  normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
-                                  reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
-                                  target_update_rate=TARGET_UPDATE_RATE,
-                                  model_save_rate=MODEL_SAVE_RATE,
-                                  episode_log_rate=EPISODE_LOG_RATE,
-                                  replay_memory_size=REPLAY_MEMORY_SIZE,
-                                  num_frames=NUM_FRAMES,
-                                  reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
-                                  reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
-                                  reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                  reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                  reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
-                                  reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
-                                  reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
-                                  reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                  reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
-                                  reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
-                                  reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
-                                  reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                  reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
-                                  reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
-                                  reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
-                                  reward_potential_based=REWARD_POTENTIAL_BASED
-                                  )
+    LoggerFacade.log_parameters(run_name=RUN_NAME,
+                                output_directory=OUTPUT_DIRECTORY,
+                                run_directory=RUN_DIRECTORY,
+                                conf_directory=CONFIG_DIRECTORY,
+                                conf_file=TELEGRAM_CONFIG_FILE,
+                                environment_id=ENVIRONMENT_ID,
+                                batch_size=BATCH_SIZE,
+                                learning_rate=LEARNING_RATE,
+                                gamma=GAMMA,
+                                eps_start=EPS_START,
+                                eps_end=EPS_END,
+                                eps_decay=EPS_DECAY,
+                                num_atoms=NUM_ATOMS,
+                                vmin=VMIN,
+                                vmax=VMAX,
+                                eta=ETA,
+                                beta=BETA,
+                                lambda1=LAMBDA1,
+                                normalize_shaped_reward=NORMALIZE_SHAPED_REWARD,
+                                reward_shaping_dropout_rate=REWARD_SHAPING_DROPOUT_RATE,
+                                target_update_rate=TARGET_UPDATE_RATE,
+                                model_save_rate=MODEL_SAVE_RATE,
+                                episode_log_rate=EPISODE_LOG_RATE,
+                                replay_memory_size=REPLAY_MEMORY_SIZE,
+                                num_frames=NUM_FRAMES,
+                                reward_pong_player_racket_hits_ball=REWARD_PONG_PLAYER_RACKET_HITS_BALL,
+                                reward_pong_player_racket_covers_ball=REWARD_PONG_PLAYER_RACKET_COVERS_BALL,
+                                reward_pong_player_racket_close_to_ball_linear=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                reward_pong_player_racket_close_to_ball_quadratic=REWARD_PONG_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                reward_pong_opponent_racket_hits_ball=REWARD_PONG_OPPONENT_RACKET_HITS_BALL,
+                                reward_pong_opponent_racket_covers_ball=REWARD_PONG_OPPONENT_RACKET_COVERS_BALL,
+                                reward_pong_opponent_racket_close_to_ball_linear=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_LINEAR,
+                                reward_pong_opponent_racket_close_to_ball_quadratic=REWARD_PONG_OPPONENT_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                reward_breakout_player_racket_hits_ball=REWARD_BREAKOUT_PLAYER_RACKET_HITS_BALL,
+                                reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
+                                reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
+                                reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
+                                reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
+                                reward_potential_based=REWARD_POTENTIAL_BASED)
 
 # Assemble reward shapings
 REWARD_SHAPINGS = [
@@ -356,6 +317,7 @@ else:
     # Define optimizer parameters
     optimizer_parameters = policy_net.parameters() + encoder.parameters() + forward_model.parameters() + inverse_model.parameters()
 
+# Only use defined parameters if there is no previous output being loaded
 if RUN_TO_LOAD != None:
     # Initialize and load optimizer
     optimizer = optim.Adam(params=optimizer_parameters, lr=LEARNING_RATE)
@@ -438,8 +400,7 @@ for total_frames in progress_bar:
                                         current_episode_reward=(
                                                 episode_original_reward + original_reward),
                                         max_episode_reward=max_episode_original_reward,
-                                        min_episode_reward=min_episode_original_reward
-                                        )
+                                        min_episode_reward=min_episode_original_reward)
 
     # Normalize shaped reward
     if NORMALIZE_SHAPED_REWARD and shaped_reward_max != 0:
@@ -541,19 +502,22 @@ for total_frames in progress_bar:
                 min_episode_original_reward = episode_original_reward
 
             if loss is not None:
-                PerformanceLogger.log_episode(output_directory=OUTPUT_DIRECTORY,
-                                              run_directory=RUN_DIRECTORY,
-                                              max_frames=NUM_FRAMES,
-                                              total_episodes=total_episodes + 1,
-                                              total_frames=total_frames,
-                                              total_duration=total_duration,
-                                              total_original_rewards=total_original_rewards,
-                                              total_shaped_rewards=total_shaped_rewards,
-                                              episode_frames=episode_frames + 1,
-                                              episode_original_reward=episode_original_reward,
-                                              episode_shaped_reward=episode_shaped_reward,
-                                              episode_loss=loss.item(),
-                                              episode_duration=episode_duration)
+                LoggerFacade.log_episode(run_name=RUN_NAME,
+                                         output_directory=OUTPUT_DIRECTORY,
+                                         run_directory=RUN_DIRECTORY,
+                                         conf_directory=CONFIG_DIRECTORY,
+                                         conf_file=TELEGRAM_CONFIG_FILE,
+                                         max_frames=NUM_FRAMES,
+                                         total_episodes=total_episodes + 1,
+                                         total_frames=total_frames,
+                                         total_duration=total_duration,
+                                         total_original_rewards=total_original_rewards,
+                                         total_shaped_rewards=total_shaped_rewards,
+                                         episode_frames=episode_frames + 1,
+                                         episode_original_reward=episode_original_reward,
+                                         episode_shaped_reward=episode_shaped_reward,
+                                         episode_loss=loss.item(),
+                                         episode_duration=episode_duration)
 
             # Update the target network, copying all weights and biases from policy net into target net
             if total_episodes != 0 and (total_episodes + 1) % TARGET_UPDATE_RATE == 0:
@@ -685,35 +649,27 @@ for total_frames in progress_bar:
                                                     xlabel="frame",
                                                     ylabel="loss")
 
-                # ScreenPlotter.save_screen_plot(output_directory=OUTPUT_DIRECTORY,
-                #                                run_directory=RUN_DIRECTORY,
-                #                                total_frames=total_frames,
-                #                                env=env,
-                #                                name="screenshot",
-                #                                title="screenshot",
-                #                                device=device)
-
                 ScreenAnimator.save_screen_animation(output_directory=OUTPUT_DIRECTORY,
                                                      run_directory=RUN_DIRECTORY,
                                                      total_episodes=total_episodes,
                                                      title="gif-screenshot")
 
-                TelegramLogger.log_episode(run_name=RUN_NAME,
-                                           output_directory=OUTPUT_DIRECTORY,
-                                           run_directory=RUN_DIRECTORY,
-                                           conf_directory=CONFIG_DIRECTORY,
-                                           conf_file=TELEGRAM_CONFIG_FILE,
-                                           max_frames=NUM_FRAMES,
-                                           total_episodes=total_episodes + 1,
-                                           total_frames=total_frames,
-                                           total_duration=total_duration,
-                                           total_original_rewards=total_original_rewards,
-                                           total_shaped_rewards=total_shaped_rewards,
-                                           episode_frames=episode_frames + 1,
-                                           episode_original_reward=episode_original_reward,
-                                           episode_shaped_reward=episode_shaped_reward,
-                                           episode_loss=loss.item(),
-                                           episode_duration=episode_duration)
+                LoggerFacade.log_episode(run_name=RUN_NAME,
+                                         output_directory=OUTPUT_DIRECTORY,
+                                         run_directory=RUN_DIRECTORY,
+                                         conf_directory=CONFIG_DIRECTORY,
+                                         conf_file=TELEGRAM_CONFIG_FILE,
+                                         max_frames=NUM_FRAMES,
+                                         total_episodes=total_episodes + 1,
+                                         total_frames=total_frames,
+                                         total_duration=total_duration,
+                                         total_original_rewards=total_original_rewards,
+                                         total_shaped_rewards=total_shaped_rewards,
+                                         episode_frames=episode_frames + 1,
+                                         episode_original_reward=episode_original_reward,
+                                         episode_shaped_reward=episode_shaped_reward,
+                                         episode_loss=loss.item(),
+                                         episode_duration=episode_duration)
 
             # Reset episode variables
             episode_frames = 0
@@ -731,10 +687,10 @@ for total_frames in progress_bar:
     # Increment counter
     episode_frames += 1
 
-TelegramLogger.log_results(run_name=RUN_NAME,
-                           output_directory=OUTPUT_DIRECTORY,
-                           run_directory=RUN_DIRECTORY,
-                           conf_directory=CONFIG_DIRECTORY,
-                           conf_file=TELEGRAM_CONFIG_FILE)
+LoggerFacade.log_results(run_name=RUN_NAME,
+                         output_directory=OUTPUT_DIRECTORY,
+                         run_directory=RUN_DIRECTORY,
+                         conf_directory=CONFIG_DIRECTORY,
+                         conf_file=TELEGRAM_CONFIG_FILE)
 
 print('Complete')

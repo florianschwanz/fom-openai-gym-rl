@@ -4,7 +4,7 @@ from datetime import datetime
 import numpy as np
 
 
-class PerformanceLogger:
+class ConsoleLogger:
 
     def log_parameters(output_directory, run_directory, environment_id, batch_size, learning_rate, gamma, eps_start, eps_end, eps_decay,
                        num_atoms, vmin, vmax, eta, beta, lambda1, normalize_shaped_reward, reward_shaping_dropout_rate,
@@ -27,7 +27,7 @@ class PerformanceLogger:
                        reward_freeway_distance_to_car,
                        reward_potential_based):
 
-        target_directory = PerformanceLogger.prepare_directory(output_directory, run_directory)
+        target_directory = ConsoleLogger.prepare_directory(output_directory, run_directory)
 
         line = "ENVIRONMENT_ID=" + str(environment_id) \
                + "\nBATCH_SIZE=" + str(batch_size) \
@@ -76,16 +76,11 @@ class PerformanceLogger:
         # Print log
         print(line)
 
-        # Write log into file
-        log_file = open(target_directory + "/parameters.txt", "a")
-        log_file.write(line + "\n")
-        log_file.close()
-
     def log_episode(output_directory, run_directory, max_frames, total_episodes, total_frames, total_duration,
                     total_original_rewards,
                     total_shaped_rewards, episode_frames, episode_original_reward,
                     episode_shaped_reward, episode_loss, episode_duration):
-        target_directory = PerformanceLogger.prepare_directory(output_directory, run_directory)
+        target_directory = ConsoleLogger.prepare_directory(output_directory, run_directory)
 
         avg_frames_per_minute = total_frames / (total_duration / 60)
         # avg_episodes_per_minute = total_episodes / (total_duration / 60)
@@ -107,35 +102,6 @@ class PerformanceLogger:
 
         # Print log
         print(line)
-
-        # Write log into file
-        log_file = open(target_directory + "/log.txt", "a")
-        log_file.write(line + "\n")
-        log_file.close()
-
-        csv_header = "total_frames," \
-              + "episode_duration," \
-              + "episode_frames," \
-              + "episode_original_reward," \
-              + "episode_shaped_reward," \
-              + "episode_loss"
-
-        csv = str(total_frames) + "," \
-              + str(episode_duration) + "," \
-              + str(episode_frames) + "," \
-              + str(episode_original_reward) + "," \
-              + str(episode_shaped_reward) + "," \
-              + str(episode_loss)
-
-        if (not os.path.isfile(target_directory + "/log.csv")):
-            log_file = open(target_directory + "/log.csv", "a")
-            log_file.write(csv_header + "\n")
-            log_file.close()
-
-        # Write csv into file
-        log_file = open(target_directory + "/log.csv", "a")
-        log_file.write(csv + "\n")
-        log_file.close()
 
     def prepare_directory(output_directory, run_directory):
         target_directory = output_directory + "/" + run_directory
