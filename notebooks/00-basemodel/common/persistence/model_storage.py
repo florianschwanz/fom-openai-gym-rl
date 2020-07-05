@@ -33,7 +33,7 @@ class ModelStorage:
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
         if checkpoint != None:
-            return checkpoint['net_state_dict']
+            return checkpoint.get('net_state_dict', None)
         else:
             return None
 
@@ -52,7 +52,7 @@ class ModelStorage:
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
-        return checkpoint['optimizer_state_dict']
+        return checkpoint.get('optimizer_state_dict', None)
 
     def saveMemoryChunks(output_directory, run_directory, total_frames, memory_chunks):
         file_extension = ModelStorage.FILE_EXTENTION_MEMORY
@@ -77,7 +77,7 @@ class ModelStorage:
 
         for file in list_of_files:
             checkpoint = ModelStorage.load_checkpoint_file(file)
-            chunks.append(checkpoint['replay_memory_chunk'])
+            chunks.append(checkpoint.get('replay_memory_chunk', None))
 
         return chunks
 
@@ -97,8 +97,8 @@ class ModelStorage:
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
-        return checkpoint['environment'], \
-               checkpoint['environment_wrappers']
+        return checkpoint.get('environment', None), \
+               checkpoint.get('environment_wrappers', None)
 
     def saveConfig(output_directory, run_directory, total_frames,
                    batch_size,
@@ -153,25 +153,25 @@ class ModelStorage:
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
-        return checkpoint['batch_size'], \
-               checkpoint['learning_rate'], \
-               checkpoint['gamma'], \
-               checkpoint['eps_start'], \
-               checkpoint['eps_end'], \
-               checkpoint['eps_decay'], \
-               checkpoint['num_atoms'], \
-               checkpoint['vmin'], \
-               checkpoint['vmax'], \
-               checkpoint['eta'], \
-               checkpoint['beta'], \
-               checkpoint['lambda1'], \
-               checkpoint['normalize_shaped_reward'], \
-               checkpoint['reward_shaping_dropout_rate'], \
-               checkpoint['target_update_rate'], \
-               checkpoint['model_save_rate'], \
-               checkpoint['episode_log_rate'], \
-               checkpoint['replay_memory_size'], \
-               checkpoint['num_frames']
+        return checkpoint.get('batch_size', 32), \
+               checkpoint.get('learning_rate', 0.0001), \
+               checkpoint.get('gamma', 0.99), \
+               checkpoint.get('eps_start', 1.0), \
+               checkpoint.get('eps_end', 0.01), \
+               checkpoint.get('eps_decay', 10_000), \
+               checkpoint.get('num_atoms', 51), \
+               checkpoint.get('vmin', -10), \
+               checkpoint.get('vmax', 10), \
+               checkpoint.get('eta', 0.0), \
+               checkpoint.get('beta', 0.0), \
+               checkpoint.get('lambda1', 0.0), \
+               checkpoint.get('normalize_shaped_reward', False), \
+               checkpoint.get('reward_shaping_dropout_rate', 0.0), \
+               checkpoint.get('target_update_rate', 10), \
+               checkpoint.get('model_save_rate', 10), \
+               checkpoint.get('episode_log_rate', 10), \
+               checkpoint.get('replay_memory_size', 100_000), \
+               checkpoint.get('num_frames', 1_000_000)
 
     def saveRewards(output_directory, run_directory, total_frames,
                     reward_pong_player_racket_hits_ball,
@@ -220,22 +220,22 @@ class ModelStorage:
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
-        return checkpoint['reward_pong_player_racket_hits_ball'], \
-               checkpoint['reward_pong_player_racket_covers_ball'], \
-               checkpoint['reward_pong_player_racket_close_to_ball_linear'], \
-               checkpoint['reward_pong_player_racket_close_to_ball_quadratic'], \
-               checkpoint['reward_pong_opponent_racket_hits_ball'], \
-               checkpoint['reward_pong_opponent_racket_covers_ball'], \
-               checkpoint['reward_pong_opponent_racket_close_to_ball_linear'], \
-               checkpoint['reward_pong_opponent_racket_close_to_ball_quadratic'], \
-               checkpoint['reward_breakout_player_racket_hits_ball'], \
-               checkpoint['reward_breakout_player_racket_covers_ball'], \
-               checkpoint['reward_breakout_player_racket_close_to_ball_linear'], \
-               checkpoint['reward_breakout_player_racket_close_to_ball_quadratic'], \
-               checkpoint['reward_spaceinvaders_player_avoids_line_of_fire'], \
-               checkpoint['reward_freeway_distance_walked'], \
-               checkpoint['reward_freeway_distance_to_car'], \
-               checkpoint['reward_potential_based']
+        return checkpoint.get('reward_pong_player_racket_hits_ball', 0.0), \
+               checkpoint.get('reward_pong_player_racket_covers_ball', 0.0), \
+               checkpoint.get('reward_pong_player_racket_close_to_ball_linear', 0.0), \
+               checkpoint.get('reward_pong_player_racket_close_to_ball_quadratic', 0.0), \
+               checkpoint.get('reward_pong_opponent_racket_hits_ball', 0.0), \
+               checkpoint.get('reward_pong_opponent_racket_covers_ball', 0.0), \
+               checkpoint.get('reward_pong_opponent_racket_close_to_ball_linear', 0.0), \
+               checkpoint.get('reward_pong_opponent_racket_close_to_ball_quadratic', 0.0), \
+               checkpoint.get('reward_breakout_player_racket_hits_ball', 0.0), \
+               checkpoint.get('reward_breakout_player_racket_covers_ball', 0.0), \
+               checkpoint.get('reward_breakout_player_racket_close_to_ball_linear', 0.0), \
+               checkpoint.get('reward_breakout_player_racket_close_to_ball_quadratic', 0.0), \
+               checkpoint.get('reward_spaceinvaders_player_avoids_line_of_fire', 0.0), \
+               checkpoint.get('reward_freeway_distance_walked', 0.0), \
+               checkpoint.get('reward_freeway_distance_to_car', 0.0), \
+               checkpoint.get('reward_potential_based', 0.0)
 
     def saveStats(output_directory, run_directory, total_frames,
                   total_episodes,
@@ -260,11 +260,11 @@ class ModelStorage:
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
-        return checkpoint['total_frames'], \
-               checkpoint['total_episodes'], \
-               checkpoint['total_original_rewards'], \
-               checkpoint['total_shaped_rewards'], \
-               checkpoint['total_losses']
+        return checkpoint.get('total_frames', 0), \
+               checkpoint.get('total_episodes', 0), \
+               checkpoint.get('total_original_rewards', 0), \
+               checkpoint.get('total_shaped_rewards', 0), \
+               checkpoint.get('total_losses', 0)
 
     def prepare_directory(output_directory, run_directory):
         target_directory = output_directory + "/" + run_directory
