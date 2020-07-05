@@ -1,12 +1,13 @@
 import glob
 import os
+from zipfile import ZipFile
 
 import torch
 
 
 class ModelStorage:
     # Maximum number of files we want to store
-    MAX_FILES = 2
+    MAX_FILES = 1
 
     FILE_EXTENTION_NET = ".net.pickle"
     FILE_EXTENTION_OPTIMIZER = ".optimizer.pickle"
@@ -49,8 +50,6 @@ class ModelStorage:
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
         return checkpoint['optimizer_state_dict']
-
-    MEMORY_CHUNKS = 5
 
     def saveMemoryChunks(output_directory, run_directory, total_frames, memory_chunks):
         file_extension = ModelStorage.FILE_EXTENTION_MEMORY
@@ -289,10 +288,27 @@ class ModelStorage:
     def load_checkpoint_file(file_to_load):
         return torch.load(file_to_load)
 
-    def prune_storage(prune_directory, file_extension):
+    def zip_model(output_directory, run_directory, total_frames):
+
+        target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
+
+        zip_file = ZipFile(target_directory + "/frame-{:07d}".format(total_frames) + ".zip", 'w')
+
+        list_of_files = glob.glob(target_directory + "/*.pickle")
+        for file in list_of_files:
+            zip_file.write(file)
+
+        zip_file.close()
+
+        # Prune unzipped pickle files
+        ModelStorage.prune_storage(target_directory, "pickle", 0)
+        # Prune zip files
+        ModelStorage.prune_storage(target_directory, "zip", 2)
+
+    def prune_storage(prune_directory, file_extension, max_files=MAX_FILES):
         list_of_files = glob.glob(prune_directory + "/*" + file_extension)
 
-        while len(list_of_files) > ModelStorage.MAX_FILES:
+        while len(list_of_files) > max_files:
             oldest_file = min(list_of_files, key=os.path.getctime)
             os.remove(oldest_file)
             list_of_files = glob.glob(prune_directory + "/*." + file_extension)

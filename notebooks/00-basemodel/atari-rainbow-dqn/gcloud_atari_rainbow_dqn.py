@@ -651,6 +651,10 @@ for total_frames in progress_bar:
                                        total_shaped_rewards=total_shaped_rewards,
                                        total_losses=total_losses)
 
+                ModelStorage.zip_model(output_directory=OUTPUT_DIRECTORY,
+                                       run_directory=RUN_DIRECTORY,
+                                       total_frames=total_frames)
+
             # Move back target net to device
             target_net.to(device)
 
