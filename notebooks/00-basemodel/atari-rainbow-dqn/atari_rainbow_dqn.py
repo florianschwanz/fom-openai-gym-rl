@@ -42,6 +42,7 @@ from replay_memory import ReplayMemory
 from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
 from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
+from telegram_logger import TelegramLogger
 
 from curiosity_net import Phi
 from curiosity_net import Gnet
@@ -499,7 +500,7 @@ for total_frames in progress_bar:
                                          output_directory=OUTPUT_DIRECTORY,
                                          run_directory=RUN_DIRECTORY,
                                          conf_directory=CONFIG_DIRECTORY,
-                                         conf_file=TELEGRAM_CONFIG_FILE,
+                                         conf_file=None,
                                          max_frames=NUM_FRAMES,
                                          total_episodes=total_episodes + 1,
                                          total_frames=total_frames,
@@ -647,7 +648,7 @@ for total_frames in progress_bar:
                                                      total_episodes=total_episodes,
                                                      title="gif-screenshot")
 
-                LoggerFacade.log_episode(run_name=RUN_NAME,
+                TelegramLogger.log_episode(run_name=RUN_NAME,
                                          output_directory=OUTPUT_DIRECTORY,
                                          run_directory=RUN_DIRECTORY,
                                          conf_directory=CONFIG_DIRECTORY,
