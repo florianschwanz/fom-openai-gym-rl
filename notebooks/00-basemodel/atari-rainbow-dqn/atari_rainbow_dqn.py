@@ -61,7 +61,6 @@ if RUN_TO_LOAD != None:
     ModelStorage.unzip_model(OUTPUT_DIRECTORY, RUN_TO_LOAD)
 
     TARGET_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "target")
-
     ENCODER_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "encoder")
     FORWARD_MODEL_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "forward_model")
     INVERSE_MODEL_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "inverse_model")
@@ -277,18 +276,19 @@ if RUN_TO_LOAD != None:
     policy_net.eval()
 
     # Initialize and load nets for curiosity approach
+    encoder = Phi(env.observation_space.shape).to(device)
+    forward_model = Fnet(env.action_space.n).to(device)
+    inverse_model = Gnet().to(device)
+
     if ENCODER_NET_STATE_DICT != None:
-        encoder = Phi(env.observation_space.shape).to(device)
         encoder.load_state_dict(ENCODER_NET_STATE_DICT)
         encoder.to(device)
         encoder.eval()
     if FORWARD_MODEL_NET_STATE_DICT != None:
-        forward_model = Fnet(env.action_space.n).to(device)
         forward_model.load_state_dict(FORWARD_MODEL_NET_STATE_DICT)
         forward_model.to(device)
         forward_model.eval()
     if INVERSE_MODEL_NET_STATE_DICT != None:
-        inverse_model = Gnet().to(device)
         inverse_model.load_state_dict(INVERSE_MODEL_NET_STATE_DICT)
         inverse_model.to(device)
         inverse_model.eval()
