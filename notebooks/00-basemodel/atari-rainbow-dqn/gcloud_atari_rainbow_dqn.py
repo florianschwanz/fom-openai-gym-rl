@@ -62,6 +62,8 @@ TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 if RUN_TO_LOAD != None:
     RUN_DIRECTORY = RUN_TO_LOAD
 
+    ModelStorage.unzip_model(OUTPUT_DIRECTORY, RUN_TO_LOAD)
+
     TARGET_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "target")
     ENCODER_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "encoder")
     FORWARD_MODEL_NET_STATE_DICT = ModelStorage.loadNet(OUTPUT_DIRECTORY, RUN_TO_LOAD, "forward_model")

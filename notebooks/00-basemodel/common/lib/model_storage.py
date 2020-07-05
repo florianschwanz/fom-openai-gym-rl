@@ -305,6 +305,19 @@ class ModelStorage:
         # Prune zip files
         ModelStorage.prune_storage(target_directory, "zip", 2)
 
+    def unzip_model(output_directory, run_directory):
+        target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
+
+        list_of_zip_files = glob.glob(target_directory + "/*.zip")
+
+        if len(list_of_zip_files) > 0:
+            # Get latest zip file
+            file_to_unzip = max(list_of_zip_files, key=os.path.getctime)
+
+            # Extract zip file
+            with ZipFile(file_to_unzip, 'r') as zip_file:
+                zip_file.extractall()
+
     def prune_storage(prune_directory, file_extension, max_files=MAX_FILES):
         list_of_files = glob.glob(prune_directory + "/*" + file_extension)
 
