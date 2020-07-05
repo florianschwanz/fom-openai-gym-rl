@@ -32,7 +32,10 @@ class ModelStorage:
         target_directory = ModelStorage.prepare_directory(output_directory, run_directory)
         checkpoint = ModelStorage.load_checkpoint(target_directory, file_extension)
 
-        return checkpoint['net_state_dict']
+        if checkpoint != None:
+            return checkpoint['net_state_dict']
+        else:
+            return None
 
     def saveOptimizer(output_directory, run_directory, total_frames, optimizer):
         file_extension = ModelStorage.FILE_EXTENTION_OPTIMIZER
@@ -282,8 +285,13 @@ class ModelStorage:
 
     def load_checkpoint(target_directory, file_extension):
         list_of_files = glob.glob(target_directory + "/*" + file_extension)
-        file_to_load = max(list_of_files, key=os.path.getctime)
-        return torch.load(file_to_load)
+
+        if len(list_of_files) > 0:
+            file_to_load = max(list_of_files, key=os.path.getctime)
+            return torch.load(file_to_load)
+        else:
+            print("No file to load with extension " + file_extension)
+            return None
 
     def load_checkpoint_file(file_to_load):
         return torch.load(file_to_load)
