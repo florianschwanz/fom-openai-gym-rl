@@ -121,18 +121,18 @@ class TelegramLogger:
                         + "\nloss " + str(round(episode_loss, 4))
 
         # Get animation path
-        list_of_files = glob.glob(target_directory + "/*.gif")
-        gif_path = max(list_of_files, key=os.path.getctime)
+        #list_of_files = glob.glob(target_directory + "/*.gif")
+        #gif_path = max(list_of_files, key=os.path.getctime)
         # Get config path
         list_of_configs = glob.glob(conf_directory + "/" + conf_file)
         config_path = max(list_of_configs, key=os.path.getctime)
 
         # Send line to telegram
-        if os.path.getsize(gif_path) /(1024*1024) < TelegramLogger.TELEGRAM_FILE_LIMIT_MB:
-            with open(gif_path, "rb") as f:
-                telegram_send.send(messages=[telegram_line], animations=[f], parse_mode="html", conf=config_path)
-        else:
-            telegram_send.send(messages=[telegram_line], parse_mode="html", conf=config_path)
+        #if os.path.getsize(gif_path) /(1024*1024) < TelegramLogger.TELEGRAM_FILE_LIMIT_MB:
+        #    with open(gif_path, "rb") as f:
+        #        telegram_send.send(messages=[telegram_line], animations=[f], parse_mode="html", conf=config_path)
+        #else:
+        telegram_send.send(messages=[telegram_line], parse_mode="html", conf=config_path)
 
     def log_results(run_name, output_directory, run_directory, conf_directory, conf_file):
         target_directory = output_directory + "/" + run_directory
