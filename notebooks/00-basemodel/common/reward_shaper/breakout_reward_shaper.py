@@ -37,7 +37,11 @@ class BreakoutRewardShaper():
     # Environments this reward shaper makes sense to use with
     ENVIRONMENTS = [
         Environment.BREAKOUT_V0,
+        Environment.BREAKOUT_V4,
+        Environment.BREAKOUT_DETERMINISTIC_V0,
+        Environment.BREAKOUT_DETERMINISTIC_V4,
         Environment.BREAKOUT_NO_FRAMESKIP_V0,
+        Environment.BREAKOUT_NO_FRAMESKIP_V4
     ]
 
     def check_environment(func):
