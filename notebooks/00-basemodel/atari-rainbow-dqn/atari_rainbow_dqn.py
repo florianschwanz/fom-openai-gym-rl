@@ -465,7 +465,7 @@ for total_frames in progress_bar:
             and total_frames % 2 == 0:
 
         if shaped_reward != 0:
-            title = "frame " + str(total_frames) + " / s " + str(round(shaped_reward, 2)),
+            title = "frame " + str(total_frames) + " / s " + str(round(shaped_reward, 2))
         else:
             title = "frame " + str(total_frames)
 
