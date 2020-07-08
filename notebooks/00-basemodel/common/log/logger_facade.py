@@ -29,7 +29,8 @@ class LoggerFacade:
                        reward_freeway_distance_to_car,
                        reward_potential_based):
 
-        ConsoleLogger.log_parameters(output_directory=output_directory,
+        ConsoleLogger.log_parameters(run_name=run_name,
+                                     output_directory=output_directory,
                                      run_directory=run_directory,
                                      environment_id=environment_id,
                                      batch_size=batch_size,
@@ -69,7 +70,8 @@ class LoggerFacade:
                                      reward_freeway_distance_to_car=reward_freeway_distance_to_car,
                                      reward_potential_based=reward_potential_based)
 
-        FileLogger.log_parameters(output_directory=output_directory,
+        FileLogger.log_parameters(run_name=run_name,
+                                  output_directory=output_directory,
                                   run_directory=run_directory,
                                   environment_id=environment_id,
                                   batch_size=batch_size,

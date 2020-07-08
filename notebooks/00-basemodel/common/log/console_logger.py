@@ -6,7 +6,8 @@ import numpy as np
 
 class ConsoleLogger:
 
-    def log_parameters(output_directory, run_directory, environment_id, batch_size, learning_rate, gamma, eps_start, eps_end, eps_decay,
+    def log_parameters(run_name, output_directory, run_directory, environment_id, batch_size, learning_rate, gamma, eps_start, eps_end,
+                       eps_decay,
                        num_atoms, vmin, vmax, eta, beta, lambda1, normalize_shaped_reward, reward_shaping_dropout_rate,
                        target_update_rate, model_save_rate, episode_log_rate,
                        replay_memory_size, num_frames,
@@ -30,7 +31,8 @@ class ConsoleLogger:
 
         target_directory = ConsoleLogger.prepare_directory(output_directory, run_directory)
 
-        line = "ENVIRONMENT_ID=" + str(environment_id) \
+        line = "RUN_NAME=" + run_name \
+               + "ENVIRONMENT_ID=" + str(environment_id) \
                + "\nBATCH_SIZE=" + str(batch_size) \
                + "\nLEARNING_RATE=" + str(learning_rate) \
                + "\nGAMMA=" + str(gamma) \
