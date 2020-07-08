@@ -1,16 +1,5 @@
 import statistics
 
-class BreakoutBlockComponent:
-    """
-    Represents breakout blocks of a certain color
-    """
-
-    def __init__(self, pixels, screen):
-        if len(pixels) == 0:
-            self.num_blocks = 0
-        else:
-            self.num_blocks = int(len(pixels) / 4)
-
 class VisualComponent:
     """
     Represents a distinct visual entity on the screen

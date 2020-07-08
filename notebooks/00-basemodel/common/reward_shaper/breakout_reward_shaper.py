@@ -3,7 +3,6 @@ import math
 from argument_extractor import ArgumentExtractor
 from environment_enum import Environment
 from visual_analyzer import VisualAnalyzer
-from visual_component import BreakoutBlockComponent
 from visual_component import VisualComponent
 
 
@@ -34,7 +33,8 @@ class BreakoutRewardShaper():
     WALL_BOTTOM_Y_MAX = 195
 
     BLOCKS_X_MIN = 8
-    BLOCKS_X_MAX = 150
+    BLOCKS_X_MAX = 151
+    BLOCK_WIDTH = 8
 
     RED_BLOCKS_Y_MIN = 57
     RED_BLOCKS_Y_MAX = 62
@@ -215,68 +215,34 @@ class BreakoutRewardShaper():
         original_reward = ArgumentExtractor.extract_argument(kwargs, "reward", None)
         additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
-        # Pixel lists
-        red_blocks_pixels = []
-        orange_blocks_pixels = []
-        yellow_blocks_pixels = []
-        lime_blocks_pixels = []
-        green_blocks_pixels = []
-        blue_blocks_pixels = []
-
         if original_reward > 0:
 
-            # Define relevant section of the screen
-            section_x_min = self.WALL_LEFT_X_MAX + 1
-            section_x_max = self.WALL_RIGHT_Y_MIN - 1
-            section_y_min = self.RED_BLOCKS_Y_MIN
-            section_y_max = self.BLUE_BLOCKS_Y_MAX
+            # Count colored blocks on screen
+            red_blocks = self.count_blocks(screen, self.RED_BLOCKS_Y_MIN)
+            orange_blocks = self.count_blocks(screen, self.ORANGE_BLOCKS_Y_MIN)
+            yellow_blocks = self.count_blocks(screen, self.YELLOW_BLOCKS_Y_MIN)
+            lime_blocks = self.count_blocks(screen, self.LIME_BLOCKS_Y_MIN)
+            green_blocks = self.count_blocks(screen, self.GREEN_BLOCKS_Y_MIN)
+            blue_blocks = self.count_blocks(screen, self.BLUE_BLOCKS_Y_MIN)
 
-            # Define step size
-            steps_x = 2
-            steps_y = 6
-
-            for x in range(section_x_min, section_x_max, steps_x):
-                for y in range(section_y_min, section_y_max, steps_y):
-                    coordinates = (x, y)
-                    value = (screen[y][x][0], screen[y][x][1], screen[y][x][2])
-
-                    if BreakoutRewardShaper.is_red_block_pixel(self, x, y, value):
-                        red_blocks_pixels.append(coordinates)
-                    elif BreakoutRewardShaper.is_orange_block_pixel(self, x, y, value):
-                        orange_blocks_pixels.append(coordinates)
-                    elif BreakoutRewardShaper.is_yellow_block_pixel(self, x, y, value):
-                        yellow_blocks_pixels.append(coordinates)
-                    elif BreakoutRewardShaper.is_lime_block_pixel(self, x, y, value):
-                        lime_blocks_pixels.append(coordinates)
-                    elif BreakoutRewardShaper.is_green_block_pixel(self, x, y, value):
-                        green_blocks_pixels.append(coordinates)
-                    elif BreakoutRewardShaper.is_blue_block_pixel(self, x, y, value):
-                        blue_blocks_pixels.append(coordinates)
-
-            red_blocks = BreakoutBlockComponent(red_blocks_pixels, self.screen)
-            orange_blocks = BreakoutBlockComponent(orange_blocks_pixels, self.screen)
-            yellow_blocks = BreakoutBlockComponent(yellow_blocks_pixels, self.screen)
-            lime_blocks = BreakoutBlockComponent(lime_blocks_pixels, self.screen)
-            green_blocks = BreakoutBlockComponent(green_blocks_pixels, self.screen)
-            blue_blocks = BreakoutBlockComponent(blue_blocks_pixels, self.screen)
-
-            if blue_blocks.num_blocks < BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN:
-                BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN = blue_blocks.num_blocks
+            # Give reward if number of blocks decreased
+            if blue_blocks < BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN = blue_blocks
                 return additional_reward * (1 / 6)
-            elif green_blocks.num_blocks < BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN:
-                BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN = green_blocks.num_blocks
+            elif green_blocks < BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN = green_blocks
                 return additional_reward * (2 / 6)
-            elif lime_blocks.num_blocks < BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN:
-                BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN = lime_blocks.num_blocks
+            elif lime_blocks < BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN = lime_blocks
                 return additional_reward * (3 / 6)
-            elif yellow_blocks.num_blocks < BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN:
-                BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN = yellow_blocks.num_blocks
+            elif yellow_blocks < BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN = yellow_blocks
                 return additional_reward * (4 / 6)
-            elif orange_blocks.num_blocks < BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN:
-                BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN = orange_blocks.num_blocks
+            elif orange_blocks < BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN = orange_blocks
                 return additional_reward * (5 / 6)
-            elif red_blocks.num_blocks < BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN:
-                BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN = red_blocks.num_blocks
+            elif red_blocks < BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN = red_blocks
                 return additional_reward
             else:
                 return 0
@@ -335,32 +301,12 @@ class BreakoutRewardShaper():
                and not (y >= self.LINE_RED_Y_MIN and y <= self.LINE_RED_Y_MAX) \
                and (y >= self.PLAYER_RACKET_Y_MIN and y <= self.PLAYER_RACKET_Y_MAX)
 
-    def is_red_block_pixel(self, x, y, value):
-        return value == self.RED \
-               and self.BLOCKS_X_MIN <= x <= self.BLOCKS_X_MAX \
-               and self.RED_BLOCKS_Y_MIN <= y <= self.RED_BLOCKS_Y_MAX
+    def count_blocks(self, screen, y):
+        blocks_count = 0
 
-    def is_orange_block_pixel(self, x, y, value):
-        return value == self.ORANGE \
-               and self.BLOCKS_X_MIN <= x <= self.BLOCKS_X_MAX \
-               and self.ORANGE_BLOCKS_Y_MIN <= y <= self.ORANGE_BLOCKS_Y_MAX
+        for x in range(self.BLOCKS_X_MIN, self.BLOCKS_X_MAX, self.BLOCK_WIDTH):
+            value = (screen[y][x][0], screen[y][x][1], screen[y][x][2])
+            if value != self.BACKGROUND_COLOR:
+                blocks_count += 1
 
-    def is_yellow_block_pixel(self, x, y, value):
-        return value == self.YELLOW \
-               and self.BLOCKS_X_MIN <= x <= self.BLOCKS_X_MAX \
-               and self.YELLOW_BLOCKS_Y_MIN <= y <= self.YELLOW_BLOCKS_Y_MAX
-
-    def is_lime_block_pixel(self, x, y, value):
-        return value == self.LIME \
-               and self.BLOCKS_X_MIN <= x <= self.BLOCKS_X_MAX \
-               and self.LIME_BLOCKS_Y_MIN <= y <= self.LIME_BLOCKS_Y_MAX
-
-    def is_green_block_pixel(self, x, y, value):
-        return value == self.GREEN \
-               and self.BLOCKS_X_MIN <= x <= self.BLOCKS_X_MAX \
-               and self.GREEN_BLOCKS_Y_MIN <= y <= self.GREEN_BLOCKS_Y_MAX
-
-    def is_blue_block_pixel(self, x, y, value):
-        return value == self.BLUE \
-               and self.BLOCKS_X_MIN <= x <= self.BLOCKS_X_MAX \
-               and self.BLUE_BLOCKS_Y_MIN <= y <= self.BLUE_BLOCKS_Y_MAX
+        return blocks_count
