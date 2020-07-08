@@ -682,7 +682,7 @@ for total_frames in progress_bar:
                                          episode_duration=episode_duration)
 
             # Reset reward shapers
-            BreakoutRewardShaper.reset_reward_shaper()
+            BreakoutRewardShaper().reset_reward_shaper()
 
             # Reset episode variables
             episode_frames = 0

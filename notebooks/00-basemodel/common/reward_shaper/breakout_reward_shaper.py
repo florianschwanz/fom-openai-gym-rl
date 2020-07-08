@@ -6,6 +6,13 @@ from visual_analyzer import VisualAnalyzer
 from visual_component import BreakoutBlockComponent
 from visual_component import VisualComponent
 
+# Counters
+RED_BLOCKS_ON_SCREEN = 18
+ORANGE_BLOCKS_ON_SCREEN = 18
+YELLOW_BLOCKS_ON_SCREEN = 18
+LIME_BLOCKS_ON_SCREEN = 18
+GREEN_BLOCKS_ON_SCREEN = 18
+BLUE_BLOCKS_ON_SCREEN = 18
 
 class BreakoutRewardShaper():
     """
@@ -62,14 +69,6 @@ class BreakoutRewardShaper():
         Environment.BREAKOUT_NO_FRAMESKIP_V4
     ]
 
-    # Counters
-    RED_BLOCKS_ON_SCREEN = 18
-    ORANGE_BLOCKS_ON_SCREEN = 18
-    YELLOW_BLOCKS_ON_SCREEN = 18
-    LIME_BLOCKS_ON_SCREEN = 18
-    GREEN_BLOCKS_ON_SCREEN = 18
-    BLUE_BLOCKS_ON_SCREEN = 18
-
     def check_environment(func):
         def check_environment_and_call(self, *args, **kwargs):
             """Checks if reward shaping is done on a matching environment"""
@@ -87,12 +86,12 @@ class BreakoutRewardShaper():
         return check_environment_and_call
 
     def reset_reward_shaper(self):
-        self.RED_BLOCKS_ON_SCREEN = 18
-        self.ORANGE_BLOCKS_ON_SCREEN = 18
-        self.YELLOW_BLOCKS_ON_SCREEN = 18
-        self.LIME_BLOCKS_ON_SCREEN = 18
-        self.GREEN_BLOCKS_ON_SCREEN = 18
-        self.BLUE_BLOCKS_ON_SCREEN = 18
+        BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN = 18
+        BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN = 18
+        BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN = 18
+        BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN = 18
+        BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN = 18
+        BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN = 18
 
     def initialize_reward_shaper(func):
         def initialize_reward_shaper_and_call(self, *args, **kwargs):
@@ -227,23 +226,23 @@ class BreakoutRewardShaper():
         additional_reward = ArgumentExtractor.extract_argument(kwargs, "additional_reward", 0)
 
         if original_reward > 0 and self.ball.visible:
-            if self.blue_blocks.num_blocks < self.BLUE_BLOCKS_ON_SCREEN:
-                self.BLUE_BLOCKS_ON_SCREEN = self.blue_blocks.num_blocks
+            if self.blue_blocks.num_blocks < BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.BLUE_BLOCKS_ON_SCREEN = self.blue_blocks.num_blocks
                 return additional_reward * (1/6)
-            if self.green_blocks.num_blocks < self.GREEN_BLOCKS_ON_SCREEN:
-                self.GREEN_BLOCKS_ON_SCREEN = self.green_blocks.num_blocks
+            if self.green_blocks.num_blocks < BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.GREEN_BLOCKS_ON_SCREEN = self.green_blocks.num_blocks
                 return additional_reward * (2/6)
-            if self.lime_blocks.num_blocks < self.LIME_BLOCKS_ON_SCREEN:
-                self.LIME_BLOCKS_ON_SCREEN = self.lime_blocks.num_blocks
+            if self.lime_blocks.num_blocks < BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.LIME_BLOCKS_ON_SCREEN = self.lime_blocks.num_blocks
                 return additional_reward * (3/6)
-            if self.YELLOW_blocks.num_blocks < self.YELLOW_BLOCKS_ON_SCREEN:
-                self.YELLOW_BLOCKS_ON_SCREEN = self.yellow_blocks.num_blocks
+            if self.YELLOW_blocks.num_blocks < BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.YELLOW_BLOCKS_ON_SCREEN = self.yellow_blocks.num_blocks
                 return additional_reward * (4/6)
-            if self.orange_blocks.num_blocks < self.ORANGE_BLOCKS_ON_SCREEN:
-                self.ORANGE_BLOCKS_ON_SCREEN = self.orange_blocks.num_blocks
+            if self.orange_blocks.num_blocks < BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.ORANGE_BLOCKS_ON_SCREEN = self.orange_blocks.num_blocks
                 return additional_reward * (5/6)
-            if self.red_blocks.num_blocks < self.RED_BLOCKS_ON_SCREEN:
-                self.RED_BLOCKS_ON_SCREEN = self.red_blocks.num_blocks
+            if self.red_blocks.num_blocks < BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN:
+                BreakoutRewardShaper.RED_BLOCKS_ON_SCREEN = self.red_blocks.num_blocks
                 return additional_reward
         else:
             return 0
