@@ -1,5 +1,5 @@
 #! /bin/bash
-export RUN_NAME="pong_rs_pos0.5_neg-0.5_pote"
+export RUN_NAME=$(basename "$0")
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="PongNoFrameskip-v4"

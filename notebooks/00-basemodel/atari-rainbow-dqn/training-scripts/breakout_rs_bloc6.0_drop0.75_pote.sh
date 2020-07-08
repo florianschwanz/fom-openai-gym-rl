@@ -1,5 +1,5 @@
 #! /bin/bash
-export RUN_NAME="breakout_rs_pos0.5_drop0.75"
+export RUN_NAME=$(basename "$0")
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="BreakoutNoFrameskip-v4"
@@ -29,7 +29,8 @@ export EPISODE_LOG_RATE=10
 export REPLAY_MEMORY_SIZE=100_000
 export NUM_FRAMES=3_000_000
 
-export REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR=0.5
+export REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR=0.0
+export REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK=6.0
 export REWARD_POTENTIAL_BASED=0.0
 
 ./gcloud_atari_rainbow_dqn.py &

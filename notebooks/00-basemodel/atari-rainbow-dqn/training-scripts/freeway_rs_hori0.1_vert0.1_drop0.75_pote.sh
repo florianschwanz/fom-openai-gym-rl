@@ -1,5 +1,5 @@
 #! /bin/bash
-export RUN_NAME="freeway_rs_hori0.1_vert0.1_drop0.75_pote"
+export RUN_NAME=$(basename "$0")
 
 export TELEGRAM_CONFIG_FILE="telegram.config"
 export ENVIRONMENT_ID="FreewayNoFrameskip-v4"
