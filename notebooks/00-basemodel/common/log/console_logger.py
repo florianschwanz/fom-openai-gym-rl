@@ -22,6 +22,7 @@ class ConsoleLogger:
                        reward_breakout_player_racket_covers_ball,
                        reward_breakout_player_racket_close_to_ball_linear,
                        reward_breakout_player_racket_close_to_ball_quadratic,
+                       reward_breakout_ball_hitting_upper_block,
                        reward_spaceinvaders_player_avoids_line_of_fire,
                        reward_freeway_distance_walked,
                        reward_freeway_distance_to_car,
@@ -67,6 +68,8 @@ class ConsoleLogger:
             reward_breakout_player_racket_close_to_ball_linear) \
                + "\nREWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC=" + str(
             reward_breakout_player_racket_close_to_ball_quadratic) \
+               + "\nREWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK=" + str(
+            reward_breakout_ball_hitting_upper_block) \
                + "\nREWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE=" + str(
             reward_spaceinvaders_player_avoids_line_of_fire) \
                + "\nREWARD_FREEWAY_DISTANCE_WALKED=" + str(reward_freeway_distance_walked) \

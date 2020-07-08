@@ -26,6 +26,7 @@ class TelegramLogger:
                        reward_breakout_player_racket_covers_ball,
                        reward_breakout_player_racket_close_to_ball_linear,
                        reward_breakout_player_racket_close_to_ball_quadratic,
+                       reward_breakout_ball_hitting_upper_block,
                        reward_spaceinvaders_player_avoids_line_of_fire,
                        reward_freeway_distance_walked,
                        reward_freeway_distance_to_car,
@@ -80,6 +81,8 @@ class TelegramLogger:
                                                                 reward_breakout_player_racket_close_to_ball_linear) \
                         + TelegramLogger.build_reward_parameter("player racket close to ball quadratic",
                                                                 reward_breakout_player_racket_close_to_ball_quadratic) \
+                        + TelegramLogger.build_reward_parameter("ball hitting upper block",
+                                                                reward_breakout_ball_hitting_upper_block) \
                         + TelegramLogger.build_reward_parameter("player avoids line of fire",
                                                                 reward_spaceinvaders_player_avoids_line_of_fire) \
                         + TelegramLogger.build_reward_parameter("chicken distance walked",

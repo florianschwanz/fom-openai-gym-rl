@@ -110,6 +110,7 @@ if RUN_TO_LOAD != None:
     REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
+    REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK, \
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
     REWARD_FREEWAY_DISTANCE_WALKED, \
     REWARD_FREEWAY_DISTANCE_TO_CAR, \
@@ -171,6 +172,7 @@ else:
     REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
+    REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK = float(os.getenv('REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK', 0.0))
     REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
     REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
     REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
@@ -220,6 +222,7 @@ else:
                                 reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
                                 reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                 reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                reward_breakout_ball_hitting_upper_block=REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK,
                                 reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                 reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                 reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
@@ -251,6 +254,8 @@ REWARD_SHAPINGS = [
      "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR}},
     {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
      "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
+    {"method": BreakoutRewardShaper().reward_ball_hitting_upper_block,
+     "arguments": {"additional_reward": REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK}},
     {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
      "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
     {"method": FreewayRewardShaper().reward_distance_walked,
@@ -675,6 +680,9 @@ for total_frames in progress_bar:
                                          episode_shaped_reward=episode_shaped_reward,
                                          episode_loss=loss.item(),
                                          episode_duration=episode_duration)
+
+            # Reset reward shapers
+            BreakoutRewardShaper.reset_reward_shaper()
 
             # Reset episode variables
             episode_frames = 0
