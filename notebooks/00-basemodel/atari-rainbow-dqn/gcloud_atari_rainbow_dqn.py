@@ -63,7 +63,7 @@ CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config")
 TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 
 if RUN_TO_LOAD != None:
-    RUN_DIRECTORY = RUN_TO_LOAD
+    RUN_DIRECTORY = RUN_TO_LOAD + "-" + RUN_NAME
 
     ModelStorage.unzip_model(OUTPUT_DIRECTORY, RUN_TO_LOAD)
 
