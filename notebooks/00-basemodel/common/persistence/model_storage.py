@@ -186,6 +186,7 @@ class ModelStorage:
                     reward_breakout_player_racket_covers_ball,
                     reward_breakout_player_racket_close_to_ball_linear,
                     reward_breakout_player_racket_close_to_ball_quadratic,
+                    reward_breakout_ball_hitting_upper_block,
                     reward_spaceinvaders_player_avoids_line_of_fire,
                     reward_freeway_distance_walked,
                     reward_freeway_distance_to_car,
@@ -207,6 +208,7 @@ class ModelStorage:
             'reward_breakout_player_racket_covers_ball': reward_breakout_player_racket_covers_ball,
             'reward_breakout_player_racket_close_to_ball_linear': reward_breakout_player_racket_close_to_ball_linear,
             'reward_breakout_player_racket_close_to_ball_quadratic': reward_breakout_player_racket_close_to_ball_quadratic,
+            'reward_breakout_ball_hitting_upper_block': reward_breakout_ball_hitting_upper_block,
             'reward_spaceinvaders_player_avoids_line_of_fire': reward_spaceinvaders_player_avoids_line_of_fire,
             'reward_freeway_distance_walked': reward_freeway_distance_walked,
             'reward_freeway_distance_to_car': reward_freeway_distance_to_car,
@@ -232,6 +234,7 @@ class ModelStorage:
                checkpoint.get('reward_breakout_player_racket_covers_ball', 0.0), \
                checkpoint.get('reward_breakout_player_racket_close_to_ball_linear', 0.0), \
                checkpoint.get('reward_breakout_player_racket_close_to_ball_quadratic', 0.0), \
+               checkpoint.get('reward_breakout_ball_hitting_upper_block', 0.0), \
                checkpoint.get('reward_spaceinvaders_player_avoids_line_of_fire', 0.0), \
                checkpoint.get('reward_freeway_distance_walked', 0.0), \
                checkpoint.get('reward_freeway_distance_to_car', 0.0), \

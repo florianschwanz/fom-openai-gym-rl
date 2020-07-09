@@ -607,6 +607,7 @@ for total_frames in progress_bar:
                                          reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
                                          reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                          reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
+                                         reward_breakout_ball_hitting_upper_block=REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK,
                                          reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                          reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                          reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
@@ -658,21 +659,21 @@ for total_frames in progress_bar:
                                                      title="gif-screenshot")
 
                 TelegramLogger.log_episode(run_name=RUN_NAME,
-                                         output_directory=OUTPUT_DIRECTORY,
-                                         run_directory=RUN_DIRECTORY,
-                                         conf_directory=CONFIG_DIRECTORY,
-                                         conf_file=TELEGRAM_CONFIG_FILE,
-                                         max_frames=NUM_FRAMES,
-                                         total_episodes=total_episodes + 1,
-                                         total_frames=total_frames,
-                                         total_duration=total_duration,
-                                         total_original_rewards=total_original_rewards,
-                                         total_shaped_rewards=total_shaped_rewards,
-                                         episode_frames=episode_frames + 1,
-                                         episode_original_reward=episode_original_reward,
-                                         episode_shaped_reward=episode_shaped_reward,
-                                         episode_loss=loss.item(),
-                                         episode_duration=episode_duration)
+                                           output_directory=OUTPUT_DIRECTORY,
+                                           run_directory=RUN_DIRECTORY,
+                                           conf_directory=CONFIG_DIRECTORY,
+                                           conf_file=TELEGRAM_CONFIG_FILE,
+                                           max_frames=NUM_FRAMES,
+                                           total_episodes=total_episodes + 1,
+                                           total_frames=total_frames,
+                                           total_duration=total_duration,
+                                           total_original_rewards=total_original_rewards,
+                                           total_shaped_rewards=total_shaped_rewards,
+                                           episode_frames=episode_frames + 1,
+                                           episode_original_reward=episode_original_reward,
+                                           episode_shaped_reward=episode_shaped_reward,
+                                           episode_loss=loss.item(),
+                                           episode_duration=episode_duration)
 
             # Reset reward shapers
             BreakoutRewardShaper().reset_reward_shaper()
