@@ -57,7 +57,7 @@ CONFIG_DIRECTORY = os.getenv('CONFIG_DIRECTORY', "./config")
 TELEGRAM_CONFIG_FILE = os.getenv('TELEGRAM_CONFIG_FILE', None)
 
 if RUN_TO_LOAD != None:
-    RUN_DIRECTORY = RUN_TO_LOAD + "-" + RUN_NAME
+    RUN_DIRECTORY = RUN_TO_LOAD
 
     ModelStorage.unzip_model(OUTPUT_DIRECTORY, RUN_DIRECTORY)
 
@@ -117,7 +117,7 @@ if RUN_TO_LOAD != None:
     TOTAL_SHAPED_REWARDS, \
     TOTAL_LOSSES = ModelStorage.loadStats(OUTPUT_DIRECTORY, RUN_DIRECTORY)
 else:
-    RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+    RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "-" + RUN_NAME
 
     ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.MS_PACMAN_NO_FRAMESKIP_V4.value)
     ENVIRONMENT = Environment(ENVIRONMENT_ID)
