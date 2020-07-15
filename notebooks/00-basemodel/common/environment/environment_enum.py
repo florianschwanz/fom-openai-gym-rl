@@ -29,6 +29,13 @@ class Environment(Enum):
     FREEWAY_NO_FRAMESKIP_V0 = 'FreewayNoFrameskip-v0'
     FREEWAY_NO_FRAMESKIP_V4 = 'FreewayNoFrameskip-v4'
 
+    MS_PACMAN_V0 = 'MsPacman-v0'
+    MS_PACMAN_V4 = 'MsPacman-v4'
+    MS_PACMAN_DETERMINISTIC_V0 = 'MsPacmanDeterministic-v0'
+    MS_PACMAN_DETERMINISTIC_V4 = 'MsPacmanDeterministic-v4'
+    MS_PACMAN_NO_FRAMESKIP_V0 = 'MsPacmanNoFrameskip-v0'
+    MS_PACMAN_NO_FRAMESKIP_V4 = 'MsPacmanNoFrameskip-v4'
+
     GRAVITAR_V0 = 'Gravitar-v0'
     GRAVITAR_NO_FRAMESKIP_V0 = 'GravitarNoFrameskip-v0'
 

@@ -24,9 +24,10 @@ class LoggerFacade:
                        reward_breakout_player_racket_close_to_ball_linear,
                        reward_breakout_player_racket_close_to_ball_quadratic,
                        reward_breakout_ball_hitting_upper_block,
-                       reward_spaceinvaders_player_avoids_line_of_fire,
+                       reward_space_invaders_player_avoids_line_of_fire,
                        reward_freeway_distance_walked,
                        reward_freeway_distance_to_car,
+                       reward_ms_pacman_far_from_enemy,
                        reward_potential_based):
 
         ConsoleLogger.log_parameters(run_name=run_name,
@@ -65,9 +66,10 @@ class LoggerFacade:
                                      reward_breakout_player_racket_close_to_ball_linear=reward_breakout_player_racket_close_to_ball_linear,
                                      reward_breakout_player_racket_close_to_ball_quadratic=reward_breakout_player_racket_close_to_ball_quadratic,
                                      reward_breakout_ball_hitting_upper_block=reward_breakout_ball_hitting_upper_block,
-                                     reward_spaceinvaders_player_avoids_line_of_fire=reward_spaceinvaders_player_avoids_line_of_fire,
+                                     reward_space_invaders_player_avoids_line_of_fire=reward_space_invaders_player_avoids_line_of_fire,
                                      reward_freeway_distance_walked=reward_freeway_distance_walked,
                                      reward_freeway_distance_to_car=reward_freeway_distance_to_car,
+                                     reward_ms_pacman_far_from_enemy=reward_ms_pacman_far_from_enemy,
                                      reward_potential_based=reward_potential_based)
 
         FileLogger.log_parameters(run_name=run_name,
@@ -106,9 +108,10 @@ class LoggerFacade:
                                   reward_breakout_player_racket_close_to_ball_linear=reward_breakout_player_racket_close_to_ball_linear,
                                   reward_breakout_player_racket_close_to_ball_quadratic=reward_breakout_player_racket_close_to_ball_quadratic,
                                   reward_breakout_ball_hitting_upper_block=reward_breakout_ball_hitting_upper_block,
-                                  reward_spaceinvaders_player_avoids_line_of_fire=reward_spaceinvaders_player_avoids_line_of_fire,
+                                  reward_space_invaders_player_avoids_line_of_fire=reward_space_invaders_player_avoids_line_of_fire,
                                   reward_freeway_distance_walked=reward_freeway_distance_walked,
                                   reward_freeway_distance_to_car=reward_freeway_distance_to_car,
+                                  reward_ms_pacman_far_from_enemy=reward_ms_pacman_far_from_enemy,
                                   reward_potential_based=reward_potential_based)
 
         TelegramLogger.log_parameters(run_name=run_name,
@@ -149,9 +152,10 @@ class LoggerFacade:
                                       reward_breakout_player_racket_close_to_ball_linear=reward_breakout_player_racket_close_to_ball_linear,
                                       reward_breakout_player_racket_close_to_ball_quadratic=reward_breakout_player_racket_close_to_ball_quadratic,
                                       reward_breakout_ball_hitting_upper_block=reward_breakout_ball_hitting_upper_block,
-                                      reward_spaceinvaders_player_avoids_line_of_fire=reward_spaceinvaders_player_avoids_line_of_fire,
+                                      reward_space_invaders_player_avoids_line_of_fire=reward_space_invaders_player_avoids_line_of_fire,
                                       reward_freeway_distance_walked=reward_freeway_distance_walked,
                                       reward_freeway_distance_to_car=reward_freeway_distance_to_car,
+                                      reward_ms_pacman_far_from_enemy=reward_ms_pacman_far_from_enemy,
                                       reward_potential_based=reward_potential_based)
 
     def log_episode(run_name, output_directory, run_directory, conf_directory, conf_file, max_frames, total_episodes, total_frames,

@@ -42,11 +42,12 @@ from logger_facade import LoggerFacade
 from model_optimizer import ModelOptimizer
 from model_optimizer_curiosity import ModelOptimizerCuriosity
 from model_storage import ModelStorage
+from ms_pacman_reward_shaper import MsPacmanRewardShaper
 from performance_plotter import PerformancePlotter
 from pong_reward_shaper import PongRewardShaper
 from potential_based_reward_shaper import PotentialBasedRewardShaper
 from replay_memory import ReplayMemory
-from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
+from space_invaders_reward_shaper import SpaceInvadersRewardShaper
 from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
 from telegram_logger import TelegramLogger
@@ -111,9 +112,10 @@ if RUN_TO_LOAD != None:
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
     REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK, \
-    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
+    REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
     REWARD_FREEWAY_DISTANCE_WALKED, \
     REWARD_FREEWAY_DISTANCE_TO_CAR, \
+    REWARD_MS_PACMAN_FAR_FROM_ENEMY, \
     REWARD_POTENTIAL_BASED = ModelStorage.loadRewards(OUTPUT_DIRECTORY, RUN_DIRECTORY)
 
     FINISHED_FRAMES, \
@@ -124,7 +126,7 @@ if RUN_TO_LOAD != None:
 else:
     RUN_DIRECTORY = datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 
-    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.BREAKOUT_NO_FRAMESKIP_V4.value)
+    ENVIRONMENT_ID = os.getenv('ENVIRONMENT_ID', Environment.MS_PACMAN_NO_FRAMESKIP_V4.value)
     ENVIRONMENT = Environment(ENVIRONMENT_ID)
     ENVIRONMENT_WRAPPERS = [
         EnvironmentWrapper.KEEP_ORIGINAL_OBSERVATION,
@@ -173,9 +175,10 @@ else:
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
     REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK = float(os.getenv('REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK', 0.0))
-    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
+    REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(os.getenv('REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
     REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
     REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
+    REWARD_MS_PACMAN_FAR_FROM_ENEMY = float(os.getenv('REWARD_MS_PACMAN_FAR_FROM_ENEMY', 0.0))
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
 
     FINISHED_FRAMES = 0
@@ -223,9 +226,10 @@ else:
                                 reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                 reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                 reward_breakout_ball_hitting_upper_block=REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK,
-                                reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                reward_space_invaders_player_avoids_line_of_fire=REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                 reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                 reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
+                                reward_ms_pacman_far_from_enemy=REWARD_MS_PACMAN_FAR_FROM_ENEMY,
                                 reward_potential_based=REWARD_POTENTIAL_BASED)
 
 # Assemble reward shapings
@@ -257,11 +261,13 @@ REWARD_SHAPINGS = [
     {"method": BreakoutRewardShaper().reward_ball_hitting_upper_block,
      "arguments": {"additional_reward": REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK}},
     {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
-     "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
+     "arguments": {"additional_reward": REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
     {"method": FreewayRewardShaper().reward_distance_walked,
      "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_WALKED}},
     {"method": FreewayRewardShaper().reward_distance_to_car,
      "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_TO_CAR}},
+    {"method": MsPacmanRewardShaper().reward_ms_pacman_far_from_enemy,
+     "arguments": {"additional_reward": REWARD_MS_PACMAN_FAR_FROM_ENEMY}},
     {"method": PotentialBasedRewardShaper().reward,
      "arguments": {"additional_reward": REWARD_POTENTIAL_BASED}},
 ]
@@ -615,9 +621,10 @@ for total_frames in progress_bar:
                                          reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                          reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
                                          reward_breakout_ball_hitting_upper_block=REWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK,
-                                         reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                         reward_space_invaders_player_avoids_line_of_fire=REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                          reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                          reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
+                                         reward_ms_pacman_far_from_enemy=REWARD_MS_PACMAN_FAR_FROM_ENEMY,
                                          reward_potential_based=REWARD_POTENTIAL_BASED)
 
                 ModelStorage.saveStats(output_directory=OUTPUT_DIRECTORY,
@@ -666,21 +673,21 @@ for total_frames in progress_bar:
                                                      title="gif-screenshot")
 
                 TelegramLogger.log_episode(run_name=RUN_NAME,
-                                         output_directory=OUTPUT_DIRECTORY,
-                                         run_directory=RUN_DIRECTORY,
-                                         conf_directory=CONFIG_DIRECTORY,
-                                         conf_file=TELEGRAM_CONFIG_FILE,
-                                         max_frames=NUM_FRAMES,
-                                         total_episodes=total_episodes + 1,
-                                         total_frames=total_frames,
-                                         total_duration=total_duration,
-                                         total_original_rewards=total_original_rewards,
-                                         total_shaped_rewards=total_shaped_rewards,
-                                         episode_frames=episode_frames + 1,
-                                         episode_original_reward=episode_original_reward,
-                                         episode_shaped_reward=episode_shaped_reward,
-                                         episode_loss=loss.item(),
-                                         episode_duration=episode_duration)
+                                           output_directory=OUTPUT_DIRECTORY,
+                                           run_directory=RUN_DIRECTORY,
+                                           conf_directory=CONFIG_DIRECTORY,
+                                           conf_file=TELEGRAM_CONFIG_FILE,
+                                           max_frames=NUM_FRAMES,
+                                           total_episodes=total_episodes + 1,
+                                           total_frames=total_frames,
+                                           total_duration=total_duration,
+                                           total_original_rewards=total_original_rewards,
+                                           total_shaped_rewards=total_shaped_rewards,
+                                           episode_frames=episode_frames + 1,
+                                           episode_original_reward=episode_original_reward,
+                                           episode_shaped_reward=episode_shaped_reward,
+                                           episode_loss=loss.item(),
+                                           episode_duration=episode_duration)
 
             # Reset reward shapers
             BreakoutRewardShaper().reset_reward_shaper()

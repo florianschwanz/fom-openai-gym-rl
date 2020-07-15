@@ -187,9 +187,10 @@ class ModelStorage:
                     reward_breakout_player_racket_close_to_ball_linear,
                     reward_breakout_player_racket_close_to_ball_quadratic,
                     reward_breakout_ball_hitting_upper_block,
-                    reward_spaceinvaders_player_avoids_line_of_fire,
+                    reward_space_invaders_player_avoids_line_of_fire,
                     reward_freeway_distance_walked,
                     reward_freeway_distance_to_car,
+                    reward_ms_pacman_far_from_enemy,
                     reward_potential_based
                     ):
         file_extension = ModelStorage.FILE_EXTENTION_REWARDS
@@ -209,9 +210,10 @@ class ModelStorage:
             'reward_breakout_player_racket_close_to_ball_linear': reward_breakout_player_racket_close_to_ball_linear,
             'reward_breakout_player_racket_close_to_ball_quadratic': reward_breakout_player_racket_close_to_ball_quadratic,
             'reward_breakout_ball_hitting_upper_block': reward_breakout_ball_hitting_upper_block,
-            'reward_spaceinvaders_player_avoids_line_of_fire': reward_spaceinvaders_player_avoids_line_of_fire,
+            'reward_space_invaders_player_avoids_line_of_fire': reward_space_invaders_player_avoids_line_of_fire,
             'reward_freeway_distance_walked': reward_freeway_distance_walked,
             'reward_freeway_distance_to_car': reward_freeway_distance_to_car,
+            'reward_ms_pacman_far_from_enemy': reward_ms_pacman_far_from_enemy,
             'reward_potential_based': reward_potential_based,
         }, target_directory + "/frame-{:07d}".format(total_frames) + file_extension)
 
@@ -235,9 +237,10 @@ class ModelStorage:
                checkpoint.get('reward_breakout_player_racket_close_to_ball_linear', 0.0), \
                checkpoint.get('reward_breakout_player_racket_close_to_ball_quadratic', 0.0), \
                checkpoint.get('reward_breakout_ball_hitting_upper_block', 0.0), \
-               checkpoint.get('reward_spaceinvaders_player_avoids_line_of_fire', 0.0), \
+               checkpoint.get('reward_space_invaders_player_avoids_line_of_fire', 0.0), \
                checkpoint.get('reward_freeway_distance_walked', 0.0), \
                checkpoint.get('reward_freeway_distance_to_car', 0.0), \
+               checkpoint.get('reward_ms_pacman_far_from_enemy', 0.0), \
                checkpoint.get('reward_potential_based', 0.0)
 
     def saveStats(output_directory, run_directory, total_frames,

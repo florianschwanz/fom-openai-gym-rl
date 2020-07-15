@@ -24,9 +24,10 @@ class FileLogger:
                        reward_breakout_player_racket_close_to_ball_linear,
                        reward_breakout_player_racket_close_to_ball_quadratic,
                        reward_breakout_ball_hitting_upper_block,
-                       reward_spaceinvaders_player_avoids_line_of_fire,
+                       reward_space_invaders_player_avoids_line_of_fire,
                        reward_freeway_distance_walked,
                        reward_freeway_distance_to_car,
+                       reward_ms_pacman_far_from_enemy,
                        reward_potential_based):
 
         target_directory = FileLogger.prepare_directory(output_directory, run_directory)
@@ -72,10 +73,11 @@ class FileLogger:
             reward_breakout_player_racket_close_to_ball_quadratic) \
                + "\nREWARD_BREAKOUT_BALL_HITTING_UPPER_BLOCK=" + str(
             reward_breakout_ball_hitting_upper_block) \
-               + "\nREWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE=" + str(
-            reward_spaceinvaders_player_avoids_line_of_fire) \
+               + "\nREWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE=" + str(
+            reward_space_invaders_player_avoids_line_of_fire) \
                + "\nREWARD_FREEWAY_DISTANCE_WALKED=" + str(reward_freeway_distance_walked) \
                + "\nREWARD_FREEWAY_DISTANCE_TO_CAR=" + str(reward_freeway_distance_to_car) \
+               + "\nREWARD_MS_PACMAN_FAR_FROM_ENEMY=" + str(reward_ms_pacman_far_from_enemy) \
                + "\nREWARD_POTENTIAL_BASED=" + str(reward_potential_based)
 
         # Write log into file

@@ -40,7 +40,7 @@ from performance_plotter import PerformancePlotter
 from pong_reward_shaper import PongRewardShaper
 from potential_based_reward_shaper import PotentialBasedRewardShaper
 from replay_memory import ReplayMemory
-from spaceinvaders_reward_shaper import SpaceInvadersRewardShaper
+from space_invaders_reward_shaper import SpaceInvadersRewardShaper
 from screen_animator import ScreenAnimator
 from screen_plotter import ScreenPlotter
 from telegram_logger import TelegramLogger
@@ -89,7 +89,7 @@ if RUN_TO_LOAD != None:
     REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR, \
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC, \
-    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
+    REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE, \
     REWARD_FREEWAY_DISTANCE_WALKED, \
     REWARD_FREEWAY_DISTANCE_TO_CAR, \
     REWARD_POTENTIAL_BASED = ModelStorage.loadRewards(OUTPUT_DIRECTORY, RUN_TO_LOAD)
@@ -143,7 +143,7 @@ else:
     REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR', 0.0))
     REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC = float(os.getenv('REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC', 0.0))
-    REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(os.getenv('REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
+    REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE = float(os.getenv('REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE', 0.0))
     REWARD_FREEWAY_DISTANCE_WALKED = float(os.getenv('REWARD_FREEWAY_DISTANCE_WALKED', 0.0))
     REWARD_FREEWAY_DISTANCE_TO_CAR = float(os.getenv('REWARD_FREEWAY_DISTANCE_TO_CAR', 0.0))
     REWARD_POTENTIAL_BASED = float(os.getenv('REWARD_POTENTIAL_BASED', 0.0))
@@ -186,7 +186,7 @@ else:
                                      reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
                                      reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                      reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                     reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                     reward_space_invaders_player_avoids_line_of_fire=REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                      reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                      reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                      reward_potential_based=REWARD_POTENTIAL_BASED
@@ -226,7 +226,7 @@ else:
                                   reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
                                   reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                   reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                  reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                  reward_space_invaders_player_avoids_line_of_fire=REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                   reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                   reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                   reward_potential_based=REWARD_POTENTIAL_BASED
@@ -259,7 +259,7 @@ REWARD_SHAPINGS = [
     {"method": BreakoutRewardShaper().reward_player_racket_close_to_ball_quadratic,
      "arguments": {"additional_reward": REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC}},
     {"method": SpaceInvadersRewardShaper().reward_player_avoids_line_of_fire,
-     "arguments": {"additional_reward": REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
+     "arguments": {"additional_reward": REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE}},
     {"method": FreewayRewardShaper().reward_distance_walked,
      "arguments": {"additional_reward": REWARD_FREEWAY_DISTANCE_WALKED}},
     {"method": FreewayRewardShaper().reward_distance_to_car,
@@ -546,7 +546,7 @@ for total_frames in progress_bar:
                                          reward_breakout_player_racket_covers_ball=REWARD_BREAKOUT_PLAYER_RACKET_COVERS_BALL,
                                          reward_breakout_player_racket_close_to_ball_linear=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_LINEAR,
                                          reward_breakout_player_racket_close_to_ball_quadratic=REWARD_BREAKOUT_PLAYER_RACKET_CLOSE_TO_BALL_QUADRATIC,
-                                         reward_spaceinvaders_player_avoids_line_of_fire=REWARD_SPACEINVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
+                                         reward_space_invaders_player_avoids_line_of_fire=REWARD_SPACE_INVADERS_PLAYER_AVOIDS_LINE_OF_FIRE,
                                          reward_freeway_distance_walked=REWARD_FREEWAY_DISTANCE_WALKED,
                                          reward_freeway_distance_to_car=REWARD_FREEWAY_DISTANCE_TO_CAR,
                                          reward_potential_based=REWARD_POTENTIAL_BASED)
