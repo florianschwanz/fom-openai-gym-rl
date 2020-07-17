@@ -67,12 +67,24 @@ class MsPacmanRewardShaper():
             self.inky_pixels, \
             self.clyde_pixels = self.extract_pixels(self.screen)
 
-            self.ms_pacman = VisualComponent(self.ms_pacman_pixels, self.screen)
+            self.ms_pacman = None
+            self.food = None
+            self.blinky = None
+            self.pinky = None
+            self.inky = None
+            self.clyde = None
+
+            if len(self.ms_pacman_pixels) > 0:
+                self.ms_pacman = VisualComponent(self.ms_pacman_pixels, self.screen)
             self.food = VisualComponent(self.ms_pacman_pixels, self.screen)
-            self.blinky = VisualComponent(self.blinky_pixels, self.screen)
-            self.pinky = VisualComponent(self.pinky_pixels, self.screen)
-            self.inky = VisualComponent(self.inky_pixels, self.screen)
-            self.clyde = VisualComponent(self.clyde_pixels, self.screen)
+            if len(self.blinky_pixels) > 0:
+                self.blinky = VisualComponent(self.blinky_pixels, self.screen)
+            if len(self.pinky_pixels) > 0:
+              self.pinky = VisualComponent(self.pinky_pixels, self.screen)
+            if len(self.inky_pixels) > 0:
+             self.inky = VisualComponent(self.inky_pixels, self.screen)
+            if len(self.clyde_pixels) > 0:
+                self.clyde = VisualComponent(self.clyde_pixels, self.screen)
             self.lives = self.info["ale.lives"]
 
             return func(self, *args, **kwargs)
@@ -184,10 +196,10 @@ class MsPacmanRewardShaper():
 
         return ms_pacman_pixels, food_pixels, blinky_pixels, pinky_pixels, inky_pixels, clyde_pixels
 
-    def distance(self, one, two):
+    def distance(one, two):
         if one != None and two != None:
-            delta_x = math.abs(one.center.x - one.center.x)
-            delta_y = math.abs(one.center.y - one.center.y)
+            delta_x = abs(one.center[0] - two.center[0])
+            delta_y = abs(one.center[1] - two.center[1])
             return math.sqrt(math.pow(delta_x, 2) + math.pow(delta_y, 2))
         else:
             return None

@@ -101,7 +101,7 @@ class TelegramLogger:
         telegram_send.send(messages=[telegram_line], parse_mode="html", conf=config_path)
 
     def build_reward_parameter(name, value):
-        return "\n" + str(name) + "=" + str(value) if value != 0.0 else ""
+        return "\n" + str(name) + " " + str(value) if value != 0.0 else ""
 
     def log_episode(run_name, output_directory, run_directory, conf_directory, conf_file, max_frames, total_episodes,
                     total_frames,
